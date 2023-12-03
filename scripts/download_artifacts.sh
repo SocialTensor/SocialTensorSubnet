@@ -1,0 +1,1 @@
+curl -L "https://civitai.com/api/download/models/225259?type=Model&format=SafeTensor&size=full&fp=fp16" --output "models/unstable_sdxl.safetensors"
