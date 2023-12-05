@@ -16,19 +16,19 @@ def pil_image_to_base64(image):
 
 class ImageGenerating(bt.Synapse):
     prompt: str = pydantic.Field(
-        "",
+        default = "",
         title="Prompt",
         description="Requested prompt for text to image generating",
     )
     seed: int = pydantic.Field(
-        0, title="Seed", description="Seed for deterministic generation"
+        default=0, title="Seed", description="Seed for deterministic generation"
     )
     images: typing.List[str] = pydantic.Field(
-        ..., title="Images", description="Output of text to image model"
+        default=[], title="Images", description="Output of text to image model"
     )
     pipeline_params: dict = pydantic.Field(
-        None, title="Pipeline Parameters", description="Additional generating params"
+        default={}, title="Pipeline Parameters", description="Additional generating params"
     )
 
     def deserialize(self) -> typing.List[str]:
-        return [pil_image_to_base64(image) for image in self.images]
+        return self.images

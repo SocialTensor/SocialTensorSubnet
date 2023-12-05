@@ -6,6 +6,7 @@ from template.base.miner import BaseMinerNeuron
 from diffusers import StableDiffusionXLPipeline
 import sd_net
 import torch
+from sd_net.protocol import pil_image_to_base64
 
 
 class Miner(BaseMinerNeuron):
@@ -25,7 +26,8 @@ class Miner(BaseMinerNeuron):
                 synapse.seed
             ),
             **synapse.pipeline_params,
-        )
+        ).images
+        images = [pil_image_to_base64(image) for image in images]
         synapse.images = images
 
         return synapse

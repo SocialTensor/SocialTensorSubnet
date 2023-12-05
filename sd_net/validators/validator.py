@@ -12,9 +12,6 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("load_state()")
         self.load_state()
-        bt.logging.info("load_rewarder()")
-        self.rewarder = Rewarder()
-
         # TODO(developer): Anything specific to your use case you can do here
 
     async def forward(self):
@@ -35,9 +32,10 @@ class Validator(BaseValidatorNeuron):
             deserialize=True,
         )
         bt.logging.info(f"Received responses: {responses}")
-        rewards = self.rewarder(prompt, responses)
-        bt.logging.info(f"Scored responses: {rewards}")
-        self.update_scores(rewards, miner_uids)
+        raise
+        #TODO: call api for verify & get reward
+        # bt.logging.info(f"Scored responses: {rewards}")
+        # self.update_scores(rewards, miner_uids)
 
 
 # The main function parses the configuration and runs the validator.
