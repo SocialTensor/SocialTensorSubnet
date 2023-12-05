@@ -1,10 +1,11 @@
+import requests
 import time
 import bittensor as bt
 from sd_net.validators.utils.uids import get_random_uids
-from sd_net.protocol import ImageGenerating
-from sd_net.validators.reward import Rewarder
+from sd_net.protocol import ImageGenerating, pil_image_to_base64
 from template.base.validator import BaseValidatorNeuron
-
+import random
+import torch
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -13,6 +14,42 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("load_state()")
         self.load_state()
         # TODO(developer): Anything specific to your use case you can do here
+    def get_prompt(self, seed: int) -> str:
+
+        url = 'http://localhost:8001/prompt_generate'
+
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+
+        data = {
+            "prompt": "an image of",
+            "seed": seed,
+            "max_length": 77,
+            "additional_params": {}
+        }
+
+        response = requests.post(url, headers=headers, json=data)
+        prompt = response.json()['prompt']
+        return prompt
+
+    def get_reward(self, miner_response: ImageGenerating, prompt: str, seed: int, additional_params: dict = {}):
+        url = "http://localhost:8000/verify"
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+        miner_images = miner_response.images
+        data = {
+            "prompt": prompt,
+            "seed": seed,
+            "images": miner_images,
+            "additional_params": additional_params
+        }
+        response = requests.post(url, headers=headers, json=data)
+        reward = response.json()['reward']
+        return reward
 
     async def forward(self):
         """
@@ -23,19 +60,22 @@ class Validator(BaseValidatorNeuron):
         - Rewarding the miners
         - Updating the scores
         """
-        prompt = "summer beach, blue sky"
-        seed = 42
+        seed = random.randint(0, 1000)
+        prompt = self.get_prompt(seed)
+        print(prompt)
         miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
         responses = self.dendrite.query(
             axons=[self.metagraph.axons[uid] for uid in miner_uids],
             synapse=ImageGenerating(prompt=prompt, seed=seed),
-            deserialize=True,
+            deserialize=False,
         )
-        bt.logging.info(f"Received responses: {responses}")
-        raise
+        # bt.logging.info(f"Received responses: {responses}")
+
+        rewards = [self.get_reward(response, prompt, seed) for response in responses]
+        rewards = torch.FloatTensor(rewards)
         #TODO: call api for verify & get reward
-        # bt.logging.info(f"Scored responses: {rewards}")
-        # self.update_scores(rewards, miner_uids)
+        bt.logging.info(f"Scored responses: {rewards}")
+        self.update_scores(rewards, miner_uids)
 
 
 # The main function parses the configuration and runs the validator.

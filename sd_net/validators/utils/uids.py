@@ -52,4 +52,5 @@ def get_random_uids(self, k: int, exclude: List[int] = None) -> torch.LongTensor
 
     # Check if candidate_uids contain enough for querying, if not grab all avaliable uids
     available_uids = candidate_uids
-    return available_uids
+
+    return list(set(available_uids))
