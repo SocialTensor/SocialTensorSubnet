@@ -73,7 +73,6 @@ class Validator(BaseValidatorNeuron):
 
         rewards = [self.get_reward(response, prompt, seed) for response in responses]
         rewards = torch.FloatTensor(rewards)
-        #TODO: call api for verify & get reward
         bt.logging.info(f"Scored responses: {rewards}")
         self.update_scores(rewards, miner_uids)
 

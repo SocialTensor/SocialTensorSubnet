@@ -125,7 +125,7 @@ Run Faucet ?                                                                    
 Enter password to unlock key: 
 Balance: τ700.000000000 ➡ τ800.000000000
 Balance: τ800.000000000 ➡ τ900.000000000
-Balance: τ900.000000000 ➡ τ1,000.000000000
+Balance: τ900.000000000 ➡ τ1,200.000000000
 ```
 
 Mint tokens for the validator:
@@ -258,18 +258,23 @@ Stake:
 - Miner generate image and return
 - Validator request reward from Rewarding Server then update the weights.
 
-### 0. Clone Stable Diffusion Subnet
+### 0. Get Stable Diffusion Subnet
 ```bash
 git clone https://github.com/toilaluan/bittensor-fixed-imagenet.git
+git submodule update --init --recursive
+pip install -r requirements.txt
 ```
 ### 1. Start Prompt & Reward API
 ```bash
+
 cd prompt_gen_api
+pip install -r requirements.txt
 python app.py
 ```
 
 ```bash
 cd reward_api
+pip install -r requirements.txt
 python app.py
 ```
 
