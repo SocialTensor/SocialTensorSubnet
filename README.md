@@ -1,8 +1,6 @@
 # Stable Diffusion Subnet
 
-## Getting Started
-
-### Prequisites
+## Prequisites Setup
 Before proceeding further, make sure that you have installed Bittensor. See the below instructions:
 
 - [Install `bittensor`](https://github.com/opentensor/bittensor#install).
@@ -254,3 +252,38 @@ Stake:
   τ0.000000000 ➡ τ298.999999000
 ```
 
+## Setup for Stable Diffusion Subnet
+
+- Validator iteratively request prompt from a LLM Server then send request to Miner for generating image
+- Miner generate image and return
+- Validator request reward from Rewarding Server then update the weights.
+
+### 0. Clone Stable Diffusion Subnet
+```bash
+git clone https://github.com/toilaluan/bittensor-fixed-imagenet.git
+```
+### 1. Start Prompt & Reward API
+```bash
+cd prompt_gen_api
+python app.py
+```
+
+```bash
+cd reward_api
+python app.py
+```
+
+### 1. Run subnet miner and subnet validator
+Run the subnet miner and subnet validator. Make sure to specify your subnet parameters.
+
+Run the subnet miner:
+
+```bash
+python sd_net/base_miner/miner.py --netuid 1 --subtensor.chain_endpoint ws://127.0.0.1:9946 --wallet.name miner --wallet.hotkey default --logging.debug
+```
+
+Run the subnet validator:
+
+```bash
+python sd_net/validators/validator.py --netuid 1 --subtensor.chain_endpoint ws://127.0.0.1:9946 --wallet.name validator --wallet.hotkey default --logging.debug
+```
