@@ -1,118 +1,256 @@
-<div align="center">
+# Stable Diffusion Subnet
 
-# **Bittensor Subnet Template** <!-- omit in toc -->
-[![Discord Chat](https://img.shields.io/discord/308323056592486420.svg)](https://discord.gg/bittensor)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+## Getting Started
 
----
+### Prequisites
+Before proceeding further, make sure that you have installed Bittensor. See the below instructions:
 
-## The Incentivized Internet <!-- omit in toc -->
+- [Install `bittensor`](https://github.com/opentensor/bittensor#install).
 
-[Discord](https://discord.gg/bittensor) • [Network](https://taostats.io/) • [Research](https://bittensor.com/whitepaper)
-</div>
+After installing `bittensor`, proceed as below:
 
----
-- [Quickstarter template](#quickstarter-template)
-- [Introduction](#introduction)
-  - [Example](#example)
-- [Installation](#installation)
-  - [Before you proceed](#before-you-proceed)
-  - [Install](#install)
-- [Writing your own incentive mechanism](#writing-your-own-incentive-mechanism)
-- [License](#license)
+### 1. Install Substrate dependencies
 
----
-## Quickstarter template
+Begin by installing the required dependencies for running a Substrate node.
 
-This template contains all the required installation instructions, scripts, and files and functions for:
-- Building Bittensor subnets.
-- Creating custom incentive mechanisms and running these mechanisms on the subnets. 
+Update your system packages:
 
-In order to simplify the building of subnets, this template abstracts away the complexity of the underlying blockchain and other boilerplate code. While the default behavior of the template is sufficient for a simple subnet, you should customize the template in order to meet your specific requirements.
----
-
-## Introduction
-
-**IMPORTANT**: If you are new to Bittensor subnets, read this section before proceeding to [Installation](#installation) section. 
-
-The Bittensor blockchain hosts multiple self-contained incentive mechanisms called **subnets**. Subnets are playing fields in which:
-- Subnet miners who produce value, and
-- Subnet validators who produce consensus
-
-determine together the proper distribution of TAO for the purpose of incentivizing the creation of value, i.e., generating digital commodities, such as intelligence or data. 
-
-Each subnet consists of:
-- Subnet miners and subnet validators.
-- A protocol using which the subnet miners and subnet validators interact with one another. This protocol is part of the incentive mechanism.
-- The Bittensor API using which the subnet miners and subnet validators interact with Bittensor's onchain consensus engine [Yuma Consensus](https://bittensor.com/documentation/validating/yuma-consensus). The Yuma Consensus is designed to drive these actors: subnet validators and subnet miners, into agreement on who is creating value and what that value is worth. 
-
-This starter template is split into three primary files. To write your own incentive mechanism, you should edit these files. These files are:
-1. `template/protocol.py`: Contains the definition of the protocol used by subnet miners and subnet validators.
-2. `neurons/miner.py`: Script that defines the subnet miner's behavior, i.e., how the subnet miner responds to requests from subnet validators.
-3. `neurons/validator.py`: This script defines the subnet validator's behavior, i.e., how the subnet validator requests information from the subnet miners and determines the scores.
-
-### Example
-
-The Bittensor Subnet 1 for Text Prompting is built using this template. See [Bittensor Text-Prompting](https://github.com/opentensor/text-prompting) for how to configure the files and how to add monitoring and telemetry and support multiple miner types. Also see this Subnet 1 in action on [Taostats](https://taostats.io/subnets/netuid-1/) explorer.
-
----
-
-## Installation
-
-### Before you proceed
-Before you proceed with the installation of the subnet, note the following: 
-
-- Use these instructions to run your subnet locally for your development and testing, or on Bittensor testnet or on Bittensor mainnet. 
-- **IMPORTANT**: We **strongly recommend** that you first run your subnet locally and complete your development and testing before running the subnet on Bittensor testnet. Furthermore, make sure that you next run your subnet on Bittensor testnet before running it on the Bittensor mainnet.
-- You can run your subnet either as a subnet owner, or as a subnet validator or as a subnet miner. 
-- **IMPORTANT:** Make sure you are aware of the minimum compute requirements for your subnet. See the [Minimum compute YAML configuration](./min_compute.yml).
-- Note that installation instructions differ based on your situation: For example, installing for local development and testing will require a few additional steps compared to installing for testnet. Similarly, installation instructions differ for a subnet owner vs a validator or a miner. 
-
-### Install
-
-- **Running locally**: Follow the step-by-step instructions described in this section: [Running Subnet Locally](./docs/running_on_staging.md).
-- **Running on Bittensor testnet**: Follow the step-by-step instructions described in this section: [Running on the Test Network](./docs/running_on_testnet.md).
-- **Running on Bittensor mainnet**: Follow the step-by-step instructions described in this section: [Running on the Main Network](./docs/running_on_mainnet.md).
-
----
-
-## Writing your own incentive mechanism
-
-As described in [Quickstarter template](#quickstarter-template) section above, when you are ready to write your own incentive mechanism, update this template repository by editing the following files. The code in these files contains detailed documentation on how to update the template. Read the documentation in each of the files to understand how to update the template. There are multiple **TODO**s in each of the files identifying sections you should update. These files are:
-- `template/protocol.py`: Contains the definition of the wire-protocol used by miners and validators.
-- `neurons/miner.py`: Script that defines the miner's behavior, i.e., how the miner responds to requests from validators.
-- `neurons/validator.py`: This script defines the validator's behavior, i.e., how the validator requests information from the miners and determines the scores.
-- `template/forward.py`: Contains the definition of the validator's forward pass.
-- `template/reward.py`: Contains the definition of how validators reward miner responses.
-
-In addition to the above files, you should also update the following files:
-- `README.md`: This file contains the documentation for your project. Update this file to reflect your project's documentation.
-- `CONTRIBUTING.md`: This file contains the instructions for contributing to your project. Update this file to reflect your project's contribution guidelines.
-- `template/__init__.py`: This file contains the version of your project.
-- `setup.py`: This file contains the metadata about your project. Update this file to reflect your project's metadata.
-- `docs/`: This directory contains the documentation for your project. Update this directory to reflect your project's documentation.
-
-__Note__
-The `template` directory should also be renamed to your project name.
----
-
-## License
-This repository is licensed under the MIT License.
-```text
-# The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
-
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
+```bash
+sudo apt update 
 ```
+
+Install additional required libraries and tools
+
+```bash
+sudo apt install --assume-yes make build-essential git clang curl libssl-dev llvm libudev-dev protobuf-compiler
+```
+### 2. Install Rust and Cargo
+
+Rust is the programming language used in Substrate development. Cargo is Rust package manager.
+
+Install rust and cargo:
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
+Update your shell's source to include Cargo's path:
+
+```bash
+source "$HOME/.cargo/env"
+```
+
+## 3. Clone the subtensor repository
+
+This step fetches the subtensor codebase to your local machine.
+
+```bash
+git clone https://github.com/toilaluan/subtensor.git
+```
+
+## 4. Setup & Run Subtensor server
+```bash
+cd subtensor
+./scripts/init.sh
+./scripts/localnet.sh
+```
+**NOTE**: Watch for any build or initialization outputs in this step. If you are building the project for the first time, this step will take a while to finish building, depending on your hardware.
+
+## 5. Set up wallets
+You will need wallets for the different roles, i.e., subnet owner, subnet validator and subnet miner, in the subnet. 
+
+- The owner wallet creates and controls the subnet. 
+- The validator and miner will be registered to the subnet created by the owner. This ensures that the validator and miner can run the respective validator and miner scripts.
+
+Create a coldkey for the owner role:
+
+```bash
+btcli wallet new_coldkey --wallet.name owner
+```
+
+Set up the miner's wallets:
+
+```bash
+btcli wallet new_coldkey --wallet.name miner
+```
+
+```bash
+btcli wallet new_hotkey --wallet.name miner --wallet.hotkey default
+```
+
+Set up the validator's wallets:
+
+```bash
+btcli wallet new_coldkey --wallet.name validator
+```
+```bash
+btcli wallet new_hotkey --wallet.name validator --wallet.hotkey default
+```
+
+### 6. Mint tokens from faucet
+
+You will need tokens to initialize the intentive mechanism on the chain as well as for registering the subnet. 
+
+- Owner need > τ1000 for create subnet
+- Validator & Miner need > τ0 for registering to subnet
+
+Run the following commands to mint faucet tokens for the owner and for the validator.
+
+Mint faucet tokens for the owner:
+```bash
+btcli wallet faucet --wallet.name owner --subtensor.chain_endpoint ws://127.0.0.1:9946 
+btcli wallet faucet --wallet.name owner --subtensor.chain_endpoint ws://127.0.0.1:9946 
+btcli wallet faucet --wallet.name owner --subtensor.chain_endpoint ws://127.0.0.1:9946 
+```
+
+You will see:
+```bash
+Run Faucet ?                                                                                                                             
+ coldkey:    *****                                                                            
+ network:    local [y/n]: y                                                                                                              
+Enter password to unlock key:                                                                                                            
+Balance: τ0.000000000 ➡ τ100.000000000                                                                                                   
+Balance: τ100.000000000 ➡ τ200.000000000                                                                                                 
+Balance: τ200.000000000 ➡ τ300.000000000
+
+Run Faucet ?                                                                                                                             
+ coldkey:    *****                                                                            
+ network:    local [y/n]: y                                                                                                              
+Enter password to unlock key:                                                                                                            
+Balance: τ400.000000000 ➡ τ500.000000000                                                                                                 
+Balance: τ500.000000000 ➡ τ600.000000000                                                                                                 
+Balance: τ600.000000000 ➡ τ700.000000000
+
+Run Faucet ?                                                                                                                  [1759/3666]
+ coldkey:    *****
+ network:    local [y/n]: y
+Enter password to unlock key: 
+Balance: τ700.000000000 ➡ τ800.000000000
+Balance: τ800.000000000 ➡ τ900.000000000
+Balance: τ900.000000000 ➡ τ1,000.000000000
+```
+
+Mint tokens for the validator:
+```bash
+btcli wallet faucet --wallet.name validator --subtensor.chain_endpoint ws://127.0.0.1:9946 
+```
+
+You will see:
+```bash
+Run Faucet ?                                                                                                                             
+ coldkey:    *****                                                                            
+ network:    local [y/n]: y                                                                                                              
+Enter password to unlock key:                                                                                                            
+Balance: τ0.000000000 ➡ τ100.000000000                                                                                                   
+Balance: τ100.000000000 ➡ τ200.000000000                                                                                                 
+Balance: τ200.000000000 ➡ τ300.000000000
+```
+
+Mint tokens for the miner:
+```bash
+btcli wallet faucet --wallet.name miner --subtensor.chain_endpoint ws://127.0.0.1:9946 
+```
+
+You will see:
+```bash
+Run Faucet ?                                                                                                                             
+ coldkey:    *****                                                                            
+ network:    local [y/n]: y                                                                                                              
+Enter password to unlock key:                                                                                                            
+Balance: τ0.000000000 ➡ τ100.000000000                                                                                                   
+Balance: τ100.000000000 ➡ τ200.000000000                                                                                                 
+Balance: τ200.000000000 ➡ τ300.000000000
+```
+
+## 7. Create a subnet
+
+The below commands establish a new subnet on the local chain. The cost will be exactly τ1000.000000000 for the first subnet you create.
+
+```bash
+btcli subnet create --wallet.name owner --subtensor.chain_endpoint ws://127.0.0.1:9946 
+```
+
+You will see:
+
+```bash
+>> Your balance is: τ1200.000000000
+>> Do you want to register a subnet for τ1000.000000000? [y/n]: 
+>> Enter password to unlock key: [YOUR_PASSWORD]
+>> ✅ Registered subnetwork with netuid: 1
+```
+
+**NOTE**: The local chain will now have a default `netuid` of 1. The second registration will create a `netuid` 2 and so on, until you reach the subnet limit of 8. If you register more than 8 subnets, then a subnet with the least staked TAO will be replaced by the 9th subnet you register.
+
+## 8. Register keys
+
+Register your subnet validator and subnet miner on the subnet. This gives your two keys unique slots on the subnet. The subnet has a current limit of 128 slots.
+
+Register the subnet miner:
+
+```bash
+btcli subnet register --wallet.name miner --wallet.hotkey default --subtensor.chain_endpoint ws://127.0.0.1:9946
+```
+
+Follow the below prompts:
+
+```bash
+Your balance is: τ300.000000000                                                                                                          
+The cost to register by recycle is τ1.000000000                                                                                          
+Do you want to continue? [y/n] (n): y                                                                                                    
+Enter password to unlock key:                                                                                                            
+Recycle τ1.000000000 to register on subnet:1? [y/n]: y                                                                                   
+📡 Checking Balance...                                                                                                                   
+Balance:                                                                                                                                 
+  τ300.000000000 ➡ τ299.000000000                                                                                                        
+✅ Registered
+```
+
+Register the subnet validator:
+
+```bash
+
+btcli subnet register --wallet.name validator --wallet.hotkey default --subtensor.chain_endpoint ws://127.0.0.1:9946
+```
+
+Follow the below prompts:
+
+```
+Your balance is: τ300.000000000                                                                                                          
+The cost to register by recycle is τ1.000000000                                                                                          
+Do you want to continue? [y/n] (n): y                                                                                                    
+Enter password to unlock key:                                                                                                            
+Recycle τ1.000000000 to register on subnet:1? [y/n]: y                                                                                   
+📡 Checking Balance...                                                                                                                   
+Balance:                                                                                                                                 
+  τ300.000000000 ➡ τ299.000000000                                                                                                        
+✅ Registered
+```
+
+## 11. Add stake 
+
+This step bootstraps the incentives on your new subnet by adding stake into its incentive mechanism.
+
+```bash
+btcli stake add --wallet.name validator --wallet.hotkey default --subtensor.chain_endpoint ws://127.0.0.1:9946
+```
+
+Follow the below prompts:
+
+```bash
+Stake all Tao from account: 'validator'? [y/n]: y
+2023-12-05 03:35:09.646 |       INFO       | Connected to local network and ws://127.0.0.1:9946.
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 295.12it/s]
+Do you want to stake to the following keys from validator:
+    - default:*****: All
+ [y/n]: y
+Enter password to unlock key: 
+Do you want to stake:
+  amount: τ298.999999000
+  to: default [y/n]: y
+✅ Finalized
+Balance:
+  τ299.000000000 ➡ τ0.000001000
+Stake:
+  τ0.000000000 ➡ τ298.999999000
+```
+
