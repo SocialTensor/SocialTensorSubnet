@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from diffusers import StableDiffusionXLPipeline
+from diffusers import StableDiffusionXLPipeline, StableDiffusionPipeline
 from PIL import Image
 import torch
 from typing import List
@@ -12,7 +12,7 @@ class Prompt(BaseModel):
     additional_params: dict = {}
 
 app = FastAPI()
-pipe = StableDiffusionXLPipeline.from_single_file("model.safetensors")
+pipe = StableDiffusionPipeline.from_single_file("model.safetensors")
 pipe.enable_model_cpu_offload()
 pipe.to("cuda")
 
@@ -25,4 +25,4 @@ async def get_rewards(data: Prompt):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8004)
+    uvicorn.run(app, host="0.0.0.0", port=10001)
