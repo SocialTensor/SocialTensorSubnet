@@ -7,27 +7,35 @@ from diffusers import StableDiffusionXLPipeline
 import sd_net
 import torch
 from sd_net.protocol import pil_image_to_base64
+from typing import List
+import os
+import requests
+from dotenv import load_dotenv
+load_dotenv()
+
+GENERATE_URL = os.getenv("MINER_SD_ENDPOINT")
 
 
 class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
-        self.pipe = StableDiffusionXLPipeline.from_single_file(
-            "models/unstable_sdxl.safetensors"
-        )
-        self.pipe.to("cuda")
+        
+    def generate(self, prompt: str, seed: int, additional_params: dict) -> List[str]:
+        data = {"prompt": prompt, "seed": seed, "additional_params": additional_params}
 
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+
+        response = requests.post(GENERATE_URL, headers=headers, json=data)
+        images = response.json()['images']
+        return images
+    
     async def forward(
         self, synapse: sd_net.protocol.ImageGenerating
     ) -> sd_net.protocol.ImageGenerating:
-        images = self.pipe(
-            synapse.prompt,
-            generator=torch.Generator(device=self.pipe.device).manual_seed(
-                synapse.seed
-            ),
-            **synapse.pipeline_params,
-        ).images
-        images = [pil_image_to_base64(image) for image in images]
+        images = self.generate(synapse.prompt, synapse.seed, synapse.pipeline_params)
         synapse.images = images
 
         return synapse

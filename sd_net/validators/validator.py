@@ -6,6 +6,12 @@ from sd_net.protocol import ImageGenerating, pil_image_to_base64
 from template.base.validator import BaseValidatorNeuron
 import random
 import torch
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+REWARD_URL = os.getenv("REWARD_ENDPOINT")
+PROMPT_URL = os.getenv("PROMPT_ENDPOINT")
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -15,9 +21,6 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
         # TODO(developer): Anything specific to your use case you can do here
     def get_prompt(self, seed: int) -> str:
-
-        url = 'http://localhost:8001/prompt_generate'
-
         headers = {
             'accept': 'application/json',
             'Content-Type': 'application/json',
@@ -30,12 +33,11 @@ class Validator(BaseValidatorNeuron):
             "additional_params": {}
         }
 
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(PROMPT_URL, headers=headers, json=data)
         prompt = response.json()['prompt']
         return prompt
 
     def get_reward(self, miner_response: ImageGenerating, prompt: str, seed: int, additional_params: dict = {}):
-        url = "http://localhost:8000/verify"
         headers = {
             'accept': 'application/json',
             'Content-Type': 'application/json',
@@ -47,7 +49,7 @@ class Validator(BaseValidatorNeuron):
             "images": miner_images,
             "additional_params": additional_params
         }
-        response = requests.post(url, headers=headers, json=data)
+        response = requests.post(REWARD_URL, headers=headers, json=data)
         reward = response.json()['reward']
         return reward
 
@@ -64,6 +66,7 @@ class Validator(BaseValidatorNeuron):
         prompt = self.get_prompt(seed)
         print(prompt)
         miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+        print(f"UIDS: {miner_uids}")
         responses = self.dendrite.query(
             axons=[self.metagraph.axons[uid] for uid in miner_uids],
             synapse=ImageGenerating(prompt=prompt, seed=seed),
