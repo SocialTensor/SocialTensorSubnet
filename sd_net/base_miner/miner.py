@@ -104,7 +104,7 @@ class Miner(BaseMinerNeuron):
             f"Not Blacklisting recognized hotkey {synapse.dendrite.hotkey}"
         )
         validator_uid = self.metagraph.hotkeys.index( synapse.dendrite.hotkey )
-        stake = self.metagraph.stake[validator_uid]
+        stake = self.metagraph.stake[validator_uid].item()
         if stake < CONFIG['blacklist']['min_stake']:
             return True, "Validator doesn't have enough stake"
         if self.check_limit(uid=validator_uid, stake=stake):
