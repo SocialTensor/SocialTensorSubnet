@@ -74,8 +74,8 @@ class Validator(BaseValidatorNeuron):
         seed = random.randint(0, 1000)
         prompt = self.get_prompt(seed)
         print(prompt)
-        miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-        print(f"UIDS: {miner_uids}")
+        available_uids = get_random_uids(self, k=self.config.neuron.sample_size)
+        print(f"UIDS: {available_uids}")
         responses = self.dendrite.query(
             axons=[self.metagraph.axons[uid] for uid in available_uids],
             synapse=ImageGenerating(prompt=prompt, seed=seed),
@@ -83,7 +83,7 @@ class Validator(BaseValidatorNeuron):
         )
         valid_uids = []
         valid_responses = []
-        for uid, response in zip(miner_uids, responses):
+        for uid, response in zip(available_uids, responses):
             if response and response.images:
                 valid_uids.append(uid)
                 valid_responses.append(response)
