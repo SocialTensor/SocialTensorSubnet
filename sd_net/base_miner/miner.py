@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GENERATE_URL = os.getenv("MINER_SD_ENDPOINT")
-CONFIG = yaml.load(open("./config.yaml"), Loader=yaml.FullLoader)
+CONFIG = yaml.load(open("sd_net/base_miner/config.yaml"), Loader=yaml.FullLoader)
 
 def calculate_max_request_per_interval(stake: int):
     return CONFIG['blacklist']['tao_based_limitation']['max_requests_per_interval'] \
@@ -109,6 +109,9 @@ class Miner(BaseMinerNeuron):
             return True, "Validator doesn't have enough stake"
         if self.check_limit(uid=validator_uid, stake=stake):
             return True, "Limit exceeded"
+        bt.logging.trace(
+            f"Passed all blacklist checking!"
+        )
         return False, "All passed!"
 
 
