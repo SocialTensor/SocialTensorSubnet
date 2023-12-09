@@ -92,26 +92,23 @@ class Miner(BaseMinerNeuron):
 
         Otherwise, allow the request to be processed further.
         """
-        # TODO(developer): Define how miners should blacklist requests.
-        if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
-            # Ignore requests from unrecognized entities.
-            bt.logging.trace(
-                f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
-            )
-            return True, "Unrecognized hotkey"
+        # # TODO(developer): Define how miners should blacklist requests.
+        # if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
+        #     # Ignore requests from unrecognized entities.
+        #     bt.logging.trace(
+        #         f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
+        #     )
+        #     return True, "Unrecognized hotkey"
 
-        bt.logging.trace(
-            f"Not Blacklisting recognized hotkey {synapse.dendrite.hotkey}"
-        )
-        validator_uid = self.metagraph.hotkeys.index( synapse.dendrite.hotkey )
-        stake = self.metagraph.stake[validator_uid].item()
-        if stake < CONFIG['blacklist']['min_stake']:
-            return True, "Validator doesn't have enough stake"
-        if self.check_limit(uid=validator_uid, stake=stake):
-            return True, "Limit exceeded"
-        bt.logging.trace(
-            f"Passed all blacklist checking!"
-        )
+        # bt.logging.trace(
+        #     f"Not Blacklisting recognized hotkey {synapse.dendrite.hotkey}"
+        # )
+        # validator_uid = self.metagraph.hotkeys.index( synapse.dendrite.hotkey )
+        # stake = self.metagraph.stake[validator_uid].item()
+        # if stake < CONFIG['blacklist']['min_stake']:
+        #     return True, "Validator doesn't have enough stake"
+        # if self.check_limit(uid=validator_uid, stake=stake):
+        #     return True, "Limit exceeded"
         return False, "All passed!"
 
 
