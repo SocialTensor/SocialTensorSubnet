@@ -58,8 +58,8 @@ class Miner(BaseMinerNeuron):
             self.validator_logs[uid]['request_counter'] += 1
             if self.validator_logs[uid]['request_counter'] > self.validator_logs[uid]['max_request']:
                 self.validator_logs.pop(uid, None)
-                return False
-        return True
+                return True
+        return False
     async def blacklist(
         self, synapse: sd_net.protocol.ImageGenerating
     ) -> typing.Tuple[bool, str]:
@@ -110,8 +110,9 @@ class Miner(BaseMinerNeuron):
                 f"Blacklisting {validator_uid}-validator has {stake} stake"
             )
             return True, "Validator doesn't have enough stake"
-        # if self.check_limit(uid=validator_uid, stake=stake):
-        #     return True, "Limit exceeded"
+        if self.check_limit(uid=validator_uid, stake=stake):
+
+            return True, "Limit exceeded"
         return False, "All passed!"
 
 
