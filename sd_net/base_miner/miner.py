@@ -1,9 +1,7 @@
 import time
 import typing
 import bittensor as bt
-import template
 from template.base.miner import BaseMinerNeuron
-from diffusers import StableDiffusionXLPipeline
 import sd_net
 import torch
 from sd_net.protocol import pil_image_to_base64
