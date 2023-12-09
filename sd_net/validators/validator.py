@@ -8,10 +8,12 @@ import random
 import torch
 import os
 from dotenv import load_dotenv
+
 load_dotenv()
 
 REWARD_URL = os.getenv("REWARD_ENDPOINT")
 PROMPT_URL = os.getenv("PROMPT_ENDPOINT")
+
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -20,37 +22,44 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("load_state()")
         self.load_state()
         # TODO(developer): Anything specific to your use case you can do here
+
     def get_prompt(self, seed: int) -> str:
         headers = {
-            'accept': 'application/json',
-            'Content-Type': 'application/json',
+            "accept": "application/json",
+            "Content-Type": "application/json",
         }
 
         data = {
             "prompt": "an image of",
             "seed": seed,
             "max_length": 77,
-            "additional_params": {}
+            "additional_params": {},
         }
 
         response = requests.post(PROMPT_URL, headers=headers, json=data)
-        prompt = response.json()['prompt']
+        prompt = response.json()["prompt"]
         return prompt
 
-    def get_reward(self, miner_response: ImageGenerating, prompt: str, seed: int, additional_params: dict = {}):
+    def get_reward(
+        self,
+        miner_response: ImageGenerating,
+        prompt: str,
+        seed: int,
+        additional_params: dict = {},
+    ):
         headers = {
-            'accept': 'application/json',
-            'Content-Type': 'application/json',
+            "accept": "application/json",
+            "Content-Type": "application/json",
         }
         miner_images = miner_response.images
         data = {
             "prompt": prompt,
             "seed": seed,
             "images": miner_images,
-            "additional_params": additional_params
+            "additional_params": additional_params,
         }
         response = requests.post(REWARD_URL, headers=headers, json=data)
-        reward = response.json()['reward']
+        reward = response.json()["reward"]
         return reward
 
     async def forward(self):
@@ -81,7 +90,9 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info(f"Received responses: {valid_responses}")
 
-        rewards = [self.get_reward(response, prompt, seed) for response in valid_responses]
+        rewards = [
+            self.get_reward(response, prompt, seed) for response in valid_responses
+        ]
         rewards = torch.FloatTensor(rewards)
         bt.logging.info(f"Scored responses: {rewards}")
         self.update_scores(rewards, valid_uids)
