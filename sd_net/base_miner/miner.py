@@ -9,16 +9,25 @@ import torch
 from sd_net.protocol import pil_image_to_base64
 from typing import List
 import os
+import time
 import requests
+import yaml
 from dotenv import load_dotenv
 load_dotenv()
 
 GENERATE_URL = os.getenv("MINER_SD_ENDPOINT")
+CONFIG = yaml.load(open("./config.yaml"), Loader=yaml.FullLoader)
+
+def calculate_max_request_per_interval(stake: int):
+    return CONFIG['blacklist']['tao_based_limitation']['max_requests_per_interval'] \
+        * stake \
+            // CONFIG['blacklist']['tao_based_limitation']['tao_base_level']
 
 
 class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
+        self.validator_logs = {}
         
     def generate(self, prompt: str, seed: int, additional_params: dict) -> List[str]:
         data = {"prompt": prompt, "seed": seed, "additional_params": additional_params}
@@ -39,6 +48,20 @@ class Miner(BaseMinerNeuron):
         synapse.images = images
 
         return synapse
+    def check_limit(self, uid: str, stake: int):
+        current_time = time.time()
+        if uid not in self.validator_logs or (current_time - self.validator_logs[uid]['start_interval']) > CONFIG['tao_based_limitation']['interval']:
+            self.validator_logs[uid] = {
+                "start_interval": time.time(),
+                "max_request": calculate_max_request_per_interval(stake=stake),
+                "request_counter": 1,
+            }
+        else:
+            self.validator_logs[uid]['request_counter'] += 1
+            if self.validator_logs[uid]['request_counter'] > self.validator_logs[uid]['max_request']:
+                self.validator_logs.pop(uid, None)
+                return False
+        return True
     async def blacklist(
         self, synapse: sd_net.protocol.ImageGenerating
     ) -> typing.Tuple[bool, str]:
@@ -72,18 +95,23 @@ class Miner(BaseMinerNeuron):
         Otherwise, allow the request to be processed further.
         """
         # TODO(developer): Define how miners should blacklist requests.
-        # if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
-        #     # Ignore requests from unrecognized entities.
-        #     bt.logging.trace(
-        #         f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
-        #     )
-        #     return True, "Unrecognized hotkey"
+        if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
+            # Ignore requests from unrecognized entities.
+            bt.logging.trace(
+                f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
+            )
+            return True, "Unrecognized hotkey"
 
-        # bt.logging.trace(
-        #     f"Not Blacklisting recognized hotkey {synapse.dendrite.hotkey}"
-        # )
-        # return False, "Hotkey recognized!"
-        return False, "Hotkey recognized!"
+        bt.logging.trace(
+            f"Not Blacklisting recognized hotkey {synapse.dendrite.hotkey}"
+        )
+        validator_uid = self.metagraph.hotkeys.index( synapse.dendrite.hotkey )
+        stake = self.metagraph.stake[validator_uid]
+        if stake < CONFIG['blacklist']['min_stake']:
+            return True, "Validator doesn't have enough stake"
+        if self.check_limit(uid=validator_uid, stake=stake):
+            return True, "Limit exceeded"
+        return False, "All passed!"
 
 
     async def priority(self, synapse: sd_net.protocol.ImageGenerating) -> float:
