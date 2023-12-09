@@ -11,7 +11,7 @@ app = FastAPI()
 @app.get("/get_allowed_ip_list")
 async def get_rewards():
     all_allowed_ips = []
-    subtensor = bt.subtensor("ws://127.0.0.1:9946")
+    subtensor = bt.subtensor(args.subnet_url)
     metagraph = subtensor.metagraph(args.netuid)
     for uid in range(len(metagraph.total_stake)):
         if metagraph.total_stake[uid] > args.min_stake:
