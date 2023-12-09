@@ -18,8 +18,8 @@ CONFIG = yaml.load(open("sd_net/base_miner/config.yaml"), Loader=yaml.FullLoader
 
 def calculate_max_request_per_interval(stake: int):
     return CONFIG['blacklist']['tao_based_limitation']['max_requests_per_interval'] \
-        * stake \
-            // CONFIG['blacklist']['tao_based_limitation']['tao_base_level']
+        * (stake \
+            // CONFIG['blacklist']['tao_based_limitation']['tao_base_level'])
 
 
 class Miner(BaseMinerNeuron):
@@ -42,22 +42,30 @@ class Miner(BaseMinerNeuron):
     async def forward(
         self, synapse: sd_net.protocol.ImageGenerating
     ) -> sd_net.protocol.ImageGenerating:
+        print(synapse)
         images = self.generate(synapse.prompt, synapse.seed, synapse.pipeline_params)
         synapse.images = images
 
         return synapse
     def check_limit(self, uid: str, stake: int):
         current_time = time.time()
-        if uid not in self.validator_logs or (current_time - self.validator_logs[uid]['start_interval']) > CONFIG['tao_based_limitation']['interval']:
+        print(self.validator_logs)
+        if uid not in self.validator_logs:
             self.validator_logs[uid] = {
                 "start_interval": time.time(),
                 "max_request": calculate_max_request_per_interval(stake=stake),
                 "request_counter": 1,
             }
+        elif time.time() - self.validator_logs[uid]['start_interval'] > CONFIG['blacklist']['tao_based_limitation']['interval']:
+            self.validator_logs[uid] = {
+                "start_interval": time.time(),
+                "max_request": calculate_max_request_per_interval(stake=stake),
+                "request_counter": 1,
+            }
+            print(f"RESET INTERVAL OF {uid}")
         else:
             self.validator_logs[uid]['request_counter'] += 1
             if self.validator_logs[uid]['request_counter'] > self.validator_logs[uid]['max_request']:
-                self.validator_logs.pop(uid, None)
                 return True
         return False
     async def blacklist(
@@ -111,8 +119,8 @@ class Miner(BaseMinerNeuron):
             )
             return True, "Validator doesn't have enough stake"
         if self.check_limit(uid=validator_uid, stake=stake):
-
             return True, "Limit exceeded"
+
         return False, "All passed!"
 
 

@@ -68,16 +68,23 @@ class Validator(BaseValidatorNeuron):
         miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
         print(f"UIDS: {miner_uids}")
         responses = self.dendrite.query(
-            axons=[self.metagraph.axons[uid] for uid in miner_uids],
+            axons=[self.metagraph.axons[uid] for uid in available_uids],
             synapse=ImageGenerating(prompt=prompt, seed=seed),
             deserialize=False,
         )
-        # bt.logging.info(f"Received responses: {responses}")
+        valid_uids = []
+        valid_responses = []
+        for uid, response in zip(miner_uids, responses):
+            if response and response.images:
+                valid_uids.append(uid)
+                valid_responses.append(response)
 
-        rewards = [self.get_reward(response, prompt, seed) for response in responses]
+        bt.logging.info(f"Received responses: {valid_responses}")
+
+        rewards = [self.get_reward(response, prompt, seed) for response in valid_responses]
         rewards = torch.FloatTensor(rewards)
         bt.logging.info(f"Scored responses: {rewards}")
-        self.update_scores(rewards, miner_uids)
+        self.update_scores(rewards, valid_uids)
 
 
 # The main function parses the configuration and runs the validator.
