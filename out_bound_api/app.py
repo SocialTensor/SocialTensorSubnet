@@ -8,7 +8,7 @@ import uvicorn
 
 app = FastAPI()
 
-@app.get("/get_allowed_ip_list")
+@app.get("/get_allowed_ips")
 async def get_rewards():
     all_allowed_ips = []
     subtensor = bt.subtensor(args.subnet_url)
