@@ -157,6 +157,14 @@ git submodule update --init --recursive
 pip install -r requirements.txt
 ```
 
+Install and run `Redis`:
+
+```bash
+sudo apt install redis
+sudo systemctl restart redis
+sudo systemctl status redis
+```
+
 ### 1. Start Prompt & Reward API
 
 Initialize the Prompt and Reward APIs:
@@ -174,6 +182,16 @@ python app.py
 ```
 
 ### 2. Run Subnet Miner and Validator
+
+Define enviroment parameters `.env`, remember to change url & port based on your system:
+```
+PROMPT_ENDPOINT=http://127.0.0.1:15409/prompt_generate
+REWARD_ENDPOINT=http://127.0.0.1:15410/verify
+MINER_SD_ENDPOINT=http://127.0.0.1:15414/generate
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_LIST=bittensor
+```
 
 Execute the subnet miner and validator, ensuring the correct subnet parameters are specified:
 

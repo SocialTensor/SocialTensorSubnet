@@ -2,3 +2,5 @@ bittensor
 torch
 pillow
 python-dotenv
+redis
+streamlit
