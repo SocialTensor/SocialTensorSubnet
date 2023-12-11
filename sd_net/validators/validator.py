@@ -7,10 +7,14 @@ from template.base.validator import BaseValidatorNeuron
 import random
 import torch
 import os
+import redis
 from dotenv import load_dotenv
 
 load_dotenv()
 
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+REDIS_LIST = os.getenv("REDIS_LIST")
 REWARD_URL = os.getenv("REWARD_ENDPOINT")
 PROMPT_URL = os.getenv("PROMPT_ENDPOINT")
 
@@ -22,6 +26,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("load_state()")
         self.load_state()
         # TODO(developer): Anything specific to your use case you can do here
+        self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
 
     def get_prompt(self, seed: int) -> str:
         headers = {
@@ -59,6 +64,7 @@ class Validator(BaseValidatorNeuron):
             "additional_params": additional_params,
         }
         response = requests.post(REWARD_URL, headers=headers, json=data)
+        print(response)
         reward = response.json()["reward"]
         return reward
 
@@ -72,12 +78,14 @@ class Validator(BaseValidatorNeuron):
         - Updating the scores
         """
         seed = random.randint(0, 1000)
-        prompt = self.get_prompt(seed)
+        item = self.redis_client.blpop(REDIS_LIST, timeout=0)
+        requested_data = eval(item[1])
+        prompt = requested_data['prompt']
         print(prompt)
         available_uids = get_random_uids(self, k=self.config.neuron.sample_size)
         print(f"UIDS: {available_uids}")
         responses = self.dendrite.query(
-            axons=[self.metagraph.axons[uid] for uid in available_uids],
+            axons=[self.metagraph.axons[uid] for uid in miner_uids],
             synapse=ImageGenerating(prompt=prompt, seed=seed),
             deserialize=False,
         )
