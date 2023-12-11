@@ -202,3 +202,12 @@ python sd_net/base_miner/miner.py --netuid 1 --subtensor.chain_endpoint ws://127
 # For the subnet validator
 python sd_net/validators/validator.py --netuid 1 --subtensor.chain_endpoint ws://127.0.0.1:9946 --wallet.name validator --wallet.hotkey default --logging.debug
 ```
+
+
+## Run WebUI: Validator endpoint
+
+We use streamlit for allowing user queue request (prompt) to `redis`, validator dequeues request from `redis` then do inference.
+
+```bash
+streamlit run sd_net/validators/webui.py
+```
