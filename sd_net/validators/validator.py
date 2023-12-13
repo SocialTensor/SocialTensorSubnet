@@ -96,7 +96,7 @@ class Validator(BaseValidatorNeuron):
                 valid_uids.append(uid)
                 valid_responses.append(response)
 
-        bt.logging.info(f"Received responses: {valid_responses}")
+        # bt.logging.info(f"Received responses: {valid_responses}")
 
         rewards = [
             self.get_reward(response, prompt, seed) for response in valid_responses
