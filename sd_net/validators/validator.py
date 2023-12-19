@@ -8,6 +8,7 @@ import random
 import torch
 import os
 import redis
+from typing import List
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,8 +26,15 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("load_state()")
         self.load_state()
-        # TODO(developer): Anything specific to your use case you can do here
         self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
+        self.all_uids = [int(uid) for uid in self.metagraph.uids]
+        self.available_models = {
+            "sdxl-turbo-unstable-diffusers-yamermix": {
+                "uids": [],
+                "incentive_distribution": 1.0
+            },
+            # ... define more models
+        }
 
     def get_prompt(self, seed: int) -> str:
         headers = {
@@ -67,6 +75,67 @@ class Validator(BaseValidatorNeuron):
         print(response)
         reward = response.json()["reward"]
         return reward
+    
+    def check_miner_running_model(self, uids: List[int]):
+        '''
+        Generate random prompt & verify output of miner.
+        '''
+        seed = random.randint(0, 999999)
+        prompt = self.get_prompt(seed=seed)
+        responses = self.dendrite.query(
+            axons=[self.metagraph.axons[uid] for uid in uids],
+            synapse=ImageGenerating(prompt=prompt, seed=seed),
+            deserialize=False,
+        )
+        checking_uids = []
+        checking_responses = []
+        for uid, response in zip(uids, responses):
+            if response and response.images:
+                checking_uids.append(uid)
+                checking_responses.append(response)
+
+        rewards = [
+            self.get_reward(response, prompt, seed) for response in checking_responses
+        ]
+        
+        valid_uids = []
+        for uid, reward in zip(checking_uids, rewards):
+            if reward:
+                valid_uids.append(uid)
+        return valid_uids
+
+    
+    def get_miner_info(self, payload: dict, query_uids: List[int]):
+        uid_to_axon = dict(zip(self.all_uids, self.metagraph.axons))
+        query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
+        protocol_payload = ImageGenerating(info_dict=payload)
+        responses = self.dendrite.query(
+            query_axons,
+            protocol_payload,
+            deserialize = False, # All responses have the deserialize function called on them before returning. 
+        )
+        responses = [response['info_dict'] for response in responses]
+
+        return responses
+
+    def update_active_models(self):
+        '''
+        1. Query model_name of available uids
+        2. Verify
+        3. Update the available list
+        '''
+        payload = {'get_miner_info': True}
+        self.all_uids = [int(uid) for uid in self.metagraph.uids]
+        miners_info = self.get_miner_info(self.all_uids, payload)
+        valid_miners_info = [(int(uid), info) for uid, info in zip(self.all_uids, miners_info) if info]
+        update_model_list = []
+        for uid, info in valid_miners_info:
+            if info['model_name'] in self.available_models:
+                self.available_models[info['model_name']]['uids'].append(uid)
+                update_model_list.append(info['model_name'])
+        update_model_list = list(set(update_model_list))
+        for model_name in update_model_list:
+            self.available_models[model_name]['uids'] = self.check_miner_running_model(self.available_models[model_name]['uids'])
 
     async def forward(self):
         """
@@ -81,9 +150,19 @@ class Validator(BaseValidatorNeuron):
         item = self.redis_client.blpop(REDIS_LIST, timeout=0)
         requested_data = eval(item[1])
         prompt = requested_data['prompt']
-        print(prompt)
-        available_uids = get_random_uids(self, k=self.config.neuron.sample_size)
-        print(f"UIDS: {available_uids}")
+        model_name = requested_data['model_name']
+
+        bt.logging.info(f"Received request for {model_name} model")
+
+        bt.logging.info("Updating available models & uids")
+        self.update_active_models()
+
+        available_uids = self.available_models['model_name']['uids']
+
+        if not available_uids:
+            bt.logging.warning("No active miner available for specified model. Skipping setting weights.")
+            return
+        
         responses = self.dendrite.query(
             axons=[self.metagraph.axons[uid] for uid in available_uids],
             synapse=ImageGenerating(prompt=prompt, seed=seed),
@@ -95,8 +174,6 @@ class Validator(BaseValidatorNeuron):
             if response and response.images:
                 valid_uids.append(uid)
                 valid_responses.append(response)
-
-        # bt.logging.info(f"Received responses: {valid_responses}")
 
         rewards = [
             self.get_reward(response, prompt, seed) for response in valid_responses

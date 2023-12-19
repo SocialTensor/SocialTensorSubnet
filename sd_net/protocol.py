@@ -32,6 +32,11 @@ class ImageGenerating(bt.Synapse):
         title="Pipeline Parameters",
         description="Additional generating params",
     )
+    info_dict: dict = pydantic.Field(
+        default={},
+        title="Dictionary Info",
+        description="Dict contains arbitary information"
+    )
 
     def deserialize(self) -> typing.List[str]:
         return self.images
