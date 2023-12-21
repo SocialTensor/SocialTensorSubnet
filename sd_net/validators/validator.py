@@ -29,17 +29,17 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
         self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
         self.all_uids = [int(uid) for uid in self.metagraph.uids]
-        self.supported_models = self.get_supported_models()
+        self.supporting_models = self.get_supporting_models()
 
-    def get_supported_models(self):
+    def get_supporting_models(self):
         headers = {
             "accept": "application/json",
             "Content-Type": "application/json",
         }
 
         response = requests.get(ADMIN_GET_CONFIG_URL, headers=headers)
-        supported_models = response.json()
-        return supported_models
+        supporting_models = response.json()
+        return supporting_models
     
     def get_prompt(self, seed: int) -> str:
         headers = {
@@ -159,6 +159,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info(f"Received request for {model_name} model")
 
         bt.logging.info("Updating available models & uids")
+
         self.update_active_models()
 
         available_uids = self.available_models['model_name']['uids']
