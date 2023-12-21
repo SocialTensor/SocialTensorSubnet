@@ -229,5 +229,5 @@ sudo apt update && sudo apt install jq && sudo apt install npm && sudo npm insta
 pm2 start run.sh --name sd_validators_autoupdate -- --wallet.name <your-wallet-name> --wallet.hotkey <your-wallet-hot-key> --subtensor.chain_endpoint <your-chain-endpoint> --netuid <your-netuid> --logging.debug
 ```
 
-This will run two PM2 process: one for the validator which is called sd_validators_main_process by default (you can change this in run.sh), and one for the run.sh script (in step 2, we named it sd_validators_autoupdate). The script will check for updates every 30 minutes, if there is an update then it will pull it, install it, restart text_prompt_validators_main_process and then restart itself.
+This will run two PM2 process: one for the validator which is called sd_validators_main_process by default (you can change this in run.sh), and one for the run.sh script (in step 2, we named it sd_validators_autoupdate). The script will check for updates every 30 minutes, if there is an update then it will pull it, install it, restart sd_validators_main_process and then restart itself.
 
