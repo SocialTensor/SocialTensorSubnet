@@ -1,0 +1,5 @@
+sdxl-turbo-unstable-diffusers-yamermix:
+  uids: []
+  incentive_distribution: 1.0
+  checking_endpoint: http://127.0.0.1:6789/verify
+  checkpoint: "https://civitai.com/models/84040?modelVersionId=225259"

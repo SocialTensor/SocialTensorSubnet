@@ -18,6 +18,7 @@ REDIS_PORT = os.getenv("REDIS_PORT")
 REDIS_LIST = os.getenv("REDIS_LIST")
 REWARD_URL = os.getenv("REWARD_ENDPOINT")
 PROMPT_URL = os.getenv("PROMPT_ENDPOINT")
+ADMIN_GET_CONFIG_URL = os.getenv("ADMIN_GET_CONFIG_ENDPOINT")
 
 
 class Validator(BaseValidatorNeuron):
@@ -28,14 +29,18 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
         self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
         self.all_uids = [int(uid) for uid in self.metagraph.uids]
-        self.available_models = {
-            "sdxl-turbo-unstable-diffusers-yamermix": {
-                "uids": [],
-                "incentive_distribution": 1.0
-            },
-            # ... define more models
+        self.supported_models = self.get_supported_models()
+
+    def get_supported_models(self):
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
         }
 
+        response = requests.get(ADMIN_GET_CONFIG_URL, headers=headers)
+        supported_models = response.json()
+        return supported_models
+    
     def get_prompt(self, seed: int) -> str:
         headers = {
             "accept": "application/json",
@@ -72,7 +77,6 @@ class Validator(BaseValidatorNeuron):
             "additional_params": additional_params,
         }
         response = requests.post(REWARD_URL, headers=headers, json=data)
-        print(response)
         reward = response.json()["reward"]
         return reward
     
