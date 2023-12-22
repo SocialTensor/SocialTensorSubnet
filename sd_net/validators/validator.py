@@ -1,8 +1,7 @@
 import requests
 import time
 import bittensor as bt
-from sd_net.validators.utils.uids import get_random_uids
-from sd_net.protocol import ImageGenerating, pil_image_to_base64
+from sd_net.protocol import ImageGenerating
 from template.base.validator import BaseValidatorNeuron
 import random
 import torch
@@ -29,7 +28,14 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
         self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
         self.all_uids = [int(uid) for uid in self.metagraph.uids]
-        self.supporting_models = self.get_supporting_models()
+        self.supporting_models = {
+            "sdxl-turbo-unstable-diffusers-yamermix": {
+                "uids": [],
+                "incentive_weight": 1.0,
+                "checking_endpoint": "http://127.0.0.1:6789/verify",
+                "checkpoint": "https://civitai.com/models/84040?modelVersionId=225259"
+            }
+        }
 
     def get_supporting_models(self):
         headers = {
@@ -151,10 +157,15 @@ class Validator(BaseValidatorNeuron):
         - Updating the scores
         """
         seed = random.randint(0, 1000)
-        item = self.redis_client.blpop(REDIS_LIST, timeout=0)
-        requested_data = eval(item[1])
-        prompt = requested_data['prompt']
-        model_name = requested_data['model_name']
+        # enduser flow
+            # item = self.redis_client.blpop(REDIS_LIST, timeout=0)
+            # requested_data = eval(item[1])
+            # prompt = requested_data['prompt']
+            # model_name = requested_data['model_name']
+        
+        # testing flow
+        prompt = self.get_prompt(seed=seed)
+        model_name = random.choice(list(self.available_models.keys()))
 
         bt.logging.info(f"Received request for {model_name} model")
 
@@ -179,11 +190,13 @@ class Validator(BaseValidatorNeuron):
             if response and response.images:
                 valid_uids.append(uid)
                 valid_responses.append(response)
-
+        
         rewards = [
             self.get_reward(response, prompt, seed) for response in valid_responses
         ]
         rewards = torch.FloatTensor(rewards)
+        rewards = rewards * self.available_models[model_name]['incentive_weight']
+
         bt.logging.info(f"Scored responses: {rewards}")
         self.update_scores(rewards, valid_uids)
 
