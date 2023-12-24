@@ -6,15 +6,11 @@ from template.base.validator import BaseValidatorNeuron
 import random
 import torch
 import os
-import redis
 from typing import List
 from dotenv import load_dotenv
 
 load_dotenv()
 
-REDIS_HOST = os.getenv("REDIS_HOST")
-REDIS_PORT = os.getenv("REDIS_PORT")
-REDIS_LIST = os.getenv("REDIS_LIST")
 REWARD_URL = os.getenv("REWARD_ENDPOINT")
 PROMPT_URL = os.getenv("PROMPT_ENDPOINT")
 ADMIN_GET_CONFIG_URL = os.getenv("ADMIN_GET_CONFIG_ENDPOINT")
@@ -26,26 +22,14 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("load_state()")
         self.load_state()
-        self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=0)
-        self.all_uids = [int(uid) for uid in self.metagraph.uids]
+        self.all_uids = [str(uid) for uid in self.metagraph.uids]
         self.supporting_models = {
-            "sdxl-turbo-unstable-diffusers-yamermix": {
+            "RealisticVision": {
                 "uids": [],
                 "incentive_weight": 1.0,
-                "checking_endpoint": "http://127.0.0.1:6789/verify",
-                "checkpoint": "https://civitai.com/models/84040?modelVersionId=225259"
+                "checking_endpoint": "http://127.0.0.1:10002/verify",
             }
         }
-
-    def get_supporting_models(self):
-        headers = {
-            "accept": "application/json",
-            "Content-Type": "application/json",
-        }
-
-        response = requests.get(ADMIN_GET_CONFIG_URL, headers=headers)
-        supporting_models = response.json()
-        return supporting_models
     
     def get_prompt(self, seed: int) -> str:
         headers = {
@@ -69,6 +53,7 @@ class Validator(BaseValidatorNeuron):
         miner_response: ImageGenerating,
         prompt: str,
         seed: int,
+        model_name: str,
         additional_params: dict = {},
     ):
         headers = {
@@ -80,18 +65,20 @@ class Validator(BaseValidatorNeuron):
             "prompt": prompt,
             "seed": seed,
             "images": miner_images,
+            "model_name": model_name,
             "additional_params": additional_params,
         }
         response = requests.post(REWARD_URL, headers=headers, json=data)
         reward = response.json()["reward"]
         return reward
     
-    def check_miner_running_model(self, uids: List[int]):
+    def check_miner_running_model(self, uids: List[int], model_name: str):
         '''
         Generate random prompt & verify output of miner.
         '''
         seed = random.randint(0, 999999)
         prompt = self.get_prompt(seed=seed)
+        print(prompt, uids)
         responses = self.dendrite.query(
             axons=[self.metagraph.axons[uid] for uid in uids],
             synapse=ImageGenerating(prompt=prompt, seed=seed),
@@ -103,9 +90,8 @@ class Validator(BaseValidatorNeuron):
             if response and response.images:
                 checking_uids.append(uid)
                 checking_responses.append(response)
-
         rewards = [
-            self.get_reward(response, prompt, seed) for response in checking_responses
+            self.get_reward(response, prompt, seed, model_name) for response in checking_responses
         ]
         
         valid_uids = []
@@ -118,13 +104,14 @@ class Validator(BaseValidatorNeuron):
     def get_miner_info(self, payload: dict, query_uids: List[int]):
         uid_to_axon = dict(zip(self.all_uids, self.metagraph.axons))
         query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
-        protocol_payload = ImageGenerating(info_dict=payload)
+        protocol_payload = ImageGenerating(request_dict=payload)
         responses = self.dendrite.query(
             query_axons,
             protocol_payload,
             deserialize = False, # All responses have the deserialize function called on them before returning. 
         )
-        responses = [response['info_dict'] for response in responses]
+        responses = {uid: response.response_dict for uid, response in zip(query_uids, responses) if response.response_dict}
+        print(responses)
 
         return responses
 
@@ -136,16 +123,20 @@ class Validator(BaseValidatorNeuron):
         '''
         payload = {'get_miner_info': True}
         self.all_uids = [int(uid) for uid in self.metagraph.uids]
-        miners_info = self.get_miner_info(self.all_uids, payload)
-        valid_miners_info = [(int(uid), info) for uid, info in zip(self.all_uids, miners_info) if info]
+        print(self.all_uids)
+        valid_miners_info = self.get_miner_info(payload, self.all_uids)
+        if not valid_miners_info:
+            bt.logging.warning("No active miner available. Skipping setting weights.")
+            return
         update_model_list = []
-        for uid, info in valid_miners_info:
-            if info['model_name'] in self.available_models:
-                self.available_models[info['model_name']]['uids'].append(uid)
+        for uid, info in valid_miners_info.items():
+            if info['model_name'] in self.supporting_models:
+                self.supporting_models[info['model_name']]['uids'].append(uid)
                 update_model_list.append(info['model_name'])
         update_model_list = list(set(update_model_list))
+        print(update_model_list)
         for model_name in update_model_list:
-            self.available_models[model_name]['uids'] = self.check_miner_running_model(self.available_models[model_name]['uids'])
+            self.supporting_models[model_name]['uids'] = self.check_miner_running_model(self.supporting_models[model_name]['uids'], model_name)
 
     async def forward(self):
         """
@@ -157,15 +148,8 @@ class Validator(BaseValidatorNeuron):
         - Updating the scores
         """
         seed = random.randint(0, 1000)
-        # enduser flow
-            # item = self.redis_client.blpop(REDIS_LIST, timeout=0)
-            # requested_data = eval(item[1])
-            # prompt = requested_data['prompt']
-            # model_name = requested_data['model_name']
-        
-        # testing flow
         prompt = self.get_prompt(seed=seed)
-        model_name = random.choice(list(self.available_models.keys()))
+        model_name = random.choice(list(self.supporting_models.keys()))
 
         bt.logging.info(f"Received request for {model_name} model")
 
@@ -173,7 +157,7 @@ class Validator(BaseValidatorNeuron):
 
         self.update_active_models()
 
-        available_uids = self.available_models['model_name']['uids']
+        available_uids = self.supporting_models[model_name]['uids']
 
         if not available_uids:
             bt.logging.warning("No active miner available for specified model. Skipping setting weights.")
@@ -192,10 +176,10 @@ class Validator(BaseValidatorNeuron):
                 valid_responses.append(response)
         
         rewards = [
-            self.get_reward(response, prompt, seed) for response in valid_responses
+            self.get_reward(response, prompt, seed, model_name) for response in valid_responses
         ]
         rewards = torch.FloatTensor(rewards)
-        rewards = rewards * self.available_models[model_name]['incentive_weight']
+        rewards = rewards * self.supporting_models[model_name]['incentive_weight']
 
         bt.logging.info(f"Scored responses: {rewards}")
         self.update_scores(rewards, valid_uids)

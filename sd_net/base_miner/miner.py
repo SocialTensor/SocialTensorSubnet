@@ -66,8 +66,9 @@ class Miner(BaseMinerNeuron):
         if synapse.prompt:
             images = self.generate(synapse.prompt, synapse.seed, synapse.pipeline_params)
             synapse.images = images
-        else:
-            synapse.info_dict = self.miner_info
+        if synapse.request_dict:
+            synapse.response_dict = self.miner_info
+            print(synapse.response_dict)
         return synapse
 
     def check_limit(self, uid: str, stake: int):

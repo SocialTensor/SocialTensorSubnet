@@ -32,9 +32,15 @@ class ImageGenerating(bt.Synapse):
         title="Pipeline Parameters",
         description="Additional generating params",
     )
-    info_dict: dict = pydantic.Field(
+    request_dict: dict = pydantic.Field(
         default={},
-        title="Dictionary Info",
+        title="Dictionary contains request",
+        description="Dict contains arbitary information"
+    )
+
+    response_dict: dict = pydantic.Field(
+        default={},
+        title="Dictionary contains response",
         description="Dict contains arbitary information"
     )
 
