@@ -310,6 +310,7 @@ class BaseValidatorNeuron(BaseNeuron):
                 "step": self.step,
                 "scores": self.scores,
                 "hotkeys": self.hotkeys,
+                "weights": 
             },
             self.config.neuron.full_path + "/state.pt",
         )

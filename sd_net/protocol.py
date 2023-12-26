@@ -35,13 +35,13 @@ class ImageGenerating(bt.Synapse):
     request_dict: dict = pydantic.Field(
         default={},
         title="Dictionary contains request",
-        description="Dict contains arbitary information"
+        description="Dict contains arbitary information",
     )
 
     response_dict: dict = pydantic.Field(
         default={},
         title="Dictionary contains response",
-        description="Dict contains arbitary information"
+        description="Dict contains arbitary information",
     )
 
     def deserialize(self) -> typing.List[str]:
