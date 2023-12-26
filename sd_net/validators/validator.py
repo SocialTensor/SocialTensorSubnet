@@ -183,6 +183,7 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info(f"Scored responses: {rewards}")
         self.update_scores(rewards, valid_uids)
+        self.save_state()
 
 
 # The main function parses the configuration and runs the validator.

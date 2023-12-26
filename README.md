@@ -211,3 +211,23 @@ We use streamlit for allowing user queue request (prompt) to `redis`, validator 
 ```bash
 streamlit run sd_net/validators/webui.py
 ```
+
+
+## Run validator with `pm2`
+
+**Credit to https://github.com/opentensor/text-prompting**
+
+These validators are designed to run and update themselves automatically. To run a validator, follow these steps:
+
+1. Install PM2 and the jq package on your system. On Linux:
+```bash
+sudo apt update && sudo apt install jq && sudo apt install npm && sudo npm install pm2 -g && pm2 update
+```
+
+2. Run the run.sh script which will handle running your validator and pulling the latest updates as they are issued.
+```bash
+pm2 start run.sh --name sd_validators_autoupdate -- --wallet.name <your-wallet-name> --wallet.hotkey <your-wallet-hot-key> --subtensor.chain_endpoint <your-chain-endpoint> --netuid <your-netuid> --logging.debug
+```
+
+This will run two PM2 process: one for the validator which is called sd_validators_main_process by default (you can change this in run.sh), and one for the run.sh script (in step 2, we named it sd_validators_autoupdate). The script will check for updates every 30 minutes, if there is an update then it will pull it, install it, restart sd_validators_main_process and then restart itself.
+
