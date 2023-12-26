@@ -14,7 +14,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-GENERATE_URL = os.getenv("MINER_SD_ENDPOINT")
+GENERATE_URL = os.getenv("MINER_SD_GENERATE_ENDPOINT")
+INFO_URL = os.getenv("MINER_SD_INFO_ENDPOINT")
 CONFIG = yaml.load(open("sd_net/base_miner/config.yaml"), Loader=yaml.FullLoader)
 
 
@@ -28,7 +29,15 @@ class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
         self.validator_logs = {}
+        self.miner_info = self.set_info()
 
+    def set_info(self):
+        # Set information of miner
+        miner_info = {}
+        model_name = self.get_model_name()
+        miner_info['model_name'] = model_name
+        return miner_info
+    
     def generate(self, prompt: str, seed: int, additional_params: dict) -> List[str]:
         data = {"prompt": prompt, "seed": seed, "additional_params": additional_params}
 
@@ -40,14 +49,26 @@ class Miner(BaseMinerNeuron):
         response = requests.post(GENERATE_URL, headers=headers, json=data)
         images = response.json()["images"]
         return images
+    
+    def get_model_name(self):
+        # Get running model's name
+        headers = {
+            "accept": "application/json",
+            "Content-Type": "application/json",
+        }
+        response = requests.get(INFO_URL, headers=headers)
+        model_name = response.json()['model_name']
+        return model_name
 
     async def forward(
         self, synapse: sd_net.protocol.ImageGenerating
     ) -> sd_net.protocol.ImageGenerating:
-        print(synapse)
-        images = self.generate(synapse.prompt, synapse.seed, synapse.pipeline_params)
-        synapse.images = images
-
+        if synapse.prompt:
+            images = self.generate(synapse.prompt, synapse.seed, synapse.pipeline_params)
+            synapse.images = images
+        if synapse.request_dict:
+            synapse.response_dict = self.miner_info
+            print(synapse.response_dict)
         return synapse
 
     def check_limit(self, uid: str, stake: int):

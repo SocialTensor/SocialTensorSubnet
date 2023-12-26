@@ -1,7 +1,7 @@
 blacklist:
-  min_stake: 1000
+  min_stake: 100
   block_non_validator: True
   tao_based_limitation:
-    tao_base_level: 1000 # TAOs
+    tao_base_level: 10 # TAOs
     interval: 600 # seconds
     max_requests_per_interval: 10
