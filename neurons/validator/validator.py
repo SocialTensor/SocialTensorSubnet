@@ -28,6 +28,7 @@ class Validator(BaseValidatorNeuron):
             self.dendrite,
             config.proxy.port,
             config.proxy.market_registering_url,
+            self.supporting_models,
         )
         self.config = config
 

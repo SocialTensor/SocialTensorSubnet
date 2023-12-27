@@ -1,16 +1,13 @@
 import asyncio
-from fastapi import FastAPI, HTTPException, Depends, Header, Request
-from fastapi.responses import JSONResponse, PlainTextResponse
-from typing import Dict, Union
+from fastapi import FastAPI, HTTPException, Depends
 from concurrent.futures import ThreadPoolExecutor
 import requests
-import os
-from neurons.protocol import ImageGenerating
+import torch
+from image_generation_subnet.protocol import ImageGenerating
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
-import torch
-import random
+import bittensor as bt
 
 
 class ValidatorProxy:
@@ -68,10 +65,10 @@ class ValidatorProxy:
         self.authenticate_token(data["authorization"])
 
         try:
-            print("Received a request!", flush=True)
+            bt.logging.info("Received a request!")
             payload = data.get("payload")
-            model_name = payload.get("model_name")
             synapse = ImageGenerating(**payload)
+            model_name = synapse.model_name
 
             available_uids = self.supporting_models[model_name]["uids"]
             weights = self.metagraph.weights[available_uids]
