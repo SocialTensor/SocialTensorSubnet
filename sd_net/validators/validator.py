@@ -17,8 +17,8 @@ load_dotenv()
 
 REWARD_URL = os.getenv("REWARD_ENDPOINT")
 PROMPT_URL = os.getenv("PROMPT_ENDPOINT")
+MARKET_URL = os.getenv("MARKET_ENDPOINT")
 ADMIN_GET_CONFIG_URL = os.getenv("ADMIN_GET_CONFIG_ENDPOINT")
-
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -35,7 +35,7 @@ class Validator(BaseValidatorNeuron):
             }
         }
         self.validator_proxy = ValidatorProxy(
-            self.metagraph, self.dendrite, 8000, authentication_tokens=["test_token"]
+            self.metagraph, self.dendrite, 8000, MARKET_URL
         )
 
     def get_prompt(self, seed: int) -> str:
@@ -253,6 +253,7 @@ class Validator(BaseValidatorNeuron):
                 # Run multiple forwards concurrently.
                 self.loop.run_until_complete(self.concurrent_forward())
                 self.validator_proxy.metagraph = self.metagraph
+                self.validator_proxy.supporting_models = self.supporting_models
                 # Check if we should exit.
                 if self.should_exit:
                     break
