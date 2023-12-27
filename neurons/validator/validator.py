@@ -24,15 +24,17 @@ class Validator(BaseValidatorNeuron):
             }
         }
         self.validator_proxy = ValidatorProxy(
+            self.uid,
             self.metagraph,
             self.dendrite,
-            config.proxy.port,
-            config.proxy.market_registering_url,
+            self.config.proxy.port,
+            self.config.proxy.market_registering_url,
             self.supporting_models,
+            self.config.proxy.public_ip,
+            self.scores,
         )
-        self.config = config
 
-    async def forward(self):
+    def forward(self):
         """
         Validator forward pass. Consists of:
         - Generating the query
@@ -47,6 +49,7 @@ class Validator(BaseValidatorNeuron):
             self, seed=seed, prompt_url=self.config.prompt_generating_endpoint
         )
         model_name = random.choice(list(self.supporting_models.keys()))
+        #sampling distribution
 
         bt.logging.info(f"Received request for {model_name} model")
         bt.logging.info("Updating available models & uids")
@@ -73,12 +76,13 @@ class Validator(BaseValidatorNeuron):
             synapse=synapse,
             deserialize=False,
         )
+
+        bt.logging.info("Received responses, calculating rewards")
         rewards = ig_subnet.validator.get_reward(
             self, self.config.reward_endpoint, responses, synapse
         )
         rewards = torch.FloatTensor(rewards)
         rewards = rewards * self.supporting_models[model_name]["incentive_weight"]
-
         bt.logging.info(f"Scored responses: {rewards}")
         self.update_scores(rewards, available_uids)
         self.save_state()
@@ -115,12 +119,15 @@ class Validator(BaseValidatorNeuron):
         # This loop maintains the validator's operations until intentionally stopped.
         try:
             while True:
-                bt.logging.info(f"step({self.step}) block({self.block})")
+                # bt.logging.info(f"step({self.step}) block({self.block})")
 
                 # Run multiple forwards concurrently.
+
                 self.loop.run_until_complete(self.concurrent_forward())
+                # self.forward()
                 self.validator_proxy.metagraph = self.metagraph
                 self.validator_proxy.supporting_models = self.supporting_models
+                self.validator_proxy.scores = self.scores
                 # Check if we should exit.
                 if self.should_exit:
                     break
@@ -147,4 +154,4 @@ if __name__ == "__main__":
     with Validator() as validator:
         while True:
             bt.logging.info("Validator running...", time.time())
-            time.sleep(5)
+            time.sleep(60)

@@ -29,7 +29,6 @@ def get_reward(
     reward_url: str,
     responses: List[ImageGenerating],
     synapse: ImageGenerating,
-    additional_params: dict,
 ):
     images = [response.images for response in responses]
     headers = {
@@ -41,7 +40,7 @@ def get_reward(
         "seed": synapse.seed,
         "images": images,
         "model_name": synapse.model_name,
-        "additional_params": additional_params,
+        "additional_params": synapse.pipeline_params,
     }
     response = requests.post(reward_url, headers=headers, json=data)
     if response.status_code != 200:

@@ -154,6 +154,13 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--proxy.public_ip",
+            type=str,
+            help="The public ip of the validator.",
+            default="localhost",
+        )
+
+        parser.add_argument(
             "--reward_endpoint",
             type=str,
             help="The endpoint to send rewards to.",
