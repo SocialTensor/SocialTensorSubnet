@@ -19,6 +19,7 @@ class Prompt(BaseModel):
 class ValidatorInfo(BaseModel):
     uid: int
     generate_endpoint: str
+    counter: int = 0
 
 
 def base64_to_pil_image(base64_image: str) -> Image.Image:
@@ -69,6 +70,8 @@ async def generate(prompt: Prompt):
     response = requests.post(validator.generate_endpoint, json=request_dict)
     if response.status_code != 200:
         raise Exception("Error generating image")
+    else:
+        validator.counter += 1
     response = response.json()
     return response
 
