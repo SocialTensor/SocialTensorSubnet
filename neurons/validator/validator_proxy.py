@@ -5,7 +5,7 @@ from typing import Dict, Union
 from concurrent.futures import ThreadPoolExecutor
 import requests
 import os
-from sd_net.protocol import ImageGenerating
+from neurons.protocol import ImageGenerating
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature

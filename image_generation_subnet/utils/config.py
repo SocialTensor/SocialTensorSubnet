@@ -145,7 +145,7 @@ def add_args(cls, parser):
             help="The maximum number of TAO allowed to query a validator with a vpermit.",
             default=4096,
         )
-
+        
     else:
         parser.add_argument(
             "--blacklist.force_validator_permit",

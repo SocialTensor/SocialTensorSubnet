@@ -1,13 +1,13 @@
 import requests
 import time
 import bittensor as bt
-from sd_net.protocol import ImageGenerating
-from template.base.validator import BaseValidatorNeuron
+from image_generation_subnet.protocol import ImageGenerating
+from image_generation_subnet.base.validator import BaseValidatorNeuron
 import random
 import torch
 import os
 import redis
-from sd_net.validators.validator_proxy import ValidatorProxy
+from neurons.validator.validator_proxy import ValidatorProxy
 from traceback import print_exception
 from typing import List
 from PIL import Image

@@ -1,10 +1,10 @@
 import time
 import typing
 import bittensor as bt
-from template.base.miner import BaseMinerNeuron
-import sd_net
+from image_generation_subnet.base.miner import BaseMinerNeuron
+import neurons
 import torch
-from sd_net.protocol import pil_image_to_base64
+from neurons.protocol import pil_image_to_base64
 from typing import List
 import os
 import time
@@ -61,8 +61,8 @@ class Miner(BaseMinerNeuron):
         return model_name
 
     async def forward(
-        self, synapse: sd_net.protocol.ImageGenerating
-    ) -> sd_net.protocol.ImageGenerating:
+        self, synapse: neurons.protocol.ImageGenerating
+    ) -> neurons.protocol.ImageGenerating:
         if synapse.prompt:
             images = self.generate(synapse.prompt, synapse.seed, synapse.pipeline_params)
             synapse.images = images
@@ -100,7 +100,7 @@ class Miner(BaseMinerNeuron):
         return False
 
     async def blacklist(
-        self, synapse: sd_net.protocol.ImageGenerating
+        self, synapse: neurons.protocol.ImageGenerating
     ) -> typing.Tuple[bool, str]:
         # # TODO(developer): Define how miners should blacklist requests.
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
@@ -125,7 +125,7 @@ class Miner(BaseMinerNeuron):
 
         return False, "All passed!"
 
-    async def priority(self, synapse: sd_net.protocol.ImageGenerating) -> float:
+    async def priority(self, synapse: neurons.protocol.ImageGenerating) -> float:
         # TODO(developer): Define how miners should prioritize requests.
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
