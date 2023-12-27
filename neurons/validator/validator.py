@@ -1,24 +1,13 @@
-import requests
 import time
 import bittensor as bt
-from image_generation_subnet.protocol import ImageGenerating
-from image_generation_subnet.base.validator import BaseValidatorNeuron
 import random
 import torch
-import os
-import redis
+from image_generation_subnet.protocol import ImageGenerating
+from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
+import image_generation_subnet as ig_subnet
 from traceback import print_exception
-from typing import List
-from PIL import Image
-from dotenv import load_dotenv
 
-load_dotenv()
-
-REWARD_URL = os.getenv("REWARD_ENDPOINT")
-PROMPT_URL = os.getenv("PROMPT_ENDPOINT")
-MARKET_URL = os.getenv("MARKET_ENDPOINT")
-ADMIN_GET_CONFIG_URL = os.getenv("ADMIN_GET_CONFIG_ENDPOINT")
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -35,134 +24,12 @@ class Validator(BaseValidatorNeuron):
             }
         }
         self.validator_proxy = ValidatorProxy(
-            self.metagraph, self.dendrite, 8000, MARKET_URL
+            self.metagraph,
+            self.dendrite,
+            config.proxy.port,
+            config.proxy.market_registering_url,
         )
-
-    def get_prompt(self, seed: int) -> str:
-        headers = {
-            "accept": "application/json",
-            "Content-Type": "application/json",
-        }
-
-        data = {
-            "prompt": "an image of",
-            "seed": seed,
-            "max_length": 77,
-            "additional_params": {},
-        }
-
-        response = requests.post(PROMPT_URL, headers=headers, json=data)
-        prompt = response.json()["prompt"]
-        return prompt
-
-    def get_reward(
-        self,
-        miners_images: List[List[str]],
-        prompt: str,
-        seed: int,
-        model_name: str,
-        additional_params: dict = {"num_inference_steps": 20},
-    ):
-        headers = {
-            "accept": "application/json",
-            "Content-Type": "application/json",
-        }
-        data = {
-            "prompt": prompt,
-            "seed": seed,
-            "images": miners_images,
-            "model_name": model_name,
-            "additional_params": additional_params,
-        }
-        response = requests.post(REWARD_URL, headers=headers, json=data)
-        rewards = response.json()["rewards"]
-        return rewards
-
-    def check_miner_running_model(self, uids: List[int], model_name: str):
-        """
-        Generate random prompt & verify output of miner.
-        """
-        seed = random.randint(0, 999999)
-        prompt = self.get_prompt(seed=seed)
-        steps = 20
-        print(prompt, uids)
-        responses = self.dendrite.query(
-            axons=[self.metagraph.axons[uid] for uid in uids],
-            synapse=ImageGenerating(
-                prompt=prompt, seed=seed, pipeline_params={"num_inference_steps": steps}
-            ),
-            deserialize=False,
-        )
-        checking_uids = []
-        checking_responses = []
-        for uid, response in zip(uids, responses):
-            if response and response.images:
-                checking_uids.append(uid)
-                checking_responses.append(response)
-        images = [response.images for response in checking_responses]
-        rewards = self.get_reward(
-            images,
-            prompt,
-            seed,
-            model_name,
-            additional_params={"num_inference_steps": steps},
-        )
-        valid_uids = []
-        for uid, reward in zip(checking_uids, rewards):
-            if reward:
-                valid_uids.append(uid)
-        return valid_uids
-
-    def get_miner_info(self, payload: dict, query_uids: List[int]):
-        uid_to_axon = dict(zip(self.all_uids, self.metagraph.axons))
-        query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
-        print(query_axons)
-        protocol_payload = ImageGenerating(request_dict=payload)
-        print("Requesting miner info")
-        responses = self.dendrite.query(
-            query_axons,
-            protocol_payload,
-            deserialize=False,
-            timeout=5,
-        )
-        print(f"Received {len(responses)} responses")
-        responses = {
-            uid: response.response_dict
-            for uid, response in zip(query_uids, responses)
-            if response.response_dict
-        }
-        print(f"Received {len(responses)} valid responses")
-
-        return responses
-
-    def update_active_models(self):
-        """
-        1. Query model_name of available uids
-        2. Verify
-        3. Update the available list
-        """
-        payload = {"get_miner_info": True}
-        self.all_uids = [int(uid) for uid in self.metagraph.uids]
-        print(self.all_uids)
-        valid_miners_info = self.get_miner_info(payload, self.all_uids)
-        if not valid_miners_info:
-            bt.logging.warning("No active miner available. Skipping setting weights.")
-            return
-        update_model_list = []
-        for uid, info in valid_miners_info.items():
-            print(info)
-            if (
-                info["model_name"] in self.supporting_models
-            ):
-                if uid not in self.supporting_models[info["model_name"]]["uids"]:
-                    self.supporting_models[info["model_name"]]["uids"].append(uid)
-                update_model_list.append(info["model_name"])
-        update_model_list = list(set(update_model_list))
-        print(update_model_list)
-        for model_name in update_model_list:
-            self.supporting_models[model_name]["uids"] = self.check_miner_running_model(
-                self.supporting_models[model_name]["uids"], model_name
-            )
+        self.config = config
 
     async def forward(self):
         """
@@ -175,14 +42,14 @@ class Validator(BaseValidatorNeuron):
         """
         steps = 20
         seed = random.randint(0, 1000)
-        prompt = self.get_prompt(seed=seed)
+        prompt = ig_subnet.validator.get_prompt(
+            self, seed=seed, prompt_url=self.config.prompt_generating_endpoint
+        )
         model_name = random.choice(list(self.supporting_models.keys()))
 
         bt.logging.info(f"Received request for {model_name} model")
-
         bt.logging.info("Updating available models & uids")
-
-        self.update_active_models()
+        ig_subnet.validator.update_active_models(self)
 
         available_uids = self.supporting_models[model_name]["uids"]
 
@@ -193,27 +60,26 @@ class Validator(BaseValidatorNeuron):
             return
         else:
             bt.logging.info(f"Available uids: {available_uids}")
+
+        synapse = ImageGenerating(
+            prompt=prompt,
+            seed=seed,
+            pipeline_params={"num_inference_steps": steps},
+            model_name=model_name,
+        )
         responses = self.dendrite.query(
             axons=[self.metagraph.axons[uid] for uid in available_uids],
-            synapse=ImageGenerating(
-                prompt=prompt, seed=seed, pipeline_params={"num_inference_steps": steps}
-            ),
+            synapse=synapse,
             deserialize=False,
         )
-        valid_uids = []
-        valid_responses = []
-        for uid, response in zip(available_uids, responses):
-            if response and response.images:
-                valid_uids.append(uid)
-                valid_responses.append(response)
-        images = [response.images for response in valid_responses]
-        rewards = self.get_reward(images, prompt, seed, model_name)
-        print(rewards)
+        rewards = ig_subnet.validator.get_reward(
+            self, self.config.reward_endpoint, responses, synapse
+        )
         rewards = torch.FloatTensor(rewards)
         rewards = rewards * self.supporting_models[model_name]["incentive_weight"]
 
         bt.logging.info(f"Scored responses: {rewards}")
-        self.update_scores(rewards, valid_uids)
+        self.update_scores(rewards, available_uids)
         self.save_state()
 
     def run(self):
@@ -273,21 +139,6 @@ class Validator(BaseValidatorNeuron):
         except Exception as err:
             bt.logging.error("Error during validation", str(err))
             bt.logging.debug(print_exception(type(err), err, err.__traceback__))
-
-    def sync(self):
-        """
-        Wrapper for synchronizing the state of the network for the given miner or validator.
-        """
-        # Ensure miner or validator hotkey is still registered on the network.
-        self.check_registered()
-
-        if self.should_sync_metagraph():
-            self.resync_metagraph()
-
-        if self.should_set_weights():
-            self.set_weights()
-        # Always save state.
-        self.save_state()
 
 
 # The main function parses the configuration and runs the validator.

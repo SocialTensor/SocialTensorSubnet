@@ -145,7 +145,35 @@ def add_args(cls, parser):
             help="The maximum number of TAO allowed to query a validator with a vpermit.",
             default=4096,
         )
-        
+
+        parser.add_argument(
+            "--proxy.port",
+            type=int,
+            help="The port to run the proxy on.",
+            default=8080,
+        )
+
+        parser.add_argument(
+            "--reward_endpoint",
+            type=str,
+            help="The endpoint to send rewards to.",
+            default="http://localhost:7000/reward",
+        )
+
+        parser.add_argument(
+            "--proxy.market_registering_url",
+            type=str,
+            help="The url initialize credentials for proxy.",
+            default="http://localhost:7000/credentials",
+        )
+
+        parser.add_argument(
+            "--prompt_generating_endpoint",
+            type=str,
+            help="The endpoint to prompt generating.",
+            default="http://localhost:7001/generate",
+        )
+
     else:
         parser.add_argument(
             "--blacklist.force_validator_permit",

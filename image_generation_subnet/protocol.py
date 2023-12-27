@@ -1,18 +1,6 @@
 import typing
 import bittensor as bt
-from bittensor.synapse import Synapse
 import pydantic
-from PIL import Image
-import io
-import base64
-
-
-def pil_image_to_base64(image):
-    image_stream = io.BytesIO()
-    image.save(image_stream, format="PNG")
-    base64_image = base64.b64encode(image_stream.getvalue()).decode("utf-8")
-
-    return base64_image
 
 
 class ImageGenerating(bt.Synapse):
@@ -26,6 +14,11 @@ class ImageGenerating(bt.Synapse):
     )
     images: typing.List[str] = pydantic.Field(
         default=[], title="Images", description="Output of text to image model"
+    )
+    model_name: str = pydantic.Field(
+        default="",
+        title="Model Name",
+        description="Name of the model used for generation",
     )
     pipeline_params: dict = pydantic.Field(
         default={},
