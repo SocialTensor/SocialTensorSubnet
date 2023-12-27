@@ -10,6 +10,7 @@ import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
 import torch
+import random
 
 
 class ValidatorProxy:
@@ -20,6 +21,7 @@ class ValidatorProxy:
         self.market_url = market_url
         self.verify_credentials = self.get_credentials()
         self.supporting_models = supporting_models
+        self.miner_request_counter = {}
 
         self.app = FastAPI()
         self.app.add_api_route(
@@ -80,6 +82,9 @@ class ValidatorProxy:
             )
             await asyncio.gather(task)
             result = task.result()
+            if miner_uid not in self.miner_request_counter:
+                self.miner_request_counter[miner_uid] = 0
+            self.miner_request_counter[miner_uid] += 1
             return JSONResponse(content={"status": "success", "result": result})
         except Exception as e:
             print("Exception occured in proxy forward", e, flush=True)
