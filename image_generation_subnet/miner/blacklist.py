@@ -25,7 +25,7 @@ def calculate_max_request_per_interval(stake: int):
 
 
 def check_limit(self, uid: str, stake: int):
-    bt.logging.trace(self.validator_logs)
+    bt.logging.info(self.validator_logs)
 
     if uid not in self.validator_logs:
         self.validator_logs[uid] = {
@@ -42,7 +42,7 @@ def check_limit(self, uid: str, stake: int):
             "max_request": calculate_max_request_per_interval(stake=stake),
             "request_counter": 1,
         }
-        bt.logging.trace(f"Reseting counting log for uid: {uid}")
+        bt.logging.info(f"Reseting counting log for uid: {uid}")
     else:
         self.validator_logs[uid]["request_counter"] += 1
         if (

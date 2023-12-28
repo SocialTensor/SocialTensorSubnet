@@ -54,6 +54,7 @@ def get_miner_info(self, payload: dict, query_uids: List[int]):
     query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
     protocol_payload = ImageGenerating(request_dict=payload)
     bt.logging.info("Requesting miner info")
+    print(query_axons)
     responses = self.dendrite.query(
         query_axons,
         protocol_payload,
@@ -81,10 +82,11 @@ def update_active_models(self):
     valid_miners_info = get_miner_info(self, payload, self.all_uids)
     if not valid_miners_info:
         bt.logging.warning("No active miner available. Skipping setting weights.")
-        return
-    update_model_list = []
+    model_uids_dict = {}
     for uid, info in valid_miners_info.items():
         if info["model_name"] in self.supporting_models:
-            if uid not in self.supporting_models[info["model_name"]]["uids"]:
-                self.supporting_models[info["model_name"]]["uids"].append(uid)
-            update_model_list.append(info["model_name"])
+            if info["model_name"] not in model_uids_dict:
+                model_uids_dict[info["model_name"]] = []
+            model_uids_dict[info["model_name"]].append(uid)
+    for model_name, uids in model_uids_dict.items():
+        self.supporting_models[model_name]["uids"] = uids

@@ -89,9 +89,6 @@ async def get_rewards(data: Prompt):
         try:
             miner_images = [base64_to_pil_image(image) for image in miner_images]
             reward = matching_images(miner_images, validator_images)
-            if not reward:
-                miner_images[0].save("miner_image.png")
-                validator_images[0].save("validator_image.png")
             print("Verify Result:", reward, flush=True)
         except Exception as e:
             print(e, flush=True)

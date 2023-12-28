@@ -49,12 +49,11 @@ class Validator(BaseValidatorNeuron):
             self, seed=seed, prompt_url=self.config.prompt_generating_endpoint
         )
         model_name = random.choice(list(self.supporting_models.keys()))
-        # sampling distribution
 
         bt.logging.info(f"Received request for {model_name} model")
         bt.logging.info("Updating available models & uids")
         ig_subnet.validator.update_active_models(self)
-
+        
         available_uids = self.supporting_models[model_name]["uids"]
 
         if not available_uids:
@@ -109,6 +108,7 @@ class Validator(BaseValidatorNeuron):
 
         # Check that validator is registered on the network.
         self.sync()
+        self.resync_metagraph()
 
         bt.logging.info(
             f"Running validator {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
