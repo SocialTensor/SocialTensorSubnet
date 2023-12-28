@@ -51,8 +51,7 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-PIPE = None
-CURRENT_MODEL = ""
+PIPE = load_model("RealisticVision")
 
 
 @app.middleware("http")
@@ -74,12 +73,6 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/verify")
 async def get_rewards(data: Prompt):
-    global CURRENT_MODEL
-    if data.model_name != CURRENT_MODEL:
-        print("Loading model:", data.model_name, flush=True)
-        global PIPE
-        PIPE = load_model(data.model_name)
-        CURRENT_MODEL = data.model_name
     generator = torch.Generator().manual_seed(data.seed)
     validator_images = PIPE(
         prompt=data.prompt, generator=generator, **data.additional_params

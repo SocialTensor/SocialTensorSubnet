@@ -79,14 +79,16 @@ class ValidatorProxy:
         if random.random() < 0.01:
             bt.logging.info(f"Random check for miner {uid}")
             rewards = image_generation_subnet.validator.get_reward(
-                self.validator.config.reward_url, responses=responses, synapse=synapse
+                self.validator.config.reward_endpoint,
+                responses=responses,
+                synapse=synapse,
             )
             rewards = torch.FloatTensor(rewards)
             rewards = rewards * incentive_weight
             bt.logging.info(f"Scored responses: {rewards}")
             uids = [int(uid)]
-            self.update_scores(rewards, uids)
-            return False
+            self.validator.update_scores(rewards, uids)
+            return rewards[0] > 0
         else:
             bt.logging.info("Not doing random check")
             return True
