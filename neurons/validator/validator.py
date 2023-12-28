@@ -15,7 +15,7 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("load_state()")
         self.load_state()
-        self.all_uids = [str(uid) for uid in self.metagraph.uids]
+        self.all_uids = [int(uid) for uid in self.metagraph.uids]
         self.supporting_models = {
             "RealisticVision": {
                 "uids": [],
@@ -34,7 +34,7 @@ class Validator(BaseValidatorNeuron):
             self.scores,
         )
 
-    def forward(self):
+    async def forward(self):
         """
         Validator forward pass. Consists of:
         - Generating the query
@@ -49,7 +49,7 @@ class Validator(BaseValidatorNeuron):
             self, seed=seed, prompt_url=self.config.prompt_generating_endpoint
         )
         model_name = random.choice(list(self.supporting_models.keys()))
-        #sampling distribution
+        # sampling distribution
 
         bt.logging.info(f"Received request for {model_name} model")
         bt.logging.info("Updating available models & uids")
@@ -119,15 +119,17 @@ class Validator(BaseValidatorNeuron):
         # This loop maintains the validator's operations until intentionally stopped.
         try:
             while True:
-                # bt.logging.info(f"step({self.step}) block({self.block})")
+                bt.logging.info(f"step({self.step}) block({self.block})")
 
                 # Run multiple forwards concurrently.
 
                 self.loop.run_until_complete(self.concurrent_forward())
-                # self.forward()
+
+                # Update the validator proxy
                 self.validator_proxy.metagraph = self.metagraph
                 self.validator_proxy.supporting_models = self.supporting_models
                 self.validator_proxy.scores = self.scores
+
                 # Check if we should exit.
                 if self.should_exit:
                     break

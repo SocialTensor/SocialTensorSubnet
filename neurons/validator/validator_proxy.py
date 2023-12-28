@@ -103,7 +103,10 @@ class ValidatorProxy:
             model_name = synapse.model_name
             available_uids = self.supporting_models[model_name]["uids"]
             bt.logging.info(f"Available uids: {available_uids}")
-            bt.logging.info("Current scores", self.scores[available_uids])
+
+            bt.logging.info("Current scores", self.scores)
+            if len(self.scores) == 0:
+                self.scores = torch.zeros(len(self.metagraph.uids))
             miner_uid_index = torch.multinomial(
                 self.scores[available_uids] + 1e-4, 1
             ).item()
@@ -113,9 +116,8 @@ class ValidatorProxy:
             bt.logging.info(
                 f"Forwarding request to miner {miner_uid} with score {self.scores[miner_uid]}"
             )
-            print(self.metagraph.axons)
             axon = self.metagraph.axons[miner_uid]
-            print(axon)
+            bt.logging.info(f"Sending request to axon: {axon}")
             responses = self.dendrite.query(
                 [axon], synapse, deserialize=True, timeout=60
             )

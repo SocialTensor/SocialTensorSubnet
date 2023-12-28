@@ -7,4 +7,3 @@ python neurons/validator/validator.py \
 --proxy.market_registering_url http://localhost:10003/get_credentials \
 --reward_endpoint http://localhost:10002/verify \
 --prompt_generating_endpoint http://localhost:10001/prompt_generate \
---logging.debug \

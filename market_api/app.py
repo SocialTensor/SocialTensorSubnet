@@ -54,7 +54,8 @@ ARGS = parse_args()
 @app.post("/get_credentials")
 async def get_credentials(validator_info: ValidatorInfo):
     print(validator_info, flush=True)
-    AVAILABLE_VALIDATORS.append(validator_info)
+    if validator_info not in AVAILABLE_VALIDATORS:
+        AVAILABLE_VALIDATORS.append(validator_info)
     return {
         "message": MESSAGE,
         "signature": SIGNATURE,
@@ -82,6 +83,14 @@ async def generate(prompt: Prompt):
         raise Exception("Error generating image")
     else:
         validator.counter += 1
+    for val in AVAILABLE_VALIDATORS:
+        print(f"UID: {val.uid}, Counter: {val.counter}", flush=True)
+    # print percentage of requests sent to each validator
+    for val in AVAILABLE_VALIDATORS:
+        print(
+            f"UID: {val.uid}, Stake: {metagraph.total_stake[val.uid]}, Percentage: {val.counter / sum([v.counter for v in AVAILABLE_VALIDATORS])}",
+            flush=True,
+        )
     response = response.json()
     return response
 
