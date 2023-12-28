@@ -1,0 +1,4 @@
+RealisticVision:
+  checkpoint_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
+DivineEleganceMix:
+  checkpoint_url: "https://civitai.com/api/download/models/176425?type=Model&format=SafeTensor&size=pruned&fp=fp16"

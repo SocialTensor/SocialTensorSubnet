@@ -3,7 +3,7 @@ from diffusers import StableDiffusionXLPipeline, StableDiffusionPipeline
 from PIL import Image
 import torch
 from typing import List
-from utils import pil_image_to_base64, base64_to_pil_image
+from utils import pil_image_to_base64
 from pydantic import BaseModel
 
 
@@ -18,9 +18,11 @@ pipe = StableDiffusionPipeline.from_single_file("model.safetensors")
 pipe.enable_model_cpu_offload()
 pipe.to("cuda")
 
+
 @app.get("/info")
 async def get_model_name():
     return {"model_name": "RealisticVision"}
+
 
 @app.post("/generate")
 async def get_rewards(data: Prompt):

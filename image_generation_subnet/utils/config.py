@@ -161,17 +161,17 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--reward_endpoint",
-            type=str,
-            help="The endpoint to send rewards to.",
-            default="http://localhost:7000/reward",
-        )
-
-        parser.add_argument(
             "--proxy.market_registering_url",
             type=str,
             help="The url initialize credentials for proxy.",
             default="http://localhost:7000/credentials",
+        )
+
+        parser.add_argument(
+            "--reward_endpoint",
+            type=str,
+            help="The endpoint to send rewards to.",
+            default="http://localhost:7000/reward",
         )
 
         parser.add_argument(
@@ -194,6 +194,20 @@ def add_args(cls, parser):
             action="store_true",
             help="If set, miners will accept queries from non registered entities. (Dangerous!)",
             default=False,
+        )
+
+        parser.add_argument(
+            "--generate_endpoint",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="http://127.0.0.1:10006/generate",
+        )
+
+        parser.add_argument(
+            "--info_endpoint",
+            type=str,
+            help="The endpoint to send info requests to.",
+            default="http://127.0.0.1:10006/info",
         )
 
 
