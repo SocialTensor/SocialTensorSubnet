@@ -53,7 +53,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info(f"Received request for {model_name} model")
         bt.logging.info("Updating available models & uids")
         ig_subnet.validator.update_active_models(self)
-        
+
         available_uids = self.supporting_models[model_name]["uids"]
 
         if not available_uids:
