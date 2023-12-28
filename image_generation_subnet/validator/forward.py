@@ -2,9 +2,47 @@ import requests
 import bittensor as bt
 from image_generation_subnet.protocol import ImageGenerating
 from typing import List
+from functools import wraps
 
 
-def get_prompt(self, seed: int, prompt_url: str) -> str:
+def retry(**kwargs):
+    module = kwargs.get("module", "unknown")
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            # retry forever
+            while True:
+                try:
+                    return f(*args, **kwargs)
+                except Exception as e:
+                    bt.logging.error(f"Error in {module}: {e}, retrying...")
+
+        return wrapper
+
+    return decorator
+
+
+def skip(**kwargs):
+    module = kwargs.get("module", "unknown")
+
+    def decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            # return None if error
+            try:
+                return f(*args, **kwargs)
+            except Exception as e:
+                bt.logging.error(f"Error in {module}: {e}, skipping...")
+                return None
+
+        return wrapper
+
+    return decorator
+
+
+@retry(module="prompting")
+def get_prompt(seed: int, prompt_url: str) -> str:
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
@@ -17,13 +55,12 @@ def get_prompt(self, seed: int, prompt_url: str) -> str:
         "additional_params": {},
     }
     response = requests.post(prompt_url, headers=headers, json=data)
-    if response.status_code != 200:
-        bt.logging.error("Error getting prompt in main loop")
-        raise
+    while response.status_code != 200:
+        bt.logging.error("Error getting prompt in main loop, retrying...")
     prompt = response.json()["prompt"]
     return prompt
 
-
+@skip(module="rewarding")
 def get_reward(
     reward_url: str,
     responses: List[ImageGenerating],
@@ -44,6 +81,7 @@ def get_reward(
     response = requests.post(reward_url, headers=headers, json=data)
     if response.status_code != 200:
         bt.logging.error("Error getting reward in main loop")
+        return None
     rewards = response.json()["rewards"]
     return rewards
 

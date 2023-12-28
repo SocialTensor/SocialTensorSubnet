@@ -38,7 +38,7 @@ class Validator(BaseValidatorNeuron):
         steps = 20
         seed = random.randint(0, 1000)
         prompt = ig_subnet.validator.get_prompt(
-            self, seed=seed, prompt_url=self.config.prompt_generating_endpoint
+            seed=seed, prompt_url=self.config.prompt_generating_endpoint
         )
         model_name = random.choice(list(self.supporting_models.keys()))
 
@@ -72,6 +72,8 @@ class Validator(BaseValidatorNeuron):
         rewards = ig_subnet.validator.get_reward(
             self.config.reward_endpoint, responses, synapse
         )
+        if rewards is None:
+            return
         rewards = torch.FloatTensor(rewards)
         rewards = rewards * self.supporting_models[model_name]["incentive_weight"]
         bt.logging.info(f"Scored responses: {rewards}")
