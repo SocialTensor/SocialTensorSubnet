@@ -35,7 +35,6 @@ class Validator(BaseValidatorNeuron):
         - Rewarding the miners
         - Updating the scores
         """
-        steps = 20
         seed = random.randint(0, 1000)
         prompt = ig_subnet.validator.get_prompt(
             seed=seed, prompt_url=self.config.prompt_generating_endpoint
@@ -59,7 +58,6 @@ class Validator(BaseValidatorNeuron):
         synapse = ImageGenerating(
             prompt=prompt,
             seed=seed,
-            pipeline_params={"num_inference_steps": steps},
             model_name=model_name,
         )
         responses = self.dendrite.query(
