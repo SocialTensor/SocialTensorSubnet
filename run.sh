@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Initialize variables
-script="sd_net/validators/validator.py"
+script="scripts/run_validator.sh"
 autoRunLoc=$(readlink -f "$0")
-proc_name="sd_validators_main_process" 
+proc_name="image_generating_validator_main_process" 
 args=()
-version_location="./sd_net/validators/__init__.py"
+version_location="./neurons/validator/__init__.py"
 version="__version__"
 
 old_args=$@
@@ -208,7 +208,8 @@ echo "module.exports = {
   apps : [{
     name   : '$proc_name',
     script : '$script',
-    interpreter: 'python3',
+    watch: true,
+    interpreter: 'bash',
     min_uptime: '5m',
     max_restarts: '5',
     args: [$joined_args]
@@ -218,7 +219,7 @@ echo "module.exports = {
 # Print configuration to be used
 cat app.config.js
 
-pm2 start app.config.js
+pm2 start app.config.js --attach
 
 # Check if packages are installed.
 check_package_installed "jq"
@@ -229,7 +230,7 @@ if [ "$?" -eq 1 ]; then
         if [ -d "./.git" ]; then
 
             # check value on github remotely
-            latest_version=$(check_variable_value_on_github "toilaluan/bittensor-fixed-imagenet" "sd_net/validators/__init__.py" "__version__ ")
+            latest_version=$(check_variable_value_on_github "ZenAI-Vietnam/image-generation-subnet" "neurons/validator/__init__.py" "__version__ ")
 
             # If the file has been updated
             if version_less_than $current_version $latest_version; then
