@@ -117,7 +117,8 @@ class BaseNeuron(ABC):
 
         if self.should_set_weights():
             self.set_weights()
-
+            
+        self.load_state()
         # Always save state.
         self.save_state()
 
