@@ -25,7 +25,6 @@ def get_prompt(self, seed: int, prompt_url: str) -> str:
 
 
 def get_reward(
-    self,
     reward_url: str,
     responses: List[ImageGenerating],
     synapse: ImageGenerating,
@@ -54,7 +53,6 @@ def get_miner_info(self, payload: dict, query_uids: List[int]):
     query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
     protocol_payload = ImageGenerating(request_dict=payload)
     bt.logging.info("Requesting miner info")
-    print(query_axons)
     responses = self.dendrite.query(
         query_axons,
         protocol_payload,

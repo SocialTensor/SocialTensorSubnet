@@ -23,16 +23,8 @@ class Validator(BaseValidatorNeuron):
                 "checking_endpoint": "http://127.0.0.1:10002/verify",
             }
         }
-        self.validator_proxy = ValidatorProxy(
-            self.uid,
-            self.metagraph,
-            self.dendrite,
-            self.config.proxy.port,
-            self.config.proxy.market_registering_url,
-            self.supporting_models,
-            self.config.proxy.public_ip,
-            self.scores,
-        )
+        self.update_active_models_func = ig_subnet.validator.update_active_models
+        self.validator_proxy = ValidatorProxy(self)
 
     async def forward(self):
         """
@@ -52,7 +44,7 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info(f"Received request for {model_name} model")
         bt.logging.info("Updating available models & uids")
-        ig_subnet.validator.update_active_models(self)
+        self.update_active_models_func(self)
 
         available_uids = self.supporting_models[model_name]["uids"]
 
@@ -78,7 +70,7 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("Received responses, calculating rewards")
         rewards = ig_subnet.validator.get_reward(
-            self, self.config.reward_endpoint, responses, synapse
+            self.config.reward_endpoint, responses, synapse
         )
         rewards = torch.FloatTensor(rewards)
         rewards = rewards * self.supporting_models[model_name]["incentive_weight"]
@@ -124,11 +116,6 @@ class Validator(BaseValidatorNeuron):
                 # Run multiple forwards concurrently.
 
                 self.loop.run_until_complete(self.concurrent_forward())
-
-                # Update the validator proxy
-                self.validator_proxy.metagraph = self.metagraph
-                self.validator_proxy.supporting_models = self.supporting_models
-                self.validator_proxy.scores = self.scores
 
                 # Check if we should exit.
                 if self.should_exit:
