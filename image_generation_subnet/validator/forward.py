@@ -41,7 +41,7 @@ def skip(**kwargs):
     return decorator
 
 
-@retry(module="prompting")
+@skip(module="prompting")
 def get_prompt(seed: int, prompt_url: str) -> str:
     headers = {
         "accept": "application/json",
@@ -55,8 +55,6 @@ def get_prompt(seed: int, prompt_url: str) -> str:
         "additional_params": {},
     }
     response = requests.post(prompt_url, headers=headers, json=data)
-    while response.status_code != 200:
-        bt.logging.error("Error getting prompt in main loop, retrying...")
     prompt = response.json()["prompt"]
     return prompt
 
@@ -79,9 +77,6 @@ def get_reward(
         "additional_params": synapse.pipeline_params,
     }
     response = requests.post(reward_url, headers=headers, json=data)
-    if response.status_code != 200:
-        bt.logging.error("Error getting reward in main loop")
-        return None
     rewards = response.json()["rewards"]
     return rewards
 
