@@ -24,6 +24,7 @@ Welcome to the Image Generating Subnet project. This README provides an overview
 Before running the following commands, make sure to replace the placeholder arguments with appropriate values.
 
 ### Validator
+- **Normal run**
 ```bash
 python neurons/validator/validator.py \
 --netuid 1 \
@@ -34,6 +35,13 @@ python neurons/validator/validator.py \
 --proxy.market_registering_url http://localhost:10003/get_credentials \  # the endpoint of dependency_modules/market/app.py
 --reward_endpoint http://localhost:10002/verify \  # the endpoint of dependency_modules/rewarding/app.py
 --prompt_generating_endpoint http://localhost:10001/prompt_generate  # the endpoint of dependency_modules/prompt_generating/app.py
+```
+
+- **pm2 run**
+1. Install [`pm2`](https://pm2.keymetrics.io/docs/usage/quick-start/) and [`jq`](https://jqlang.github.io/jq/download/)
+2. Execute
+```bash
+pm2 start run.sh --attach
 ```
 
 ### Miner
