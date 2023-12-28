@@ -21,7 +21,7 @@ class ImageGenerating(bt.Synapse):
         description="Name of the model used for generation",
     )
     pipeline_params: dict = pydantic.Field(
-        default={},
+        default={"num_inference_steps": 30},
         title="Pipeline Parameters",
         description="Additional generating params",
     )
