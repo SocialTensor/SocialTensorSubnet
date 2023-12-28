@@ -13,8 +13,8 @@ class Miner(BaseMinerNeuron):
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
     async def forward(
-        self, synapse: neurons.protocol.ImageGenerating
-    ) -> neurons.protocol.ImageGenerating:
+        self, synapse: image_generation_subnet.protocol.ImageGenerating
+    ) -> image_generation_subnet.protocol.ImageGenerating:
         if synapse.prompt:
             images = image_generation_subnet.miner.generate(
                 self, synapse.prompt, synapse.seed, synapse.pipeline_params
@@ -26,7 +26,7 @@ class Miner(BaseMinerNeuron):
         return synapse
 
     async def blacklist(
-        self, synapse: neurons.protocol.ImageGenerating
+        self, synapse: image_generation_subnet.protocol.ImageGenerating
     ) -> typing.Tuple[bool, str]:
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
             # Ignore requests from unrecognized entities.
@@ -53,7 +53,9 @@ class Miner(BaseMinerNeuron):
 
         return False, "All passed!"
 
-    async def priority(self, synapse: neurons.protocol.ImageGenerating) -> float:
+    async def priority(
+        self, synapse: image_generation_subnet.protocol.ImageGenerating
+    ) -> float:
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
         )  # Get the caller index.
