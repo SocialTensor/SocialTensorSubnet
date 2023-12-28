@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from diffusers import StableDiffusionXLPipeline, StableDiffusionPipeline
+from diffusers import StableDiffusionPipeline, EulerAncestralDiscreteScheduler
 from PIL import Image
 import torch
 from typing import List
@@ -15,7 +15,7 @@ class Prompt(BaseModel):
 
 app = FastAPI()
 pipe = StableDiffusionPipeline.from_single_file("model.safetensors")
-pipe.enable_model_cpu_offload()
+pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
 pipe.to("cuda")
 
 

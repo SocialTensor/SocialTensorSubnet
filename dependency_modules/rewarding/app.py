@@ -1,15 +1,13 @@
 from fastapi import FastAPI, Request, Response, Depends
-from diffusers import DiffusionPipeline, StableDiffusionPipeline
-from PIL import Image
+from diffusers import StableDiffusionPipeline, EulerAncestralDiscreteScheduler
 import bittensor as bt
 import torch
 from typing import List
-from utils import pil_image_to_base64, base64_to_pil_image
+from utils import base64_to_pil_image
 from matching_hash import matching_images
 from pydantic import BaseModel
 import uvicorn
 import argparse
-import requests
 import time
 import os
 import threading
@@ -30,6 +28,7 @@ def load_model(model_name):
     file = os.path.join(CKPT_DIR, model_name) + ".safetensors"
     print(file)
     pipe = StableDiffusionPipeline.from_single_file(file, use_safetensors=True)
+    pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
     pipe.to("cuda")
     return pipe
 
