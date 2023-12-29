@@ -31,6 +31,7 @@ def get_args():
         type=str,
         default="subtensor_fixed_imagenet.thinkiftechnology.com:9944",
     )
+    parser.add_argument("--disable_secure", action="store_true")
     parser.add_argument(
         "--model_name",
         type=str,
@@ -60,7 +61,9 @@ MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.model_name])
 @app.middleware("http")
 @limiter.limit("30/minute")
 async def filter_allowed_ips(request: Request, call_next):
-    print(str(request.url))
+    if ARGS.disable_secure:
+        response = await call_next(request)
+        return response
     if (request.client.host not in ALLOWED_IPS) and (
         request.client.host != "127.0.0.1"
     ):
@@ -109,14 +112,15 @@ def define_allowed_ips(url, netuid, min_stake):
 
 
 if __name__ == "__main__":
-    allowed_ips_thread = threading.Thread(
-        target=define_allowed_ips,
-        args=(
-            ARGS.chain_endpoint,
-            ARGS.netuid,
-            ARGS.min_stake,
-        ),
-    )
-    allowed_ips_thread.setDaemon(True)
-    allowed_ips_thread.start()
+    if not ARGS.disable_secure:
+        allowed_ips_thread = threading.Thread(
+            target=define_allowed_ips,
+            args=(
+                ARGS.chain_endpoint,
+                ARGS.netuid,
+                ARGS.min_stake,
+            ),
+        )
+        allowed_ips_thread.setDaemon(True)
+        allowed_ips_thread.start()
     uvicorn.run(app, host="0.0.0.0", port=ARGS.port)
