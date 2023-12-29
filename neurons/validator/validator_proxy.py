@@ -75,11 +75,11 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def random_check(self, uid, synapse, responses, incentive_weight):
+    def random_check(self, uid, synapse, responses, incentive_weight, checking_url):
         if random.random() < 0.01:
             bt.logging.info(f"Random check for miner {uid}")
             rewards = image_generation_subnet.validator.get_reward(
-                self.validator.config.reward_endpoint,
+                checking_url,
                 responses=responses,
                 synapse=synapse,
             )
@@ -104,14 +104,17 @@ class ValidatorProxy:
             supporting_models = self.validator.supporting_models
             scores = self.validator.scores
             metagraph = self.validator.metagraph
-            available_uids = supporting_models[model_name]["uids"]
-            bt.logging.info(f"Available uids: {available_uids}")
 
+            available_uids = supporting_models[model_name]["uids"]
+            checking_url = supporting_models[model_name]["checking_url"]
+            incentive_weight = supporting_models[model_name]["incentive_weight"]
+
+            bt.logging.info(f"Available uids: {available_uids}")
             bt.logging.info("Current scores", scores)
             if len(scores) == 0:
                 scores = torch.zeros(len(metagraph.uids))
             miner_indexes = torch.multinomial(
-                scores[available_uids] + 1e-4, num_samples=len(available_uids)
+                scores[available_uids] + 1e-6, num_samples=len(available_uids)
             )
 
             is_valid_response = False
@@ -139,7 +142,8 @@ class ValidatorProxy:
                     miner_uid,
                     synapse,
                     responses,
-                    supporting_models[model_name]["incentive_weight"],
+                    incentive_weight,
+                    checking_url,
                 ):
                     is_valid_response = True
                     bt.logging.info("Checked OK")
