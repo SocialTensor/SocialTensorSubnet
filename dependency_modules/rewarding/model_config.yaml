@@ -1,4 +1,10 @@
 RealisticVision:
-  checkpoint_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-DivineEleganceMix:
-  checkpoint_url: "https://civitai.com/api/download/models/176425?type=Model&format=SafeTensor&size=pruned&fp=fp16"
+  target: models.StableDiffusion
+  params:
+    checkpoint_file: "checkpoints/RealisticVision.safetensors"
+    download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
+SDXLTurbo:
+  target: models.StableDiffusionXL
+  params:
+    checkpoint_file: "checkpoints/SDXLTurbo.safetensors"
+    checkpoint_url: "https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true"
