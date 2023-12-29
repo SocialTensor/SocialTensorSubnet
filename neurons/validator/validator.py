@@ -20,11 +20,13 @@ class Validator(BaseValidatorNeuron):
                 "uids": [],
                 "incentive_weight": 1.0,
                 "checking_url": self.config.realistic_vision.check_url,
+                "inference_params": {"num_inference_steps": 30},
             },
             "SDXLTurbo": {
                 "uids": [],
                 "incentive_weight": 1.0,
                 "checking_url": self.config.sdxl_turbo.check_url,
+                "inference_params": {"num_inference_steps": 4},
             },
         }
         self.update_active_models_func = ig_subnet.validator.update_active_models
@@ -63,6 +65,9 @@ class Validator(BaseValidatorNeuron):
             prompt=prompt,
             seed=seed,
             model_name=model_name,
+        )
+        synapse.pipeline_params.update(
+            self.supporting_models[model_name]["inference_params"]
         )
         responses = self.dendrite.query(
             axons=[self.metagraph.axons[uid] for uid in available_uids],

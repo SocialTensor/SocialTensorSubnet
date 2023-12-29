@@ -100,6 +100,9 @@ class ValidatorProxy:
             bt.logging.info("Received a request!")
             payload = data.get("payload")
             synapse = ImageGenerating(**payload)
+            synapse.pipeline_params.update(
+                self.validator.supporting_models[synapse.model_name]["inference_params"]
+            )
             model_name = synapse.model_name
             supporting_models = self.validator.supporting_models
             scores = self.validator.scores

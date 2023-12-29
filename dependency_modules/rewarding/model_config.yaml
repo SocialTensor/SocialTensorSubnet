@@ -7,4 +7,4 @@ SDXLTurbo:
   target: models.StableDiffusionXL
   params:
     checkpoint_file: "checkpoints/SDXLTurbo.safetensors"
-    checkpoint_url: "https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true"
+    download_url: "https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true"
