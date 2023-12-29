@@ -168,17 +168,17 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--reward_endpoint",
+            "--realistic_vision.check_url",
             type=str,
-            help="The endpoint to send rewards to.",
-            default="http://localhost:7000/reward",
+            help="The endpoint to query to see if the image hash is correct.",
+            default="check_realistic_vision_nicheimage.nichetensor.com",
         )
 
         parser.add_argument(
-            "--prompt_generating_endpoint",
+            "--sdxl_turbo.check_url",
             type=str,
-            help="The endpoint to prompt generating.",
-            default="http://localhost:7001/generate",
+            help="The endpoint to query to see if the image hash is correct.",
+            default="sdxl_turbo_nicheimage.nichetensor.com",
         )
 
     else:

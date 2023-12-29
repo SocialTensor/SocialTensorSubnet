@@ -15,13 +15,17 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("load_state()")
         self.load_state()
-        self.all_uids = [int(uid) for uid in self.metagraph.uids]
         self.supporting_models = {
             "RealisticVision": {
                 "uids": [],
                 "incentive_weight": 1.0,
-                "checking_endpoint": "http://127.0.0.1:10002/verify",
-            }
+                "checking_url": self.config.realistic_vision.check_url,
+            },
+            "SDXLTurbo": {
+                "uids": [],
+                "incentive_weight": 1.0,
+                "checking_url": self.config.sdxl_turbo.check_url,
+            },
         }
         self.update_active_models_func = ig_subnet.validator.update_active_models
         self.validator_proxy = ValidatorProxy(self)
@@ -35,7 +39,7 @@ class Validator(BaseValidatorNeuron):
         - Rewarding the miners
         - Updating the scores
         """
-        seed = random.randint(0, 1000)
+        seed = random.randint(0, 1e9)
         prompt = ig_subnet.validator.get_prompt(
             seed=seed, prompt_url=self.config.prompt_generating_endpoint
         )
@@ -67,9 +71,8 @@ class Validator(BaseValidatorNeuron):
         )
 
         bt.logging.info("Received responses, calculating rewards")
-        rewards = ig_subnet.validator.get_reward(
-            self.config.reward_endpoint, responses, synapse
-        )
+        checking_url = self.supporting_models[model_name]["checking_url"]
+        rewards = ig_subnet.validator.get_reward(checking_url, responses, synapse)
         if rewards is None:
             return
         rewards = torch.FloatTensor(rewards)
@@ -100,7 +103,6 @@ class Validator(BaseValidatorNeuron):
 
         # Check that validator is registered on the network.
         self.sync()
-        self.resync_metagraph()
 
         bt.logging.info(
             f"Running validator {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
