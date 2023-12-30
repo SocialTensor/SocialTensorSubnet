@@ -1,9 +1,11 @@
-python neurons/validator/validator.py \
+pm2 start run.sh --name validator-niche-image -f --attach -- \
 --netuid 1 \
---subtensor.chain_endpoint ws://20.243.203.20:9946 \
---wallet.name validator --wallet.hotkey default \
+--subtensor.chain_endpoint ws://subtensor_fixed_imagenet.thinkiftechnology.com:9944 \
+--wallet.name validator \
+--wallet.hotkey default \
+--proxy.proxy_client_url http://proxy_client_nicheimage.nichetensor.com:10003 \
 --proxy.port 8080 \
---proxy.public_ip http://localhost \
---proxy.market_registering_url http://localhost:10003/get_credentials \
---reward_endpoint http://localhost:10002/verify \
---prompt_generating_endpoint http://localhost:10001/prompt_generate \
+--proxy.public_ip localhost \
+--realistic_vision.check_url http://check_realistic_vision_nicheimage.nichetensor.com:15011/verify \
+--sdxl_turbo.check_url http://sdxl_turbo_nicheimage.nichetensor.com:15012/verify \
+--prompt_generating_endpoint http://generate_prompt_nicheimage.nichetensor.com:15010/prompt_generate \

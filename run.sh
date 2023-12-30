@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Initialize variables
-script="scripts/run_validator.sh"
+script="neurons/validator/validator.py"
 autoRunLoc=$(readlink -f "$0")
 proc_name="image_generating_validator_main_process" 
 args=()
@@ -209,8 +209,8 @@ echo "module.exports = {
     name   : '$proc_name',
     script : '$script',
     watch: true,
-    interpreter: 'bash',
-    min_uptime: '5m',
+    interpreter: 'python',
+    min_uptime: '60m',
     max_restarts: '5',
     args: [$joined_args]
   }]
@@ -283,7 +283,7 @@ if [ "$?" -eq 1 ]; then
         # Wait about 30 minutes
         # This should be plenty of time for validators to catch up
         # and should prevent any rate limitations by GitHub.
-        sleep 3600
+        sleep 7200
     done
 else
     echo "Missing package 'jq'. Please install it for your system first."

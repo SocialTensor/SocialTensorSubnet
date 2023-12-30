@@ -156,31 +156,35 @@ def add_args(cls, parser):
         parser.add_argument(
             "--proxy.public_ip",
             type=str,
-            help="The public ip of the validator.",
-            default="localhost",
+            help="The public ip of the validator, which allow for proxy client call requests.",
         )
 
         parser.add_argument(
-            "--proxy.market_registering_url",
+            "--proxy.proxy_client_url",
             type=str,
             help="The url initialize credentials for proxy.",
-            default="http://localhost:7000/credentials",
+            default="http://proxy_client_nicheimage.nichetensor.com:15001",
         )
 
         parser.add_argument(
             "--realistic_vision.check_url",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="check_realistic_vision_nicheimage.nichetensor.com",
+            default="http://check_realistic_vision_nicheimage.nichetensor.com:15011/verify",
         )
 
         parser.add_argument(
             "--sdxl_turbo.check_url",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="sdxl_turbo_nicheimage.nichetensor.com",
+            default="http://sdxl_turbo_nicheimage.nichetensor.com:15012/verify",
         )
-
+        parser.add_argument(
+            "--prompt_generating_endpoint",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="http://generate_prompt_nicheimage.nichetensor.com:15010/prompt_generate",
+        )
     else:
         parser.add_argument(
             "--blacklist.force_validator_permit",

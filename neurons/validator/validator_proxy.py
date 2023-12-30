@@ -35,7 +35,7 @@ class ValidatorProxy:
 
     def get_credentials(self):
         response = requests.post(
-            self.validator.config.proxy.market_registering_url,
+            f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
             json={
                 "uid": int(self.validator.uid),
                 "generate_endpoint": f"{self.validator.config.proxy.public_ip}:{self.validator.config.proxy.port}/validator_proxy",
@@ -83,6 +83,8 @@ class ValidatorProxy:
                 responses=[response],
                 synapse=synapse,
             )
+            if rewards is None:
+                return False
             rewards = torch.FloatTensor(rewards)
             rewards = rewards * incentive_weight
             bt.logging.info(f"Scored responses: {rewards}")
