@@ -27,11 +27,11 @@ async def get_model_name():
 @app.post("/generate")
 async def get_rewards(data: Prompt):
     generator = torch.Generator().manual_seed(data.seed)
-    images = pipe(
+    image = pipe(
         prompt=data.prompt, generator=generator, **data.additional_params
-    ).images
-    images = [pil_image_to_base64(image) for image in images]
-    return {"images": images}
+    ).images[0]
+    image = pil_image_to_base64(image)
+    return {"image": image}
 
 
 if __name__ == "__main__":

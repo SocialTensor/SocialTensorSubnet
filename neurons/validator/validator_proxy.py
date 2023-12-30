@@ -75,12 +75,12 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def random_check(self, uid, synapse, responses, incentive_weight, checking_url):
+    def random_check(self, uid, synapse, response, incentive_weight, checking_url):
         if random.random() < 0.01:
             bt.logging.info(f"Random check for miner {uid}")
             rewards = image_generation_subnet.validator.get_reward(
                 checking_url,
-                responses=responses,
+                responses=[response],
                 synapse=synapse,
             )
             rewards = torch.FloatTensor(rewards)
@@ -139,12 +139,12 @@ class ValidatorProxy:
                     )
                 )
                 await asyncio.gather(task)
-                responses = task.result()
+                response = task.result()[0]
                 bt.logging.info(f"Received responses")
                 if self.random_check(
                     miner_uid,
                     synapse,
-                    responses,
+                    response,
                     incentive_weight,
                     checking_url,
                 ):

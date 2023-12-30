@@ -16,10 +16,10 @@ class Miner(BaseMinerNeuron):
         self, synapse: image_generation_subnet.protocol.ImageGenerating
     ) -> image_generation_subnet.protocol.ImageGenerating:
         if synapse.prompt:
-            images = image_generation_subnet.miner.generate(
+            image = image_generation_subnet.miner.generate(
                 self, synapse.prompt, synapse.seed, synapse.pipeline_params
             )
-            synapse.images = images
+            synapse.image = image
         if synapse.request_dict:
             synapse.response_dict = self.miner_info
             bt.logging.info(f"Response dict: {self.miner_info}")

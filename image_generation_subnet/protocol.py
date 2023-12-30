@@ -12,8 +12,8 @@ class ImageGenerating(bt.Synapse):
     seed: int = pydantic.Field(
         default=0, title="Seed", description="Seed for deterministic generation"
     )
-    images: typing.List[str] = pydantic.Field(
-        default=[], title="Images", description="Output of text to image model"
+    image: str = pydantic.Field(
+        default=[], title="Image", description="Output of text to image model in base64 format"
     )
     model_name: str = pydantic.Field(
         default="",
@@ -38,4 +38,4 @@ class ImageGenerating(bt.Synapse):
     )
 
     def deserialize(self) -> typing.List[str]:
-        return self.images
+        return self.image

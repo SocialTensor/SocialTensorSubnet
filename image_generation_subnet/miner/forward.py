@@ -21,8 +21,8 @@ def generate(self, prompt: str, seed: int, additional_params: dict) -> List[str]
     }
 
     response = requests.post(self.config.generate_endpoint, headers=headers, json=data)
-    images = response.json()["images"]
-    return images
+    image = response.json()["image"]
+    return image
 
 
 def get_model_name(self):

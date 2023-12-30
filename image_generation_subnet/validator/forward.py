@@ -65,7 +65,7 @@ def get_reward(
     responses: List[ImageGenerating],
     synapse: ImageGenerating,
 ):
-    images = [response.images for response in responses]
+    images = [response.image for response in responses]
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
