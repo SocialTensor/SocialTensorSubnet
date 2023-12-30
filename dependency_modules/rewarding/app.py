@@ -3,8 +3,8 @@ from diffusers import StableDiffusionPipeline, EulerAncestralDiscreteScheduler
 import bittensor as bt
 import torch
 from typing import List
-from utils import base64_to_pil_image, instantiate_from_config
-from matching_hash import matching_images
+from utils import instantiate_from_config, measure_time
+from hash_compare import infer_hash
 from pydantic import BaseModel
 import uvicorn
 import argparse
@@ -79,20 +79,18 @@ async def filter_allowed_ips(request: Request, call_next):
 @app.post("/verify")
 async def get_rewards(data: Prompt):
     generator = torch.Generator().manual_seed(data.seed)
-    validator_images = MODEL(
+    validator_results, pipe_time = measure_time(MODEL)(
         prompt=data.prompt, generator=generator, **data.additional_params
-    ).images
-    rewards = []
-    for miner_images in data.images:
-        try:
-            miner_images = [base64_to_pil_image(image) for image in miner_images]
-            reward = matching_images(miner_images, validator_images)
-            print("Verify Result:", reward, flush=True)
-        except Exception as e:
-            print(e, flush=True)
-            reward = 0
-        rewards.append(reward)
-    return {"rewards": rewards}
+    )
+    validator_images = validator_results.images
+    hash_time, rewards = measure_time(infer_hash)(validator_images, data.images)
+    return {
+        "rewards": rewards,
+        "component_time": {
+            "pipe_time": pipe_time,
+            "hash_time": hash_time,
+        },
+    }
 
 
 def define_allowed_ips(url, netuid, min_stake):
