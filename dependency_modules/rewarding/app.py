@@ -36,14 +36,14 @@ def get_args():
         type=str,
         choices=list(MODEL_CONFIG.keys()),
     )
-    args = parser.parse_known_args()
+    args = parser.parse_known_args()[0]
     return args
 
 
 class Prompt(BaseModel):
     prompt: str
     seed: int
-    images: List[List[str]]
+    images: List[str]
     model_name: str
     additional_params: dict = {}
 
@@ -79,11 +79,11 @@ async def filter_allowed_ips(request: Request, call_next):
 @app.post("/verify")
 async def get_rewards(data: Prompt):
     generator = torch.Generator().manual_seed(data.seed)
-    validator_results, pipe_time = measure_time(MODEL)(
+    validator_result, pipe_time = measure_time(MODEL)(
         prompt=data.prompt, generator=generator, **data.additional_params
     )
-    validator_images = validator_results.images
-    hash_time, rewards = measure_time(infer_hash)(validator_images, data.images)
+    validator_image = validator_result.images[0]
+    rewards, hash_time = measure_time(infer_hash)(validator_image, data.images)
     return {
         "rewards": rewards,
         "component_time": {

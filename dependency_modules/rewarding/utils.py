@@ -50,10 +50,12 @@ def pil_image_to_base64(image: Image.Image) -> str:
 
 
 def base64_to_pil_image(base64_image: str) -> Image.Image:
-    image_stream = io.BytesIO(base64.b64decode(base64_image))
-    image = Image.open(image_stream)
-
-    return image
+    try:
+        image_stream = io.BytesIO(base64.b64decode(base64_image))
+        image = Image.open(image_stream)
+        return image
+    except:
+        return None
 
 
 def download_checkpoint(download_url, checkpoint_file):

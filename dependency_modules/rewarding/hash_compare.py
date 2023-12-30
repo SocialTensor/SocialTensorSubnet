@@ -1,33 +1,23 @@
-from utils import matching_images, base64_to_pil_image, measure_time
+from utils import base64_to_pil_image
 import imagehash
 from PIL import Image
 from typing import List
 
 
-def matching_images(
-    miner_images: List[Image.Image], validator_images: List[Image.Image]
-) -> bool:
-    miner_hashes = [
-        imagehash.average_hash(image, hash_size=4) for image in miner_images
-    ]
-    validator_hashes = [
-        imagehash.average_hash(image, hash_size=4) for image in validator_images
-    ]
-    matching = [
-        miner_hash == validator_hash
-        for miner_hash, validator_hash in zip(miner_hashes, validator_hashes)
-    ]
-    return all(matching)
+def matching_image(miner_image: Image.Image, validator_image: Image.Image) -> bool:
+    miner_hash = imagehash.average_hash(miner_image)
+    validator_hash = imagehash.average_hash(validator_image)
+    return miner_hash == validator_hash
 
 
-def infer_hash(validator_images, batched_miner_images):
+def infer_hash(validator_image: str, batched_miner_images: List[str]):
     rewards = []
-    for miner_images in batched_miner_images:
-        try:
-            miner_images = [base64_to_pil_image(image) for image in miner_images]
-            reward = matching_images(miner_images, validator_images)
-        except Exception as e:
-            print(e, flush=True)
-            reward = 0
+    for miner_image in batched_miner_images:
+        miner_image = base64_to_pil_image(miner_image)
+        if miner_image is None:
+            reward = False
+        else:
+            reward = matching_image(miner_image, validator_image)
         rewards.append(reward)
+    print(rewards, flush=True)
     return rewards
