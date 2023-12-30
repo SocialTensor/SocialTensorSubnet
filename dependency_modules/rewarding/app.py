@@ -9,7 +9,6 @@ from pydantic import BaseModel
 import uvicorn
 import argparse
 import time
-import os
 import threading
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -37,7 +36,7 @@ def get_args():
         type=str,
         choices=list(MODEL_CONFIG.keys()),
     )
-    args = parser.parse_args()
+    args = parser.parse_known_args()
     return args
 
 
@@ -59,7 +58,7 @@ MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.model_name])
 
 
 @app.middleware("http")
-@limiter.limit("30/minute")
+@limiter.limit("60/minute")
 async def filter_allowed_ips(request: Request, call_next):
     if ARGS.disable_secure:
         response = await call_next(request)

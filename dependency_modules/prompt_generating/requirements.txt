@@ -2,3 +2,5 @@ transformers
 fastapi
 uvicorn
 slowapi
+bittensor
+gunicorn

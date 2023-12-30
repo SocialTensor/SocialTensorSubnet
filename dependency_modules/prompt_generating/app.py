@@ -25,7 +25,7 @@ def get_args():
         default="subtensor_fixed_imagenet.thinkiftechnology.com:9944",
     )
     parser.add_argument("--disable_secure", action="store_true")
-    args = parser.parse_args()
+    args = parser.parse_known_args()
     return args
 
 
@@ -55,7 +55,7 @@ generator = pipeline(model="Gustavosta/MagicPrompt-Stable-Diffusion", device="cu
 
 
 @app.middleware("http")
-@limiter.limit("30/minute")
+@limiter.limit("60/minute")
 async def filter_allowed_ips(request: Request, call_next):
     if ARGS.disable_secure:
         response = await call_next(request)
