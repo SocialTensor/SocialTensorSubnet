@@ -7,7 +7,7 @@ from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
 import image_generation_subnet as ig_subnet
 from traceback import print_exception
-
+import queue
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -29,6 +29,9 @@ class Validator(BaseValidatorNeuron):
                 "inference_params": {"num_inference_steps": 4},
             },
         }
+        self.model_queue = queue.Queue()
+        for model in self.supporting_models.keys():
+            self.model_queue.put(model)
         self.update_active_models_func = ig_subnet.validator.update_active_models
         self.validator_proxy = ValidatorProxy(self)
 
@@ -45,7 +48,8 @@ class Validator(BaseValidatorNeuron):
         prompt = ig_subnet.validator.get_prompt(
             seed=seed, prompt_url=self.config.prompt_generating_endpoint
         )
-        model_name = random.choice(list(self.supporting_models.keys()))
+        model_name = self.model_queue.get()
+        self.model_queue.put(model_name)
 
         bt.logging.info(f"Received request for {model_name} model")
         bt.logging.info("Updating available models & uids")
