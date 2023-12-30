@@ -110,15 +110,18 @@ def update_active_models(self):
     2. Update the available list
     """
     payload = {"get_miner_info": True}
+    
     self.all_uids = [int(uid) for uid in self.metagraph.uids]
     valid_miners_info = get_miner_info(self, payload, self.all_uids)
+
+
     if not valid_miners_info:
         bt.logging.warning("No active miner available. Skipping setting weights.")
-    model_uids_dict = {}
+
+
     for uid, info in valid_miners_info.items():
-        if info["model_name"] in self.supporting_models:
-            if info["model_name"] not in model_uids_dict:
-                model_uids_dict[info["model_name"]] = []
-            model_uids_dict[info["model_name"]].append(uid)
-    for model_name, uids in model_uids_dict.items():
-        self.supporting_models[model_name]["uids"] = uids
+        if self.all_uids_info[str(uid)]["model_name"] != info["model_name"]:
+            self.all_uids_info[str(uid)]["model_name"] = info["model_name"]
+            self.all_uids_info[str(uid)]["scores"] = []
+
+

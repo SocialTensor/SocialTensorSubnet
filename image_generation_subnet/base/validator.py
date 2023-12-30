@@ -28,7 +28,7 @@ from typing import List
 from traceback import print_exception
 
 from image_generation_subnet.base.neuron import BaseNeuron
-
+import time
 
 class BaseValidatorNeuron(BaseNeuron):
     """
@@ -87,11 +87,7 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.error(f"Failed to create Axon initialize with exception: {e}")
             pass
 
-    async def concurrent_forward(self):
-        coroutines = [
-            self.forward() for _ in range(self.config.neuron.num_concurrent_forwards)
-        ]
-        await asyncio.gather(*coroutines)
+
 
     def run(self):
         """
@@ -125,10 +121,13 @@ class BaseValidatorNeuron(BaseNeuron):
         # This loop maintains the validator's operations until intentionally stopped.
         try:
             while True:
+
+                time_per_loop = 60 * 2 #One loop every 2 minutes
+                start_time_forward_loop = time.time()
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
-                # Run multiple forwards concurrently.
-                self.loop.run_until_complete(self.concurrent_forward())
+                # Run forward.
+                self.forward()
 
                 # Check if we should exit.
                 if self.should_exit:
@@ -136,8 +135,17 @@ class BaseValidatorNeuron(BaseNeuron):
 
                 # Sync metagraph and potentially set weights.
                 self.sync()
+                self.save_state()
+
+                
 
                 self.step += 1
+                
+                bt.logging.info(f"Loop completed, uids info:", self.all_uids_info)
+                time_elapse_in_loop = time.time() - start_time_forward_loop
+
+                if time_elapse_in_loop < time_per_loop:
+                    time.sleep(time_per_loop - time_elapse_in_loop)
 
         # If someone intentionally stops the validator, it'll safely terminate operations.
         except KeyboardInterrupt:
@@ -307,8 +315,7 @@ class BaseValidatorNeuron(BaseNeuron):
         torch.save(
             {
                 "step": self.step,
-                "scores": self.scores,
-                "hotkeys": self.hotkeys,
+                "all_uids_info": self.all_uids_info,
             },
             self.config.neuron.full_path + "/state.pt",
         )
@@ -318,7 +325,9 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.info("Loading validator state.")
 
         # Load the state of the validator from file.
-        state = torch.load(self.config.neuron.full_path + "/state.pt")
-        self.step = state["step"]
-        self.scores = state["scores"]
-        self.hotkeys = state["hotkeys"]
+        try:
+            state = torch.load(self.config.neuron.full_path + "/state.pt")
+            self.step = state["step"]
+            self.all_uids_info = state["all_uids_info"]
+        except:
+            bt.logging.info("Could not find previously saved state.")

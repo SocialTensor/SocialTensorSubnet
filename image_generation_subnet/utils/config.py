@@ -150,7 +150,7 @@ def add_args(cls, parser):
             "--proxy.port",
             type=int,
             help="The port to run the proxy on.",
-            default=8080,
+            default=None,
         )
 
         parser.add_argument(
