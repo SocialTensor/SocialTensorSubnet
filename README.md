@@ -23,7 +23,7 @@ Welcome to the Image Generating Subnet project. This README provides an overview
 ## Example Usage
 Before running the following commands, make sure to replace the placeholder arguments with appropriate values.
 
-### Validator
+## Validator
 - **Normal run**
 ```bash
 python neurons/validator/validator.py \
@@ -44,7 +44,36 @@ python neurons/validator/validator.py \
 pm2 start run.sh --attach
 ```
 
-### Miner
+## Miner
+To start a miner, you need to first set up an image generation endpoint on a GPU server, and then you can attach multiple miners to that endpoint.
+
+For faster generation, you can have the miners on the same server as you have the GPU that runs the image generation endpoint.
+
+
+### Starting Image Generation Endpoint
+
+#### Install Dependencies
+`pip install -r neurons/miner/example_endpoint/requirements.txt`
+
+#### Download Model
+`sh neurons/miner/example_endpoint/download_checkpoint.sh`
+
+#### Start Image Generation Endpoint
+`python3 neurons/miner/example_endpoint/app.py --port 10006`
+
+
+#### Start Miner
+```bash 
+python -m neurons.miner.miner \
+--netuid 1 \
+--subtensor.chain_endpoint ws://20.243.203.20:9946 \
+--wallet.name miner --wallet.hotkey default \
+--generate_endpoint http://127.0.0.1:10006/generate \ # the endpoint of neurons/miner/example_endpoint
+--info_endpoint http://127.0.0.1:10006/info \ # the endpoint of neurons/miner/example_endpoint
+--axon.port 45467 # public port on the host machine
+```
+
+### Starting Miner That Uses The Image Generation Endpoint
 ```bash
 python neurons/miner/miner.py \
 --netuid 1 \

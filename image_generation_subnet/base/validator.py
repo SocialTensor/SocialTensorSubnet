@@ -322,12 +322,15 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def load_state(self):
         """Loads the state of the validator from a file."""
-        bt.logging.info("Loading validator state.")
+       
 
         # Load the state of the validator from file.
         try:
-            state = torch.load(self.config.neuron.full_path + "/state.pt")
+            path = self.config.neuron.full_path + "/state.pt"
+            bt.logging.info("Loading validator state from: " + path)
+            state = torch.load(path)
             self.step = state["step"]
             self.all_uids_info = state["all_uids_info"]
+            bt.logging.info("Succesfully loaded state")
         except:
             bt.logging.info("Could not find previously saved state.")

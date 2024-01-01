@@ -5,7 +5,13 @@ import torch
 from typing import List
 from utils import pil_image_to_base64
 from pydantic import BaseModel
+import argparse
 
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--port', type=int, required=False, default=10006)
+
+args = parser.parse_args()
 
 class Prompt(BaseModel):
     prompt: str
@@ -37,4 +43,4 @@ async def get_rewards(data: Prompt):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=10006)
+    uvicorn.run(app, host="0.0.0.0", port=args.port)

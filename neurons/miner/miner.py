@@ -3,7 +3,6 @@ import typing
 import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
-import neurons
 
 
 class Miner(BaseMinerNeuron):
@@ -15,11 +14,15 @@ class Miner(BaseMinerNeuron):
     async def forward(
         self, synapse: image_generation_subnet.protocol.ImageGenerating
     ) -> image_generation_subnet.protocol.ImageGenerating:
+        
+        bt.logging.info(f"synapse {synapse}")
+
         if synapse.prompt:
             image = image_generation_subnet.miner.generate(
                 self, synapse.prompt, synapse.seed, synapse.pipeline_params
             )
             synapse.image = image
+
         if synapse.request_dict:
             synapse.response_dict = self.miner_info
             bt.logging.info(f"Response dict: {self.miner_info}")
@@ -28,6 +31,9 @@ class Miner(BaseMinerNeuron):
     async def blacklist(
         self, synapse: image_generation_subnet.protocol.ImageGenerating
     ) -> typing.Tuple[bool, str]:
+        
+        bt.logging.info(f"synapse in blacklist {synapse}")
+
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
             # Ignore requests from unrecognized entities.
             bt.logging.trace(

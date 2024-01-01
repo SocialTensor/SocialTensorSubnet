@@ -27,19 +27,18 @@ class Validator(BaseValidatorNeuron):
                 "inference_params": {"num_inference_steps": 4},
             },
         }
-        self.model_queue = queue.Queue()
-        for model in self.supporting_models.keys():
-            self.model_queue.put(model)
+
         self.update_active_models_func = ig_subnet.validator.update_active_models
         
         if self.config.proxy.port:
             try:
                 self.validator_proxy = ValidatorProxy(self)
+                bt.logging.info("Validator proxy started succesfully")
             except Exception as e:
-                bt.logging.info("Warning, proxy did not start correctly, so no one can query through your validator. Error message: " + str(e))
+                bt.logging.warning("Warning, proxy did not start correctly, so no one can query through your validator. Error message: " + str(e))
 
         self.all_uids = [int(uid) for uid in self.metagraph.uids]
-        self.all_uids_info = {str((uid)): {"scores":[],"model_name":"unknown"} for uid in self.metagraph.uids}
+        self.all_uids_info = {str((uid.item())): {"scores":[],"model_name":"unknown"} for uid in self.metagraph.uids}
 
     def forward(self):
         """
@@ -67,7 +66,7 @@ class Validator(BaseValidatorNeuron):
 
                 
 
-                available_uids = [uid for uid in self.all_uids_info.keys() if self.all_uids_info[uid]["model_name"] == model_name]
+                available_uids = [int(uid) for uid in self.all_uids_info.keys() if self.all_uids_info[uid]["model_name"] == model_name]
 
                 if not available_uids:
                     bt.logging.warning(
@@ -97,13 +96,13 @@ class Validator(BaseValidatorNeuron):
                 if rewards is None:
                     return
                 rewards = torch.FloatTensor(rewards)
-                rewards = rewards * self.supporting_models[model_name]["incentive_weight"]
+                rewards = rewards
                 bt.logging.info(f"Scored responses: {rewards}")
 
 
-                for i in range(available_uids):
-                    self.all_uids_info[available_uids[i]]["scores"].append(rewards[i])
-                    self.all_uids_info[available_uids[i]]["scores"] = self.all_uids_info[available_uids[i]]["scores"][-10:]
+                for i in range(len(available_uids)):
+                    self.all_uids_info[str(available_uids[i])]["scores"].append(rewards[i].item())
+                    self.all_uids_info[str(available_uids[i])]["scores"] = self.all_uids_info[str(available_uids[i])]["scores"][-10:]
 
         self.update_scores_on_chain()
         self.save_state()
@@ -121,18 +120,21 @@ class Validator(BaseValidatorNeuron):
             for uid in self.all_uids_info.keys():
                 if self.all_uids_info[uid]["model_name"] == model_name:
                     num_past_to_check = 5
-                    model_specific_weights[int(uid)] = sum(self.all_uids_info[available_uids[i]]["scores"][-num_past_to_check:]) / num_past_to_check
+                    model_specific_weights[int(uid)] = sum(self.all_uids_info[uid]["scores"][-num_past_to_check:]) / num_past_to_check
 
 
             tensor_sum = torch.sum(model_specific_weights)
             # Normalizing the tensor
-            model_specific_weights = model_specific_weights / tensor_sum
+            if tensor_sum > 0:
+                model_specific_weights = model_specific_weights / tensor_sum
+            else:
+                continue
             #Correcting reward
             model_specific_weights = model_specific_weights * self.supporting_models[model_name]["incentive_weight"]
-
+            bt.logging.info(f"model_specific_weights {model_specific_weights}")
             weights = weights + model_specific_weights
 
-
+        bt.logging.info(f"weights {weights}")
         # Check if rewards contains NaN values.
         if torch.isnan(weights).any():
             bt.logging.warning(f"NaN values detected in weights: {weights}")

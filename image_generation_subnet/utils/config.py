@@ -154,16 +154,10 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--proxy.public_ip",
-            type=str,
-            help="The public ip of the validator, which allow for proxy client call requests.",
-        )
-
-        parser.add_argument(
             "--proxy.proxy_client_url",
             type=str,
             help="The url initialize credentials for proxy.",
-            default="http://proxy_client_nicheimage.nichetensor.com:15001",
+            default="http://proxy_client_nicheimage.nichetensor.com:10003",
         )
 
         parser.add_argument(
