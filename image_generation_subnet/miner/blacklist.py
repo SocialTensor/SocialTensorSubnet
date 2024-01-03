@@ -3,10 +3,10 @@ import bittensor as bt
 
 CONFIG = {
     "blacklist": {
-        "min_stake": 100,
+        "min_stake": 0,
         "block_non_validator": True,
         "tao_based_limitation": {
-            "tao_base_level": 10,  # TAOs
+            "tao_base_level": 0.1,  # TAOs
             "interval": 600,  # seconds
             "max_requests_per_interval": 10,
         },

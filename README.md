@@ -23,16 +23,16 @@ Welcome to the Image Generating Subnet project. This README provides an overview
 ## Example Usage
 Before running the following commands, make sure to replace the placeholder arguments with appropriate values.
 
-### Validator
+## Validator
 - **Normal run**
 ```bash
 python neurons/validator/validator.py \
 --netuid 1 \
 --subtensor.chain_endpoint ws://20.243.203.20:9946 \
 --wallet.name validator --wallet.hotkey default \
---proxy.port 8080 \
+--proxy.port 8080 \ # If you do not define this port, your validator can not be used as a proxy and you will not get paid to generate images.
 --proxy.public_ip http://localhost \
---proxy.market_registering_url http://localhost:10003/get_credentials \  # the endpoint of dependency_modules/market/app.py
+--proxy.proxy_client_url http://proxy_client_nicheimage.nichetensor.com:10003 \  # Client to give access querying through your miner.
 --reward_endpoint http://localhost:10002/verify \  # the endpoint of dependency_modules/rewarding/app.py
 --prompt_generating_endpoint http://localhost:10001/prompt_generate  # the endpoint of dependency_modules/prompt_generating/app.py
 ```
@@ -44,7 +44,40 @@ python neurons/validator/validator.py \
 pm2 start run.sh --attach
 ```
 
-### Miner
+## Miner
+To start a miner, you need to first set up an image generation endpoint on a GPU server, and then you can attach multiple miners to that endpoint.
+
+For faster generation, you can have the miners on the same server as you have the GPU that runs the image generation endpoint.
+
+
+### Starting Image Generation Endpoint
+
+#### Install Dependencies
+`pip install -r neurons/miner/example_endpoint/requirements.txt`
+
+#### Download Model
+`sh neurons/miner/example_endpoint/download_checkpoint.sh`
+
+#### Start Image Generation Endpoint
+You can either start with python:
+`python3 neurons/miner/example_endpoint/app.py --port 10006`
+
+But it is better to start with pm2 since it is constant and automatically restarts if it encounters an error:
+`pm2 start python3 --name "gpu-endpoint" -- neurons/miner/example_endpoint/app.py --port 10006`
+
+
+#### Start Miner
+```bash 
+python -m neurons.miner.miner \
+--netuid 1 \
+--subtensor.chain_endpoint ws://20.243.203.20:9946 \
+--wallet.name miner --wallet.hotkey default \
+--generate_endpoint http://127.0.0.1:10006/generate \ # the endpoint of neurons/miner/example_endpoint
+--info_endpoint http://127.0.0.1:10006/info \ # the endpoint of neurons/miner/example_endpoint
+--axon.port 45467 # public port on the host machine
+```
+
+### Starting Miner That Uses The Image Generation Endpoint
 ```bash
 python neurons/miner/miner.py \
 --netuid 1 \

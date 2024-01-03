@@ -37,8 +37,7 @@ class ValidatorProxy:
         response = requests.post(
             f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
             json={
-                "uid": int(self.validator.uid),
-                "generate_endpoint": f"{self.validator.config.proxy.public_ip}:{self.validator.config.proxy.port}/validator_proxy",
+                "postfix": f":{self.validator.config.proxy.port}/validator_proxy",
             },
         )
         if response.status_code != 200:
