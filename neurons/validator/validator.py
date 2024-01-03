@@ -6,8 +6,7 @@ from image_generation_subnet.protocol import ImageGenerating
 from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
 import image_generation_subnet as ig_subnet
-from traceback import print_exception
-import queue
+import traceback
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -35,7 +34,7 @@ class Validator(BaseValidatorNeuron):
                 self.validator_proxy = ValidatorProxy(self)
                 bt.logging.info("Validator proxy started succesfully")
             except Exception as e:
-                bt.logging.warning("Warning, proxy did not start correctly, so no one can query through your validator. Error message: " + str(e))
+                bt.logging.warning("Warning, proxy did not start correctly, so no one can query through your validator. Error message: " + traceback.format_exc())
 
         self.all_uids = [int(uid) for uid in self.metagraph.uids]
         self.all_uids_info = {str((uid.item())): {"scores":[],"model_name":"unknown"} for uid in self.metagraph.uids}
