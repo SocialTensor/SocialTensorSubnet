@@ -106,14 +106,17 @@ class Validator(BaseValidatorNeuron):
                 )
                 for i in range(num_batch)
             ]
-            synapses = [
-                synapse.pipeline_params.self.supporting_models[model_name][
-                    "inference_params"
-                ]
-                for synapse in synapses
-            ]
-
+            for synapse in synapses:
+                synapse.pipeline_params.update(self.supporting_models[model_name]["inference_params"])
+            #synapses = [
+            #    synapse.pipeline_params.update(self.supporting_models[model_name][
+            #        "inference_params"
+            #    ])
+            #    for synapse in synapses
+            #]
+            #print(synapses)
             for synapse, uids in zip(synapses, batched_uids):
+                print(synapses)
                 responses = self.dendrite.query(
                     axons=[self.metagraph.axons[uid] for uid in uids],
                     synapse=synapse,
