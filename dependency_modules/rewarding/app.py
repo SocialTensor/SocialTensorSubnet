@@ -78,7 +78,7 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/verify")
 async def get_rewards(data: Prompt):
-    generator = torch.Generator().manual_seed(data.seed)
+    generator = torch.Generator("cuda").manual_seed(data.seed)
     validator_result, pipe_time = measure_time(MODEL)(
         prompt=data.prompt, generator=generator, **data.additional_params
     )

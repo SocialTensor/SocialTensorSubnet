@@ -50,7 +50,7 @@ async def get_model_name():
 
 @app.post("/generate")
 async def get_rewards(data: Prompt):
-    generator = torch.Generator().manual_seed(data.seed)
+    generator = torch.Generator("cuda").manual_seed(data.seed)
     image = pipe(
         prompt=data.prompt, generator=generator, **data.additional_params
     ).images[0]
