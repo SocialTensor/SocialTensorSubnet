@@ -157,7 +157,7 @@ class ValidatorProxy:
             if miner_uid not in self.miner_request_counter:
                 self.miner_request_counter[miner_uid] = 0
             self.miner_request_counter[miner_uid] += 1
-            return responses[0].deserialize()
+            return response.deserialize()
         except Exception as e:
             print("Exception occured in proxy forward", e, flush=True)
             raise HTTPException(status_code=400, detail=str(e))
