@@ -75,6 +75,7 @@ class Validator(BaseValidatorNeuron):
                 for uid in self.all_uids_info.keys()
                 if self.all_uids_info[uid]["model_name"] == model_name
             ]
+            random.shuffle(available_uids)
 
             if not available_uids:
                 bt.logging.warning(
@@ -84,27 +85,26 @@ class Validator(BaseValidatorNeuron):
             else:
                 bt.logging.info(f"Available uids: {available_uids}")
 
-            num_prompt = len(available_uids) // batch_size
-            prompt_tasks = [
-                asyncio.create_task(
-                    ig_subnet.validator.get_prompt(
-                        seed=seed, prompt_url=self.config.prompt_generating_endpoint
-                    )
-                )
-                for _ in range(num_prompt)
+            num_batch = (len(available_uids) + batch_size - 1) // batch_size
+            
+            seeds = [random.randint(0, 1e9) for _ in range(num_batch)]
+            batched_uids = [
+                available_uids[i * batch_size : (i + 1) * batch_size]
+                for i in range(num_batch)
             ]
-            prompts = asyncio.gather(*prompt_tasks)
-            batches = []
-            random.shuffle(available_uids)
-            for i in range(num_prompt):
-                batches.append(available_uids[i * batch_size : (i + 1) * batch_size])
+            prompts = [
+                ig_subnet.validator.get_prompt(
+                    seed=seeds[i], prompt_url=self.config.prompt_generating_endpoint
+                )
+                for i in range(num_batch)
+            ]
             synapses = [
                 ImageGenerating(
                     prompt=prompts[i],
-                    seed=seed,
+                    seed=seeds[i],
                     model_name=model_name,
                 )
-                for i in range(num_prompt)
+                for i in range(num_batch)
             ]
             synapses = [
                 synapse.pipeline_params.self.supporting_models[model_name][
@@ -113,42 +113,31 @@ class Validator(BaseValidatorNeuron):
                 for synapse in synapses
             ]
 
-            tasks = [
-                asyncio.create_task(self.query_rewarding(uids, synapse, model_name))
-                for uids, synapse in zip(batches, synapses)
-            ]
-            asyncio.gather(*tasks)
+            for synapse, uids in zip(synapses, batched_uids):
+                responses = self.dendrite.query(
+                    axons=[self.metagraph.axons[uid] for uid in uids],
+                    synapse=synapse,
+                    deserialize=False,
+                )
+                bt.logging.info("Received responses, calculating rewards")
+                checking_url = self.supporting_models[synapse.model_name][
+                    "checking_url"
+                ]
+                rewards = ig_subnet.validator.get_reward(
+                    checking_url, responses, synapse
+                )
+                if rewards is None:
+                    return
+                bt.logging.info(f"Scored responses: {rewards}")
+
+                for i in range(len(uids)):
+                    self.all_uids_info[str(uids[i])]["scores"].append(rewards[i])
+                    self.all_uids_info[str(uids[i])]["scores"] = self.all_uids_info[
+                        str(uids[i])
+                    ]["scores"][-10:]
 
         self.update_scores_on_chain()
         self.save_state()
-
-    async def query_rewarding(self, uids, synapse):
-        """
-        Query the miners and reward them.
-        """
-        try:
-            responses = self.dendrite.query(
-                axons=[self.metagraph.axons[uid] for uid in uids],
-                synapse=synapse,
-                deserialize=False,
-            )
-            bt.logging.info("Received responses, calculating rewards")
-            checking_url = self.supporting_models[synapse.model_name]["checking_url"]
-            rewards = ig_subnet.validator.get_reward(checking_url, responses, synapse)
-            if rewards is None:
-                return
-            bt.logging.info(f"Scored responses: {rewards}")
-
-            for i in range(len(uids)):
-                self.all_uids_info[str(uids[i])]["scores"].append(rewards[i])
-                self.all_uids_info[str(uids[i])]["scores"] = self.all_uids_info[
-                    str(uids[i])
-                ]["scores"][-10:]
-        except Exception as e:
-            bt.logging.warning(
-                f"Error while querying {uids} with synapse {synapse}. Error message: "
-                + traceback.format_exc()
-            )
 
     def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""

@@ -42,7 +42,7 @@ def skip(**kwargs):
 
 
 @skip(module="prompting")
-async def get_prompt(seed: int, prompt_url: str) -> str:
+def get_prompt(seed: int, prompt_url: str) -> str:
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
@@ -60,7 +60,7 @@ async def get_prompt(seed: int, prompt_url: str) -> str:
 
 
 @skip(module="rewarding")
-async def get_reward(
+def get_reward(
     reward_url: str,
     responses: List[ImageGenerating],
     synapse: ImageGenerating,
@@ -85,9 +85,9 @@ async def get_reward(
 def get_miner_info(self, payload: dict, query_uids: List[int]):
     uid_to_axon = dict(zip(self.all_uids, self.metagraph.axons))
     query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
-    bt.logging.info("Requesting miner info with payload", payload )
+    bt.logging.info("Requesting miner info with payload", payload)
     protocol_payload = ImageGenerating(request_dict=payload)
-    bt.logging.info("Requesting miner info with", protocol_payload )
+    bt.logging.info("Requesting miner info with", protocol_payload)
     responses = self.dendrite.query(
         query_axons,
         protocol_payload,
@@ -111,10 +111,9 @@ def update_active_models(self):
     2. Update the available list
     """
     payload = {"get_miner_info": True}
-    
+
     self.all_uids = [int(uid) for uid in self.metagraph.uids]
     valid_miners_info = get_miner_info(self, payload, self.all_uids)
-
 
     if not valid_miners_info:
         bt.logging.warning("No active miner available. Skipping setting weights.")
@@ -124,5 +123,3 @@ def update_active_models(self):
         if self.all_uids_info[str(uid)]["model_name"] != info["model_name"]:
             self.all_uids_info[str(uid)]["model_name"] = info["model_name"]
             self.all_uids_info[str(uid)]["scores"] = []
-
-
