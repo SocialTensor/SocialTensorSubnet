@@ -1,17 +1,22 @@
 from fastapi import FastAPI
-from diffusers import StableDiffusionPipeline, EulerAncestralDiscreteScheduler
 from PIL import Image
 import torch
 from typing import List
-from utils import pil_image_to_base64
 from pydantic import BaseModel
 import argparse
+from dependency_modules.rewarding.utils import (
+    instantiate_from_config,
+    pil_image_to_base64,
+)
+import yaml
+import sys
 
-parser = argparse.ArgumentParser()
+sys.path.insert(0, "dependency_modules/rewarding")
 
-parser.add_argument('--port', type=int, required=False, default=10006)
+MODEL_CONFIG = yaml.load(
+    open("dependency_modules/rewarding/model_config.yaml"), yaml.FullLoader
+)
 
-args = parser.parse_args()
 
 class Prompt(BaseModel):
     prompt: str
@@ -19,15 +24,28 @@ class Prompt(BaseModel):
     additional_params: dict = {}
 
 
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int, default=10006)
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        choices=list(MODEL_CONFIG.keys()),
+    )
+    args = parser.parse_known_args()[0]
+    return args
+
+
+args = get_args()
+
+
 app = FastAPI()
-pipe = StableDiffusionPipeline.from_single_file("model.safetensors")
-pipe.scheduler = EulerAncestralDiscreteScheduler.from_config(pipe.scheduler.config)
-pipe.to("cuda")
+pipe = instantiate_from_config(MODEL_CONFIG[args.model_name])
 
 
 @app.get("/info")
 async def get_model_name():
-    return {"model_name": "RealisticVision"}
+    return {"model_name": args.model_name}
 
 
 @app.post("/generate")

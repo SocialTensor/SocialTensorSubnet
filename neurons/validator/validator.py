@@ -61,9 +61,6 @@ class Validator(BaseValidatorNeuron):
 
                 bt.logging.info(f"Received request for {model_name} model")
                 bt.logging.info("Updating available models & uids")
-                
-
-                
 
                 available_uids = [int(uid) for uid in self.all_uids_info.keys() if self.all_uids_info[uid]["model_name"] == model_name]
 
@@ -94,20 +91,18 @@ class Validator(BaseValidatorNeuron):
                 rewards = ig_subnet.validator.get_reward(checking_url, responses, synapse)
                 if rewards is None:
                     return
-                rewards = torch.FloatTensor(rewards)
-                rewards = rewards
                 bt.logging.info(f"Scored responses: {rewards}")
 
 
                 for i in range(len(available_uids)):
-                    self.all_uids_info[str(available_uids[i])]["scores"].append(rewards[i].item())
+                    self.all_uids_info[str(available_uids[i])]["scores"].append(rewards[i])
                     self.all_uids_info[str(available_uids[i])]["scores"] = self.all_uids_info[str(available_uids[i])]["scores"][-10:]
 
         self.update_scores_on_chain()
         self.save_state()
 
 
-    def update_scores_on_chain(self,):
+    def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
 
 
@@ -128,7 +123,7 @@ class Validator(BaseValidatorNeuron):
                 model_specific_weights = model_specific_weights / tensor_sum
             else:
                 continue
-            #Correcting reward
+            # Correcting reward
             model_specific_weights = model_specific_weights * self.supporting_models[model_name]["incentive_weight"]
             bt.logging.info(f"model_specific_weights {model_specific_weights}")
             weights = weights + model_specific_weights

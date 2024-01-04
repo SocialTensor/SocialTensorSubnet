@@ -74,7 +74,7 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def random_check(self, uid, synapse, response, incentive_weight, checking_url):
+    def random_check(self, uid, synapse, response, checking_url):
         if random.random() < 0.01:
             bt.logging.info(f"Random check for miner {uid}")
             rewards = image_generation_subnet.validator.get_reward(
@@ -84,11 +84,8 @@ class ValidatorProxy:
             )
             if rewards is None:
                 return False
-            rewards = torch.FloatTensor(rewards)
-            rewards = rewards * incentive_weight
+            self.validator.all_uids_info[str(uid)]["scores"].append(rewards[0])
             bt.logging.info(f"Scored responses: {rewards}")
-            uids = [int(uid)]
-            self.validator.update_scores(rewards, uids)
             return rewards[0] > 0
         else:
             bt.logging.info("Not doing random check")
@@ -117,8 +114,11 @@ class ValidatorProxy:
             bt.logging.info("Current scores", scores)
             if len(scores) == 0:
                 scores = torch.zeros(len(metagraph.uids))
+            scores[scores < self.validator.config.proxy.miner_score_threshold] = 0
+            if scores.sum() == 0:
+                raise Exception("No miners available")
             miner_indexes = torch.multinomial(
-                scores[available_uids] + 1e-6, num_samples=len(available_uids)
+                scores[available_uids], num_samples=len(available_uids)
             )
 
             is_valid_response = False
@@ -146,7 +146,6 @@ class ValidatorProxy:
                     miner_uid,
                     synapse,
                     response,
-                    incentive_weight,
                     checking_url,
                 ):
                     is_valid_response = True
