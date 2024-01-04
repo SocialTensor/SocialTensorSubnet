@@ -42,7 +42,7 @@ def skip(**kwargs):
 
 
 @skip(module="prompting")
-def get_prompt(seed: int, prompt_url: str) -> str:
+async def get_prompt(seed: int, prompt_url: str) -> str:
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
@@ -60,7 +60,7 @@ def get_prompt(seed: int, prompt_url: str) -> str:
 
 
 @skip(module="rewarding")
-def get_reward(
+async def get_reward(
     reward_url: str,
     responses: List[ImageGenerating],
     synapse: ImageGenerating,
