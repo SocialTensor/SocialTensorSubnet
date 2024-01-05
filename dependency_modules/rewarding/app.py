@@ -55,6 +55,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 ARGS = get_args()
 MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.model_name])
+GENERATOR = torch.Generator("cuda")
 
 
 @app.middleware("http")
@@ -78,9 +79,9 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/verify")
 async def get_rewards(data: Prompt):
-    generator = torch.Generator("cuda").manual_seed(data.seed)
+    GENERATOR.manual_seed(data.seed)
     validator_result, pipe_time = measure_time(MODEL)(
-        prompt=data.prompt, generator=generator, **data.additional_params
+        prompt=data.prompt, generator=GENERATOR, **data.additional_params
     )
     validator_image = validator_result.images[0]
     rewards, hash_time = measure_time(infer_hash)(validator_image, data.images)

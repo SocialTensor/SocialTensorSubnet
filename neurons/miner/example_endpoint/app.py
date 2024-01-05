@@ -41,6 +41,7 @@ args = get_args()
 
 app = FastAPI()
 pipe = instantiate_from_config(MODEL_CONFIG[args.model_name])
+generator = torch.Generator("cuda")
 
 
 @app.get("/info")
@@ -50,7 +51,7 @@ async def get_model_name():
 
 @app.post("/generate")
 async def get_rewards(data: Prompt):
-    generator = torch.Generator("cuda").manual_seed(data.seed)
+    generator.manual_seed(data.seed)
     image = pipe(
         prompt=data.prompt, generator=generator, **data.additional_params
     ).images[0]
