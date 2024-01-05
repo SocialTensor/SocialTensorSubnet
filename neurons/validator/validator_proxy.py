@@ -9,8 +9,10 @@ from cryptography.exceptions import InvalidSignature
 import bittensor as bt
 import base64
 import image_generation_subnet
+import os
 import random
 import asyncio
+from image_generation_subnet.validator.proxy import ProxyCounter
 
 
 class ValidatorProxy:
@@ -30,7 +32,9 @@ class ValidatorProxy:
             dependencies=[Depends(self.get_self)],
         )
         self.loop = asyncio.get_event_loop()
-
+        self.proxy_counter = ProxyCounter(
+            os.path.join(self.validator.config.neuron.full_path, "proxy_counter.json")
+        )
         self.start_server()
 
     def get_credentials(self):
@@ -74,8 +78,8 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def random_check(self, uid, synapse, response, incentive_weight, checking_url):
-        if random.random() < 0.01:
+    def random_check(self, uid, synapse, response, checking_url):
+        if random.random() < self.validator.config.proxy.checking_probability:
             bt.logging.info(f"Random check for miner {uid}")
             rewards = image_generation_subnet.validator.get_reward(
                 checking_url,
@@ -84,11 +88,8 @@ class ValidatorProxy:
             )
             if rewards is None:
                 return False
-            rewards = torch.FloatTensor(rewards)
-            rewards = rewards * incentive_weight
+            self.validator.all_uids_info[str(uid)]["scores"].append(rewards[0])
             bt.logging.info(f"Scored responses: {rewards}")
-            uids = [int(uid)]
-            self.validator.update_scores(rewards, uids)
             return rewards[0] > 0
         else:
             bt.logging.info("Not doing random check")
@@ -100,16 +101,27 @@ class ValidatorProxy:
         try:
             bt.logging.info("Received a request!")
             payload = data.get("payload")
+            if "seed" not in payload:
+                payload["seed"] = random.randint(0, 1e9)
             synapse = ImageGenerating(**payload)
-            synapse.pipeline_params.update(
-                self.validator.supporting_models[synapse.model_name]["inference_params"]
+            for k, v in self.validator.supporting_models[synapse.model_name][
+                "inference_params"
+            ].items():
+                if k not in synapse.pipeline_params:
+                    synapse.pipeline_params[k] = v
+            synapse.pipeline_params["num_inference_steps"] = min(
+                50, synapse.pipeline_params["num_inference_steps"]
             )
             model_name = synapse.model_name
             supporting_models = self.validator.supporting_models
             scores = self.validator.scores
             metagraph = self.validator.metagraph
 
-            available_uids = supporting_models[model_name]["uids"]
+            available_uids = [
+                int(uid)
+                for uid in self.validator.all_uids_info.keys()
+                if self.validator.all_uids_info[uid]["model_name"] == model_name
+            ]
             checking_url = supporting_models[model_name]["checking_url"]
             incentive_weight = supporting_models[model_name]["incentive_weight"]
 
@@ -117,8 +129,17 @@ class ValidatorProxy:
             bt.logging.info("Current scores", scores)
             if len(scores) == 0:
                 scores = torch.zeros(len(metagraph.uids))
+            available_uids = [
+                uid
+                for uid in available_uids
+                if scores[uid]
+                > self.validator.config.proxy.miner_score_threshold * incentive_weight
+            ]
+            if len(available_uids) == 0:
+                raise Exception("No miners meet the score threshold")
+            scores = scores[available_uids]
             miner_indexes = torch.multinomial(
-                scores[available_uids] + 1e-6, num_samples=len(available_uids)
+                scores + 1e-6, num_samples=len(available_uids)
             )
 
             is_valid_response = False
@@ -127,7 +148,7 @@ class ValidatorProxy:
                 miner_uid = available_uids[miner_uid_index]
                 bt.logging.info(f"Selected miner uid: {miner_uid}")
                 bt.logging.info(
-                    f"Forwarding request to miner {miner_uid} with score {scores[miner_uid]}"
+                    f"Forwarding request to miner {miner_uid} with score {scores[miner_uid_index]}"
                 )
                 axon = metagraph.axons[miner_uid]
                 bt.logging.info(f"Sending request to axon: {axon}")
@@ -136,7 +157,7 @@ class ValidatorProxy:
                         [axon],
                         synapse,
                         deserialize=False,
-                        timeout=60,
+                        timeout=self.validator.supporting_models[model_name]["timeout"],
                     )
                 )
                 await asyncio.gather(task)
@@ -146,7 +167,6 @@ class ValidatorProxy:
                     miner_uid,
                     synapse,
                     response,
-                    incentive_weight,
                     checking_url,
                 ):
                     is_valid_response = True
@@ -154,10 +174,12 @@ class ValidatorProxy:
                     break
             if not is_valid_response:
                 raise Exception("No valid response")
-            if miner_uid not in self.miner_request_counter:
-                self.miner_request_counter[miner_uid] = 0
-            self.miner_request_counter[miner_uid] += 1
-            return responses[0].deserialize()
+            try:
+                self.proxy_counter.update(is_success=is_valid_response)
+                self.proxy_counter.save()
+            except Exception as e:
+                print("Exception occured in updating proxy counter", e, flush=True)
+            return response.deserialize()
         except Exception as e:
             print("Exception occured in proxy forward", e, flush=True)
             raise HTTPException(status_code=400, detail=str(e))

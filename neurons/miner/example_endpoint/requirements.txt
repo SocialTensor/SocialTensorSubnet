@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-diffusers
-accelerate
-transformers
-omegaconf

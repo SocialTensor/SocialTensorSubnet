@@ -1,6 +1,8 @@
 bittensor
 torch
 pillow
-python-dotenv
-redis
-streamlit
+diffusers
+accelerate
+transformers
+omegaconf
+imagehash

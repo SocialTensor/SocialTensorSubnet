@@ -1,10 +1,9 @@
 from fastapi import FastAPI, Request, Response, Depends
-from diffusers import StableDiffusionPipeline, EulerAncestralDiscreteScheduler
 import bittensor as bt
 import torch
 from typing import List
-from utils import instantiate_from_config, measure_time
-from hash_compare import infer_hash
+from dependency_modules.rewarding.utils import instantiate_from_config, measure_time
+from dependency_modules.rewarding.hash_compare import infer_hash
 from pydantic import BaseModel
 import uvicorn
 import argparse
@@ -13,11 +12,10 @@ import threading
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
-from models import *
 import yaml
 import argparse
 
-MODEL_CONFIG = yaml.load(open("model_config.yaml"), yaml.FullLoader)
+MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 
 
 def get_args():
@@ -35,6 +33,7 @@ def get_args():
         "--model_name",
         type=str,
         choices=list(MODEL_CONFIG.keys()),
+        default="RealisticVision",
     )
     args = parser.parse_known_args()[0]
     return args
@@ -55,6 +54,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 ARGS = get_args()
 MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.model_name])
+GENERATOR = torch.Generator("cuda")
 
 
 @app.middleware("http")
@@ -78,9 +78,9 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/verify")
 async def get_rewards(data: Prompt):
-    generator = torch.Generator().manual_seed(data.seed)
+    GENERATOR.manual_seed(data.seed)
     validator_result, pipe_time = measure_time(MODEL)(
-        prompt=data.prompt, generator=generator, **data.additional_params
+        prompt=data.prompt, generator=GENERATOR, **data.additional_params
     )
     validator_image = validator_result.images[0]
     rewards, hash_time = measure_time(infer_hash)(validator_image, data.images)
