@@ -130,7 +130,8 @@ class ValidatorProxy:
             available_uids = [
                 uid
                 for uid in available_uids
-                if scores[uid] > self.validator.config.proxy.miner_score_threshold
+                if scores[uid]
+                > self.validator.config.proxy.miner_score_threshold * incentive_weight
             ]
             if len(available_uids) == 0:
                 raise Exception("No miners meet the score threshold")
