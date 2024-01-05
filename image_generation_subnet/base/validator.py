@@ -122,7 +122,7 @@ class BaseValidatorNeuron(BaseNeuron):
         try:
             while True:
 
-                time_per_loop = 60 * 2 #One loop every 2 minutes
+                time_per_loop = 60 * 10 #One loop every 20 minutes
                 start_time_forward_loop = time.time()
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
