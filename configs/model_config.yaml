@@ -1,10 +1,10 @@
 RealisticVision:
-  target: models.StableDiffusion
+  target: dependency_modules.rewarding.models.StableDiffusion
   params:
     checkpoint_file: "checkpoints/RealisticVision.safetensors"
     download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
 SDXLTurbo:
-  target: models.StableDiffusionXL
+  target: dependency_modules.rewarding.models.StableDiffusionXL
   params:
     checkpoint_file: "checkpoints/SDXLTurbo.safetensors"
     download_url: "https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true"

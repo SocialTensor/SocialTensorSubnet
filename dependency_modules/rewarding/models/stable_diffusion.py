@@ -1,5 +1,5 @@
-from models import BaseT2IModel
-from utils import download_checkpoint
+from dependency_modules.rewarding.models import BaseT2IModel
+from dependency_modules.rewarding.utils import download_checkpoint
 import diffusers
 import torch
 import os

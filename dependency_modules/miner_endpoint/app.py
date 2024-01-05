@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from PIL import Image
 import torch
 from typing import List
 from pydantic import BaseModel
@@ -9,13 +8,8 @@ from dependency_modules.rewarding.utils import (
     pil_image_to_base64,
 )
 import yaml
-import sys
 
-sys.path.insert(0, "dependency_modules/rewarding")
-
-MODEL_CONFIG = yaml.load(
-    open("dependency_modules/rewarding/model_config.yaml"), yaml.FullLoader
-)
+MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 
 
 class Prompt(BaseModel):

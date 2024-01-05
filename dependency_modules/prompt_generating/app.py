@@ -1,9 +1,6 @@
-from transformers import pipeline
-from fastapi import FastAPI, Request, Response, Depends
-import torch
-import numpy as np
+from transformers import pipeline, set_seed
+from fastapi import FastAPI, Request, Response
 import bittensor as bt
-import random
 from pydantic import BaseModel
 import uvicorn
 import argparse
@@ -27,15 +24,6 @@ def get_args():
     parser.add_argument("--disable_secure", action="store_true")
     args = parser.parse_known_args()
     return args
-
-
-def seed_everything(seed):
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    random.seed(seed)
-    return seed
 
 
 class Data(BaseModel):
@@ -75,7 +63,7 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/prompt_generate")
 async def get_rewards(data: Data):
-    seed_everything(data.seed)
+    set_seed(data.seed)
     prompt = generator(
         data.prompt,
         max_length=data.max_length,

@@ -1,10 +1,9 @@
 from fastapi import FastAPI, Request, Response, Depends
-from diffusers import StableDiffusionPipeline, EulerAncestralDiscreteScheduler
 import bittensor as bt
 import torch
 from typing import List
 from utils import instantiate_from_config, measure_time
-from hash_compare import infer_hash
+from dependency_modules.rewarding.hash_compare import infer_hash
 from pydantic import BaseModel
 import uvicorn
 import argparse
@@ -13,11 +12,10 @@ import threading
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
-from models import *
 import yaml
 import argparse
 
-MODEL_CONFIG = yaml.load(open("model_config.yaml"), yaml.FullLoader)
+MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 
 
 def get_args():
