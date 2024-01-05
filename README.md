@@ -70,7 +70,7 @@ pm2 start python --name "miner" \
 
 You can also start with pm2, here is an example:
 ```bash
-pm2 start python --name "miner" -- -m neurons.miner.miner --netuid 23 --wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> --subtensor.network test --generate_endpoint http://127.0.0.1:10006/generate --info_endpoint http://127.0.0.1:10006/info --axon.port 10010
+pm2 start python --name "miner" -- -m neurons.miner.miner --netuid 23 --wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> --subtensor.network finney --generate_endpoint http://127.0.0.1:10006/generate --info_endpoint http://127.0.0.1:10006/info --axon.port 10010
 ```
 
 **View logs** 
