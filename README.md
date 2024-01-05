@@ -46,7 +46,9 @@ python dependency_modules/miner_endpoint/app.py --port <port> --model_name <mode
 
 Then you can run several miners using the image generation API:
 ```bash
-pm2 start python --name "miner" -- -m neurons.miner.miner \
+pm2 start python --name "miner" \
+-- \
+-m neurons.miner.miner \
 --netuid <netuid> \
 --wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> \
 --subtensor.network <network> \
@@ -69,7 +71,8 @@ However, it is possible to run your own image checking APIs if you prefer. This 
 ### Start Validator with Default Settings
 
 ```bash
-pm2 start python --name "validator" -- -m neurons.validator.validator \
+pm2 start python --name "validator" \
+-m neurons.validator.validator \
 --netuid <netuid> \
 --wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> \
 --subtensor.network <network> \
@@ -79,5 +82,11 @@ pm2 start python --name "validator" -- -m neurons.validator.validator \
 **View logs** 
 ```bash
 pm2 logs validator
+```
+
+### Schedule update and restart validator
+Pull the latest code from github and restart the validator every hour.
+```bash
+pm2 start ./auto_update.sh --name "auto-update" --cron-restart="0 * * * *"
 ```
 
