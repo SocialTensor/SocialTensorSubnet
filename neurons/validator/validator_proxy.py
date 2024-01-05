@@ -101,6 +101,8 @@ class ValidatorProxy:
         try:
             bt.logging.info("Received a request!")
             payload = data.get("payload")
+            if "seed" not in payload:
+                payload["seed"] = random.randint(0, 1e9)
             synapse = ImageGenerating(**payload)
             for k, v in self.validator.supporting_models[synapse.model_name][
                 "inference_params"

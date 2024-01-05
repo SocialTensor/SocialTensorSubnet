@@ -30,6 +30,7 @@ class Validator(BaseValidatorNeuron):
                     "num_inference_steps": 4,
                     "width": 512,
                     "height": 512,
+                    "guidance_scale": 0.5,
                 },
                 "timeout": 4,
             },
