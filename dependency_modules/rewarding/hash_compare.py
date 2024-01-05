@@ -1,4 +1,4 @@
-from utils import base64_to_pil_image
+from dependency_modules.rewarding.utils import base64_to_pil_image
 import imagehash
 from PIL import Image
 from typing import List

@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, Response, Depends
 import bittensor as bt
 import torch
 from typing import List
-from utils import instantiate_from_config, measure_time
+from dependency_modules.rewarding.utils import instantiate_from_config, measure_time
 from dependency_modules.rewarding.hash_compare import infer_hash
 from pydantic import BaseModel
 import uvicorn
@@ -33,6 +33,7 @@ def get_args():
         "--model_name",
         type=str,
         choices=list(MODEL_CONFIG.keys()),
+        default="RealisticVision",
     )
     args = parser.parse_known_args()[0]
     return args
