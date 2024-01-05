@@ -21,7 +21,7 @@ class StableDiffusion(BaseT2IModel):
             checkpoint_file,
             use_safetensors=True,
             torch_dtype=torch.float16,
-            safety_checker=None,
+            load_safety_checker=False,
         )
         pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
             pipe.scheduler.config
@@ -43,7 +43,10 @@ class StableDiffusionXL(BaseT2IModel):
             download_checkpoint(download_url, checkpoint_file)
 
         pipe = diffusers.StableDiffusionXLPipeline.from_single_file(
-            checkpoint_file, use_safetensors=True, torch_dtype=torch.float16
+            checkpoint_file,
+            use_safetensors=True,
+            torch_dtype=torch.float16,
+            load_safety_checker=False,
         )
         pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
             pipe.scheduler.config
