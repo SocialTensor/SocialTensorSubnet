@@ -102,8 +102,13 @@ class ValidatorProxy:
             bt.logging.info("Received a request!")
             payload = data.get("payload")
             synapse = ImageGenerating(**payload)
-            synapse.pipeline_params.update(
-                self.validator.supporting_models[synapse.model_name]["inference_params"]
+            for k, v in self.validator.supporting_models[synapse.model_name][
+                "inference_params"
+            ].items():
+                if k not in synapse.pipeline_params:
+                    synapse.pipeline_params[k] = v
+            synapse.pipeline_params["num_inference_steps"] = min(
+                50, synapse.pipeline_params["num_inference_steps"]
             )
             model_name = synapse.model_name
             supporting_models = self.validator.supporting_models

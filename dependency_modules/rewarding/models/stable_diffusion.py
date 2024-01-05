@@ -4,11 +4,6 @@ import diffusers
 import torch
 import os
 
-torch.manual_seed(0)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-
-
 class StableDiffusion(BaseT2IModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,7 +43,7 @@ class StableDiffusionXL(BaseT2IModel):
             torch_dtype=torch.float16,
             load_safety_checker=False,
         )
-        pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
+        pipe.scheduler = diffusers.EulerAncestralDiscreteScheduler.from_config(
             pipe.scheduler.config
         )
         pipe.to("cuda")

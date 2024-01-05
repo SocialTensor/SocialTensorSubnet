@@ -26,7 +26,11 @@ class Validator(BaseValidatorNeuron):
             "SDXLTurbo": {
                 "incentive_weight": 0.5,
                 "checking_url": self.config.sdxl_turbo.check_url,
-                "inference_params": {"num_inference_steps": 4},
+                "inference_params": {
+                    "num_inference_steps": 4,
+                    "width": 512,
+                    "height": 512,
+                },
                 "timeout": 4,
             },
         }
