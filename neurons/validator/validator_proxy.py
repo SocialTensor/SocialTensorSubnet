@@ -35,7 +35,6 @@ class ValidatorProxy:
         self.proxy_counter = ProxyCounter(
             os.path.join(self.validator.config.neuron.full_path, "proxy_counter.json")
         )
-
         self.start_server()
 
     def get_credentials(self):
@@ -111,7 +110,11 @@ class ValidatorProxy:
             scores = self.validator.scores
             metagraph = self.validator.metagraph
 
-            available_uids = supporting_models[model_name]["uids"]
+            available_uids = [
+                int(uid)
+                for uid in self.validator.all_uids_info.keys()
+                if self.validator.all_uids_info[uid]["model_name"] == model_name
+            ]
             checking_url = supporting_models[model_name]["checking_url"]
             incentive_weight = supporting_models[model_name]["incentive_weight"]
 
@@ -137,7 +140,7 @@ class ValidatorProxy:
                 miner_uid = available_uids[miner_uid_index]
                 bt.logging.info(f"Selected miner uid: {miner_uid}")
                 bt.logging.info(
-                    f"Forwarding request to miner {miner_uid} with score {scores[miner_uid]}"
+                    f"Forwarding request to miner {miner_uid} with score {scores[miner_uid_index]}"
                 )
                 axon = metagraph.axons[miner_uid]
                 bt.logging.info(f"Sending request to axon: {axon}")
