@@ -36,22 +36,15 @@ pip install -e .
 ## Example Usage
 Before running the following commands, make sure to replace the placeholder arguments with appropriate values.
 
-### Start Services
-1. [Validator] Prompting API 
-```bash
-python dependency_modules/prompt_generating/app.py --port <port>
-```
-2. [Validator] Rewarding API
-```bash
-python dependency_modules/rewarding/app.py --port <port> --model_name <model_name>
-```
-3. [Miner] Generation API
+## Start Miner
+Before running the following commands, make sure to replace the placeholder arguments with appropriate values.
+
+First you need to start an image generation API on a gpu server that your miners can use. A RTX 3090 GPU is enough for several miners.
 ```bash
 python dependency_modules/miner_endpoint/app.py --port <port> --model_name <model_name>
 ```
 
-### Start Miner
-**Pre-requisites:** Make sure you have an generation endpoint running.
+Then you can run several miners using the image generation API:
 ```bash
 pm2 start python --name "miner" -- -m neurons.miner.miner \
 --netuid <netuid> \
@@ -67,8 +60,14 @@ pm2 start python --name "miner" -- -m neurons.miner.miner \
 pm2 logs miner
 ```
 
+## Start Validator
+
+Requirements: A validator only needs a cpu server to validate by using our free to use APIs for checking image generation. This is the default setting and requires no configuration.
+
+However, it is possible to run your own image checking APIs if you prefer. This does require a GPU with min 20 GB of ram. You can see how to do this [here.](./dependency_modules/README.md)
+
 ### Start Validator
-**Pre-requisites:** Make sure generating and rewarding endpoint are running.
+
 ```bash
 pm2 start python --name "validator" -- -m neurons.validator.validator \
 --netuid <netuid> \

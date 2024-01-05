@@ -7,6 +7,7 @@ prompt = "a portrait of a man with a beard"
 
 results = []
 for i in range(20):
+    print(i)
     seed = i
     generator = torch.Generator().manual_seed(seed)
     result = pipe(prompt, generator=generator, num_inference_steps=25)
