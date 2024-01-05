@@ -64,7 +64,6 @@ class Validator(BaseValidatorNeuron):
         self.update_active_models_func(self)
 
         for model_name in self.supporting_models.keys():
-            seed = random.randint(0, 1e9)
             batch_size = random.randint(1, self.max_validate_batch)
 
             bt.logging.info(f"Received request for {model_name} model")
@@ -86,7 +85,7 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.info(f"Available uids: {available_uids}")
 
             num_batch = (len(available_uids) + batch_size - 1) // batch_size
-            
+
             seeds = [random.randint(0, 1e9) for _ in range(num_batch)]
             batched_uids = [
                 available_uids[i * batch_size : (i + 1) * batch_size]
@@ -107,15 +106,28 @@ class Validator(BaseValidatorNeuron):
                 for i in range(num_batch)
             ]
             for synapse in synapses:
-                synapse.pipeline_params.update(self.supporting_models[model_name]["inference_params"])
+                synapse.pipeline_params.update(
+                    self.supporting_models[model_name]["inference_params"]
+                )
 
             for synapse, uids in zip(synapses, batched_uids):
-                print(synapses)
                 responses = self.dendrite.query(
                     axons=[self.metagraph.axons[uid] for uid in uids],
                     synapse=synapse,
                     deserialize=False,
                 )
+                # Filter uid, response that blacklisted
+                uids = [
+                    uid
+                    for uid, response in zip(uids, responses)
+                    if response.axon.status_code != "403"
+                ]
+                responses = [
+                    response
+                    for response in responses
+                    if response.axon.status_code != "403"
+                ]
+
                 bt.logging.info("Received responses, calculating rewards")
                 checking_url = self.supporting_models[synapse.model_name][
                     "checking_url"

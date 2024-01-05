@@ -5,9 +5,10 @@ from typing import List
 
 
 def matching_image(miner_image: Image.Image, validator_image: Image.Image) -> bool:
-    miner_hash = imagehash.average_hash(miner_image)
-    validator_hash = imagehash.average_hash(validator_image)
-    return miner_hash == validator_hash
+    miner_hash = imagehash.average_hash(miner_image, hash_size=6)
+    validator_hash = imagehash.average_hash(validator_image, hash_size=6)
+    print(miner_hash - validator_hash, flush=True)
+    return (miner_hash - validator_hash) <= 2
 
 
 def infer_hash(validator_image: str, batched_miner_images: List[str]):

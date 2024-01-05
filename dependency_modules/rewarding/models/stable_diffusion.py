@@ -14,7 +14,10 @@ class StableDiffusion(BaseT2IModel):
             download_checkpoint(download_url, checkpoint_file)
 
         pipe = diffusers.StableDiffusionPipeline.from_single_file(
-            checkpoint_file, use_safetensors=True, torch_dtype=torch.float16
+            checkpoint_file,
+            use_safetensors=True,
+            torch_dtype=torch.float16,
+            safety_checker=None,
         )
         pipe.scheduler = diffusers.EulerAncestralDiscreteScheduler.from_config(
             pipe.scheduler.config
