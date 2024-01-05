@@ -168,6 +168,13 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--proxy.checking_probability",
+            type=float,
+            help="Probability of checking if a miner is valid",
+            default=0.01,
+        )
+
+        parser.add_argument(
             "--realistic_vision.check_url",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
