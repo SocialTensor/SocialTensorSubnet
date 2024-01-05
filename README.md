@@ -44,6 +44,11 @@ First you need to start an image generation API on a gpu server that your miners
 python dependency_modules/miner_endpoint/app.py --port <port> --model_name <model_name>
 ```
 
+You can also run with pm2. For example like this:
+```bash
+pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name SDXLTurbo
+```
+
 Then you can run several miners using the image generation API:
 ```bash
 pm2 start python --name "miner" \
