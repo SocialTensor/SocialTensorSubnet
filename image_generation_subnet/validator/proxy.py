@@ -11,11 +11,12 @@ class ProxyCounter:
                 self.proxy_logs = json.load(open(save_path))
             except:
                 self.proxy_logs = {}
+        else:
+            self.proxy_logs = {}
 
     def update(self, is_success):
         today = str(date.today())
-        if today not in self.proxy_logs:
-            self.proxy_logs[today] = {"success": 0, "fail": 0}
+        self.proxy_logs.setdefault(today, {"success": 0, "fail": 0})
         if is_success:
             self.proxy_logs[today]["success"] += 1
         else:

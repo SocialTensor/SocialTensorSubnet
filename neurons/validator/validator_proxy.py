@@ -166,7 +166,10 @@ class ValidatorProxy:
                     break
             if not is_valid_response:
                 raise Exception("No valid response")
-            self.proxy_counter.update(is_success=True)
+            try:
+                self.proxy_counter.update(is_success=is_valid_response)
+            except Exception as e:
+                print("Exception occured in updating proxy counter", e, flush=True)
             return response.deserialize()
         except Exception as e:
             print("Exception occured in proxy forward", e, flush=True)
