@@ -120,12 +120,12 @@ class Validator(BaseValidatorNeuron):
                 uids = [
                     uid
                     for uid, response in zip(uids, responses)
-                    if response.axon.status_code != "403"
+                    if response.axon.status_code != 403
                 ]
                 responses = [
                     response
                     for response in responses
-                    if response.axon.status_code != "403"
+                    if response.axon.status_code != 403
                 ]
 
                 bt.logging.info("Received responses, calculating rewards")
