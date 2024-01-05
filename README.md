@@ -66,7 +66,7 @@ Requirements: A validator only needs a cpu server to validate by using our free 
 
 However, it is possible to run your own image checking APIs if you prefer. This does require a GPU with min 20 GB of ram. You can see how to do this [here.](./dependency_modules/README.md)
 
-### Start Validator
+### Start Validator with Default Settings
 
 ```bash
 pm2 start python --name "validator" -- -m neurons.validator.validator \
