@@ -87,6 +87,6 @@ pm2 logs validator
 ### Schedule update and restart validator
 Pull the latest code from github and restart the validator every hour.
 ```bash
-pm2 start ./auto_update.sh --name "auto-update" --cron-restart="0 * * * *"
+pm2 start auto_update.sh --name "auto-update" --cron-restart="0 * * * *" --attach
 ```
 
