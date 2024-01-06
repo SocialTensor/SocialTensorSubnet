@@ -52,7 +52,7 @@ pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_m
 
 Or, you can start the RealisticVision model like this:
 ```bash
-pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name RealisticVision
+pm2 start python --name "image_generation_endpoint_RealisticVision" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name RealisticVision
 ```
 
 Then you can run several miners using the image generation API:
