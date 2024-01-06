@@ -88,7 +88,7 @@ However, it is possible to run your own image checking APIs if you prefer. This 
 
 ```bash
 pm2 start python --name "validator" \
--m neurons.validator.validator \
+-- -m neurons.validator.validator \
 --netuid <netuid> \
 --wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> \
 --subtensor.network <network> \

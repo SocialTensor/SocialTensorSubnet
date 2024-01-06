@@ -164,7 +164,7 @@ def add_args(cls, parser):
             "--proxy.miner_score_threshold",
             type=float,
             help="Threshold for filtering out miners before sampling selecting",
-            default=0.8,
+            default=0.1,
         )
 
         parser.add_argument(
