@@ -97,10 +97,13 @@ class ValidatorProxy:
 
     async def forward(self, data: dict = {}):
         self.authenticate_token(data["authorization"])
-
+        payload = data.get("payload")
+        if "recheck" in payload:
+            bt.logging.info("Rechecking validators")
+            await self.get_credentials()
+            return
         try:
             bt.logging.info("Received a request!")
-            payload = data.get("payload")
             if "seed" not in payload:
                 payload["seed"] = random.randint(0, 1e9)
             synapse = ImageGenerating(**payload)
