@@ -14,8 +14,15 @@ class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
 
+        self.all_uids = [int(uid.item()) for uid in self.metagraph.uids]
+
         bt.logging.info("load_state()")
         self.load_state()
+
+        for uid in self.all_uids:
+            if not str(uid) in self.all_uids_info:
+                self.all_uids_info[str(uid)] = {"scores": [], "model_name": "unknown"}
+
         self.supporting_models = {
             "RealisticVision": {
                 "incentive_weight": 0.5,
@@ -49,11 +56,7 @@ class Validator(BaseValidatorNeuron):
                     + traceback.format_exc()
                 )
 
-        self.all_uids = [int(uid) for uid in self.metagraph.uids]
-        self.all_uids_info = {
-            str((uid.item())): {"scores": [], "model_name": "unknown"}
-            for uid in self.metagraph.uids
-        }
+
 
     def forward(self):
         """
@@ -66,13 +69,13 @@ class Validator(BaseValidatorNeuron):
         - Updating the scores
         """
 
+        bt.logging.info("Updating available models & uids")
         self.update_active_models_func(self)
 
         for model_name in self.supporting_models.keys():
             batch_size = random.randint(1, self.max_validate_batch)
 
-            bt.logging.info(f"Received request for {model_name} model")
-            bt.logging.info("Updating available models & uids")
+            bt.logging.info(f"Validating {model_name} model")
 
             available_uids = [
                 int(uid)
@@ -122,10 +125,15 @@ class Validator(BaseValidatorNeuron):
                     deserialize=False,
                 )
                 # Filter uid, response that blacklisted
-                uids = [
+                valid_uids = [
                     uid
                     for uid, response in zip(uids, responses)
                     if response.axon.status_code != 403
+                ]
+                invalid_uids = [
+                    uid
+                    for uid, response in zip(uids, responses)
+                    if response.axon.status_code == 403
                 ]
                 responses = [
                     response
@@ -140,15 +148,22 @@ class Validator(BaseValidatorNeuron):
                 rewards = ig_subnet.validator.get_reward(
                     checking_url, responses, synapse
                 )
-                if rewards is None:
-                    return
+
                 bt.logging.info(f"Scored responses: {rewards}")
 
-                for i in range(len(uids)):
-                    self.all_uids_info[str(uids[i])]["scores"].append(rewards[i])
-                    self.all_uids_info[str(uids[i])]["scores"] = self.all_uids_info[
-                        str(uids[i])
-                    ]["scores"][-10:]
+                for i in range(len(invalid_uids)):
+                    uid = str(invalid_uids[i])
+                    self.all_uids_info[uid]["scores"].append(0)
+
+                    if len(self.all_uids_info[uid]["scores"]) > 10:
+                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid]["scores"][-10:]
+
+                for i in range(len(valid_uids)):
+                    uid = str(valid_uids[i])
+                    self.all_uids_info[uid]["scores"].append(rewards[i])
+
+                    if len(self.all_uids_info[uid]["scores"]) > 10:
+                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid]["scores"][-10:]
 
         self.update_scores_on_chain()
         self.save_state()
@@ -180,17 +195,14 @@ class Validator(BaseValidatorNeuron):
                 model_specific_weights
                 * self.supporting_models[model_name]["incentive_weight"]
             )
-            bt.logging.info(f"model_specific_weights {model_specific_weights}")
+            bt.logging.info(f"model_specific_weights for {model_name}\n{model_specific_weights}")
             weights = weights + model_specific_weights
 
-        bt.logging.info(f"weights {weights}")
         # Check if rewards contains NaN values.
         if torch.isnan(weights).any():
             bt.logging.warning(f"NaN values detected in weights: {weights}")
             # Replace any NaN values in rewards with 0.
             weights = torch.nan_to_num(weights, 0)
-
-        bt.logging.debug(f"weights: {weights}")
 
         self.scores: torch.FloatTensor = weights
         bt.logging.info(f"Updated scores: {self.scores}")

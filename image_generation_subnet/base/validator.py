@@ -142,10 +142,12 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.step += 1
                 
                 bt.logging.info(f"Loop completed, uids info:\n", str(self.all_uids_info).replace("},","},\n"))
-                time_elapse_in_loop = time.time() - start_time_forward_loop
 
-                if time_elapse_in_loop < time_per_loop:
-                    time.sleep(time_per_loop - time_elapse_in_loop)
+                time_elapse_in_loop = time.time() - start_time_forward_loop
+                time_to_sleep = time_per_loop - time_elapse_in_loop
+                if time_to_sleep:
+                    bt.logging.info(f"Sleeping for {time_to_sleep} seconds.")
+                    time.sleep(time_to_sleep)
 
             # If someone intentionally stops the validator, it'll safely terminate operations.
             except KeyboardInterrupt:
@@ -333,4 +335,9 @@ class BaseValidatorNeuron(BaseNeuron):
             self.all_uids_info = state["all_uids_info"]
             bt.logging.info("Succesfully loaded state")
         except:
+            self.step = 0
+            self.all_uids_info = {
+                str((uid.item())): {"scores": [], "model_name": "unknown"}
+                for uid in self.metagraph.uids
+            }
             bt.logging.info("Could not find previously saved state.")

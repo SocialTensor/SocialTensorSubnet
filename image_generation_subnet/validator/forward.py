@@ -64,7 +64,7 @@ def get_reward(
     reward_url: str,
     responses: List[ImageGenerating],
     synapse: ImageGenerating,
-) -> List[int]:
+) -> List[float]:
     images = [response.image for response in responses]
     headers = {
         "accept": "application/json",
@@ -79,6 +79,12 @@ def get_reward(
     }
     response = requests.post(reward_url, headers=headers, json=data)
     rewards = response.json()["rewards"]
+    for i, item in enumerate(rewards):
+        if item:
+            rewards[i] = 1
+        else:
+            rewards[i] = 0
+
     return rewards
 
 
@@ -117,8 +123,7 @@ def update_active_models(self):
 
     if not valid_miners_info:
         bt.logging.warning("No active miner available. Skipping setting weights.")
-    bt.logging.info(f"valid_miners_info {valid_miners_info}")
-    bt.logging.info(f"self.all_uids_info {self.all_uids_info}")
+
     for uid, info in valid_miners_info.items():
         if self.all_uids_info[str(uid)]["model_name"] != info["model_name"]:
             self.all_uids_info[str(uid)]["model_name"] = info["model_name"]
