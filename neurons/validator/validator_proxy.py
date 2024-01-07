@@ -100,8 +100,8 @@ class ValidatorProxy:
         payload = data.get("payload")
         if "recheck" in payload:
             bt.logging.info("Rechecking validators")
-            await self.get_credentials()
-            return
+            self.get_credentials()
+            return {"message": "Rechecked"}
         try:
             bt.logging.info("Received a request!")
             if "seed" not in payload:
