@@ -14,6 +14,12 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 import yaml
 import argparse
+import os
+
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
+
+torch.backends.cudnn.benchmark = False
+torch.use_deterministic_algorithms(True)
 
 MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 
@@ -54,7 +60,6 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 ARGS = get_args()
 MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.model_name])
-GENERATOR = torch.Generator("cuda")
 
 
 @app.middleware("http")
@@ -78,9 +83,9 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/verify")
 async def get_rewards(data: Prompt):
-    GENERATOR.manual_seed(data.seed)
+    generator = torch.manual_seed(data.seed)
     validator_result, pipe_time = measure_time(MODEL)(
-        prompt=data.prompt, generator=GENERATOR, **data.additional_params
+        prompt=data.prompt, generator=generator, **data.additional_params
     )
     validator_image = validator_result.images[0]
     rewards, hash_time = measure_time(infer_hash)(validator_image, data.images)
