@@ -164,3 +164,4 @@ testing/
 *.safetensors
 
 temp/
+*.webp
