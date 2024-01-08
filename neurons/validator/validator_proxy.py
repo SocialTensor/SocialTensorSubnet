@@ -153,8 +153,8 @@ class ValidatorProxy:
             available_uids = [available_uids[index] for index in good_uids_indexes]
             scores = [scores[index] for index in good_uids_indexes]
 
-            miner_indexes = random.shuffle(list(range(len(available_uids))))
-
+            miner_indexes = list(range(len(available_uids)))
+            random.shuffle(miner_indexes)
             is_valid_response = False
             for miner_uid_index in miner_indexes:
                 bt.logging.info(f"Selected miner index: {miner_uid_index}")
