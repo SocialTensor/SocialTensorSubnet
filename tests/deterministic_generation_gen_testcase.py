@@ -5,22 +5,17 @@ import os
 
 import numpy as np
 
-def seed_everything(seed):
-    random.seed(seed)
-    os.environ["PYTHONHASHSEED"] = str(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.backends.cudnn.deterministic = True
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
-seed_everything(0)
+torch.backends.cudnn.benchmark = False
+torch.use_deterministic_algorithms(True)
 
 os.makedirs("tests/images/", exist_ok=True)
 prompt = "a portrait of a man with a beard"
 
-for i in range(20):
+for i in range(40):
     seed = i
     generator = torch.Generator().manual_seed(seed)
-    result = pipe(prompt, generator=generator, num_inference_steps=25)
+    result = pipe(prompt, generator=generator, num_inference_steps=40)
     images = result.images
     images[0].save(f"tests/images/{i}.webp")
