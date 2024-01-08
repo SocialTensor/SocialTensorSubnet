@@ -8,6 +8,12 @@ from dependency_modules.rewarding.utils import (
     pil_image_to_base64,
 )
 import yaml
+import os
+
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
+
+torch.backends.cudnn.benchmark = False
+torch.use_deterministic_algorithms(True)
 
 MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 
@@ -35,7 +41,6 @@ args = get_args()
 
 app = FastAPI()
 pipe = instantiate_from_config(MODEL_CONFIG[args.model_name])
-generator = torch.Generator("cuda")
 
 
 @app.get("/info")
@@ -45,7 +50,7 @@ async def get_model_name():
 
 @app.post("/generate")
 async def get_rewards(data: Prompt):
-    generator.manual_seed(data.seed)
+    generator = torch.manual_seed(data.seed)
     image = pipe(
         prompt=data.prompt, generator=generator, **data.additional_params
     ).images[0]
