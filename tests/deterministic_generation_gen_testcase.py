@@ -18,4 +18,4 @@ for i in range(40):
     generator = torch.manual_seed(seed)
     result = pipe(prompt, generator=generator, num_inference_steps=30)
     images = result.images
-    images[0].save(f"tests/images/{i}.webp")
+    images[0].save(f"tests/images/{i}.png")

@@ -21,10 +21,14 @@ class StableDiffusion(BaseT2IModel):
             checkpoint_file,
             use_safetensors=True,
             load_safety_checker=False,
+            torch_dtype=torch.float16,
         )
         pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
             pipe.scheduler.config
         )
+        print("use default attn processor")
+        pipe.unet.set_default_attn_processor()
+        pipe.vae.set_default_attn_processor()
         pipe.to("cuda")
 
         def inference_function(*args, **kwargs):

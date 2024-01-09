@@ -22,9 +22,9 @@ for i in range(40):
     generator = torch.manual_seed(seed)
     result = pipe(prompt, generator=generator, num_inference_steps=30)
     images = result.images
-    images[0].save("tests/image.webp")
-    image = Image.open("tests/image.webp")
-    ref_image = Image.open(f"tests/images/{i}.webp")
+    images[0].save("tests/image.png")
+    image = Image.open("tests/image.png")
+    ref_image = Image.open(f"tests/images/{i}.png")
     reward = get_similarity(image, ref_image)
     if not reward:
         print(f"Error: {i}")
