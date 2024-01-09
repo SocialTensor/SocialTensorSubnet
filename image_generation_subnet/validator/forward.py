@@ -125,6 +125,10 @@ def update_active_models(self):
         bt.logging.warning("No active miner available. Skipping setting weights.")
 
     for uid, info in valid_miners_info.items():
-        if self.all_uids_info[str(uid)]["model_name"] != info["model_name"]:
-            self.all_uids_info[str(uid)]["model_name"] = info["model_name"]
-            self.all_uids_info[str(uid)]["scores"] = []
+        uid = str(uid)
+        if uid not in self.all_uids_info:
+            self.all_uids_info[uid] = {"scores": [], "model_name": "unknown"}
+
+        if self.all_uids_info[uid]["model_name"] != info["model_name"]:
+            self.all_uids_info[uid]["model_name"] = info["model_name"]
+            self.all_uids_info[uid]["scores"] = []

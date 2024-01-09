@@ -145,7 +145,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
                 time_elapse_in_loop = time.time() - start_time_forward_loop
                 time_to_sleep = time_per_loop - time_elapse_in_loop
-                if time_to_sleep:
+                if time_to_sleep > 0:
                     bt.logging.info(f"Sleeping for {time_to_sleep} seconds.")
                     time.sleep(time_to_sleep)
 
