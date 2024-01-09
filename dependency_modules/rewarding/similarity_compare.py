@@ -18,7 +18,7 @@ MODEL = timm.create_model("vgg19", pretrained=True, num_classes=0)
 MODEL.to("cuda")
 MODEL.eval()
 TRANSFORM = get_transform("vgg19")
-THRESHOLD = 0.9
+THRESHOLD = 0.95
 
 
 def get_similarity(image_1, image_2):
@@ -26,7 +26,7 @@ def get_similarity(image_1, image_2):
     image_2 = TRANSFORM(image_2).unsqueeze(0).to("cuda")
     prob = F.cosine_similarity(MODEL(image_1), MODEL(image_2))
     print(prob.item(), flush=True)
-    return prob.item() < THRESHOLD
+    return prob.item() > THRESHOLD
 
 
 def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):

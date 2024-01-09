@@ -21,7 +21,7 @@ for i in range(40):
     torch.manual_seed(0)
     seed = i
     generator = torch.manual_seed(seed)
-    result = pipe(prompt, generator=generator, num_inference_steps=28)
+    result = pipe(prompt, generator=generator, num_inference_steps=30)
     images = result.images
     images[0].save("tests/image.webp")
     image = Image.open("tests/image.webp")
@@ -29,8 +29,9 @@ for i in range(40):
     reward = get_similarity(image, ref_image)
     if not reward:
         print(f"Error: {i}")
-        ref_image.save(f"tests/error/{i}_ref.webp")
-        image.save(f"tests/error/{i}_image.webp")
+        ref_image.save(f"tests/error/{i}_ref.png")
+        image.save(f"tests/error/{i}_image.png")
     results.append(reward)
-
-print(f"Accuracy: {sum(results)/len(results)}")
+results = torch.tensor(results)
+print(f"Mean: {results.mean()}")
+print(f"Std: {results.std()}")
