@@ -5,10 +5,10 @@ from typing import List
 
 
 def matching_image(miner_image: Image.Image, validator_image: Image.Image) -> bool:
-    miner_hash = imagehash.average_hash(miner_image, hash_size=8)
-    validator_hash = imagehash.average_hash(validator_image, hash_size=8)
+    miner_hash = imagehash.average_hash(miner_image, hash_size=6)
+    validator_hash = imagehash.average_hash(validator_image, hash_size=6)
     print("Hamming Distance:", miner_hash - validator_hash, flush=True)
-    return (miner_hash - validator_hash) <= 2
+    return (miner_hash - validator_hash) <= 3
 
 
 def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
