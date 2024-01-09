@@ -84,20 +84,24 @@ Requirements: A validator only needs a cpu server to validate by using our free 
 
 However, it is possible to run your own image checking APIs if you prefer. This does require a GPU with min 20 GB of ram. You can see how to do this [here.](./dependency_modules/README.md)
 
+If validators opt in to share their request capacity they will get paid for each image they generate. Opt in is done by specifying --proxy.port
+If passed, a proxy server will start that allows us to query through their validator, and the validator will get paid weekly for the images they provide.
+
 ### Start Validator with Default Settings
 
 ```bash
-pm2 start python --name "validator" \
+pm2 start python --name "validator_nicheimage" \
 -- -m neurons.validator.validator \
 --netuid <netuid> \
 --wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> \
 --subtensor.network <network> \
 --axon.port <your_public_port> \
+--proxy.port <other_public_port> # Optional, pass only if you want allow queries through your validator and get paid
 ```
 
 **View logs** 
 ```bash
-pm2 logs validator
+pm2 logs validator_nicheimage
 ```
 
 ### Schedule update and restart validator
@@ -106,3 +110,16 @@ Pull the latest code from github and restart the validator every hour.
 pm2 start auto_update.sh --name "auto-update" --cron-restart="0 * * * *" --attach
 ```
 
+# Roadmap
+
+We will release updates on Tuesdays, in order to make it predictable for when changes to the network will be introduced. Furhter we will do our best to share updates in advance.
+
+Here is the current roadmap for the subnet:
+
+9th of January: Launch of stable version of repo, simple demo frontend released.
+
+16th of January: Release paid API for buying images from the network, profit directly distributed to validators. Additional model introduced to the network. 
+
+23rd of January: Launch improved frontend.
+
+February: Add categories where miners can compete with any model of their choice, and incentive is calculated based on how well their images compares to other miners. We will add categories such as "realistic photographs". This will allow the network to always have the best available models in each category, and incentivize people to create even better image generation models.
