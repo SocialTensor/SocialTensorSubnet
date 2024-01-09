@@ -11,7 +11,6 @@ import yaml
 import os
 
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
-
 torch.backends.cudnn.benchmark = False
 torch.use_deterministic_algorithms(True)
 

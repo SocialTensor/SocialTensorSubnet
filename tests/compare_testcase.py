@@ -11,7 +11,7 @@ torch.backends.cudnn.benchmark = False
 torch.use_deterministic_algorithms(True)
 
 prompt = "an image of a japanese demon wearing a kimono, with demon horns and fire in both hands, dramatic lighting, illustration by Gr eg rutkowski, yoji shinkawa, 4k,"
-shutil.rmtree("tests/error/")
+shutil.rmtree("tests/error/", ignore_errors=True)
 os.makedirs("tests/error/", exist_ok=True)
 
 

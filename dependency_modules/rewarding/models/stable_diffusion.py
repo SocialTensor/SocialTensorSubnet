@@ -20,7 +20,6 @@ class StableDiffusion(BaseT2IModel):
         pipe = diffusers.StableDiffusionPipeline.from_single_file(
             checkpoint_file,
             use_safetensors=True,
-            torch_dtype=torch.float16,
             load_safety_checker=False,
         )
         pipe.scheduler = diffusers.EulerAncestralDiscreteScheduler.from_config(
@@ -48,7 +47,6 @@ class StableDiffusionXL(BaseT2IModel):
         pipe = diffusers.StableDiffusionXLPipeline.from_single_file(
             checkpoint_file,
             use_safetensors=True,
-            torch_dtype=torch.float16,
             load_safety_checker=False,
         )
         pipe.scheduler = diffusers.EulerAncestralDiscreteScheduler.from_config(
