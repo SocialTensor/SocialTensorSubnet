@@ -11,11 +11,12 @@ torch.backends.cudnn.benchmark = False
 torch.use_deterministic_algorithms(True)
 
 os.makedirs("tests/images/", exist_ok=True)
-prompt = "a portrait of a man with a beard"
+prompt = "an image of a japanese demon wearing a kimono, with demon horns and fire in both hands, dramatic lighting, illustration by Gr eg rutkowski, yoji shinkawa, 4k,"
 
 for i in range(40):
     seed = i
-    generator = torch.Generator().manual_seed(seed)
-    result = pipe(prompt, generator=generator, num_inference_steps=40)
+    torch.manual_seed(0)
+    generator = torch.manual_seed(seed)
+    result = pipe(prompt, generator=generator, num_inference_steps=30)
     images = result.images
     images[0].save(f"tests/images/{i}.webp")
