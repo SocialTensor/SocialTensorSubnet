@@ -4,6 +4,7 @@ import torch
 from typing import List
 from dependency_modules.rewarding.utils import instantiate_from_config, measure_time
 from dependency_modules.rewarding.hash_compare import infer_hash
+from dependency_modules.rewarding.similarity_compare import infer_similarity
 from pydantic import BaseModel
 import uvicorn
 import argparse
@@ -88,7 +89,7 @@ async def get_rewards(data: Prompt):
         prompt=data.prompt, generator=generator, **data.additional_params
     )
     validator_image = validator_result.images[0]
-    rewards, hash_time = measure_time(infer_hash)(validator_image, data.images)
+    rewards, hash_time = measure_time(infer_similarity)(validator_image, data.images)
     return {
         "rewards": rewards,
         "component_time": {

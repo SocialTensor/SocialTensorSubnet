@@ -25,11 +25,11 @@ def get_similarity(image_1, image_2):
     image_1 = TRANSFORM(image_1).unsqueeze(0).to("cuda")
     image_2 = TRANSFORM(image_2).unsqueeze(0).to("cuda")
     prob = F.cosine_similarity(MODEL(image_1), MODEL(image_2))
-    print(prob.item(), flush=True)
-    return prob.item() > THRESHOLD
+    print("Prob:", prob.item(), flush=True)
+    return prob.item()
 
 
-def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
+def infer_similarity(validator_image: Image.Image, batched_miner_images: List[str]):
     rewards = []
     for miner_image in batched_miner_images:
         miner_image = base64_to_pil_image(miner_image)
@@ -37,7 +37,7 @@ def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
         if miner_image is None:
             reward = False
         else:
-            reward = get_similarity(miner_image, validator_image)
+            similarity = get_similarity(miner_image, validator_image)
+            reward = similarity > THRESHOLD
         rewards.append(reward)
-    print(rewards, flush=True)
     return rewards
