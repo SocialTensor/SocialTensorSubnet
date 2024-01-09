@@ -14,10 +14,10 @@ def get_transform(model_name):
     return transform
 
 
-MODEL = timm.create_model("vgg19", pretrained=True, num_classes=0)
+MODEL = timm.create_model("resnet50", pretrained=True, num_classes=0)
 MODEL.to("cuda")
 MODEL.eval()
-TRANSFORM = get_transform("vgg19")
+TRANSFORM = get_transform("resnet50")
 THRESHOLD = 0.95
 
 

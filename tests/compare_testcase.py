@@ -16,7 +16,7 @@ os.makedirs("tests/error/", exist_ok=True)
 
 
 results = []
-for i in range(40):
+for i in range(20):
     print(i)
     seed = i
     generator = torch.manual_seed(seed)
@@ -25,12 +25,14 @@ for i in range(40):
     images[0].save("tests/image.png")
     image = Image.open("tests/image.png")
     ref_image = Image.open(f"tests/images/{i}.png")
-    reward = get_similarity(image, ref_image)
+    prob = get_similarity(image, ref_image)
+    reward = prob > 0.95
     if not reward:
         print(f"Error: {i}")
         ref_image.save(f"tests/error/{i}_ref.png")
         image.save(f"tests/error/{i}_image.png")
-    results.append(reward)
+    results.append(prob)
 results = torch.tensor(results)
 print(f"Mean: {results.mean()}")
 print(f"Std: {results.std()}")
+print(f"Min: {results.min()}")

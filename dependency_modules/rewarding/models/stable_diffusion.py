@@ -21,14 +21,13 @@ class StableDiffusion(BaseT2IModel):
             checkpoint_file,
             use_safetensors=True,
             load_safety_checker=False,
-            torch_dtype=torch.float16,
         )
-        pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
+        pipe.scheduler = diffusers.EulerAncestralDiscreteScheduler.from_config(
             pipe.scheduler.config
         )
-        print("use default attn processor")
         pipe.unet.set_default_attn_processor()
         pipe.vae.set_default_attn_processor()
+        pipe.disable_xformers_memory_efficient_attention()
         pipe.to("cuda")
 
         def inference_function(*args, **kwargs):
@@ -48,12 +47,14 @@ class StableDiffusionXL(BaseT2IModel):
         pipe = diffusers.StableDiffusionXLPipeline.from_single_file(
             checkpoint_file,
             use_safetensors=True,
-            torch_dtype=torch.float16,
             load_safety_checker=False,
         )
         pipe.scheduler = diffusers.EulerAncestralDiscreteScheduler.from_config(
             pipe.scheduler.config
         )
+        pipe.unet.set_default_attn_processor()
+        pipe.vae.set_default_attn_processor()
+        pipe.disable_xformers_memory_efficient_attention()
         pipe.to("cuda")
 
         def inference_function(*args, **kwargs):
