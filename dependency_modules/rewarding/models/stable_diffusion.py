@@ -4,6 +4,11 @@ import diffusers
 import torch
 import os
 
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
+torch.backends.cudnn.benchmark = False
+torch.use_deterministic_algorithms(True)
+
+
 class StableDiffusion(BaseT2IModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -15,7 +20,6 @@ class StableDiffusion(BaseT2IModel):
         pipe = diffusers.StableDiffusionPipeline.from_single_file(
             checkpoint_file,
             use_safetensors=True,
-            torch_dtype=torch.float16,
             load_safety_checker=False,
         )
         pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(

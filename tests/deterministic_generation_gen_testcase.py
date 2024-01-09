@@ -15,7 +15,6 @@ prompt = "an image of a japanese demon wearing a kimono, with demon horns and fi
 
 for i in range(40):
     seed = i
-    torch.manual_seed(0)
     generator = torch.manual_seed(seed)
     result = pipe(prompt, generator=generator, num_inference_steps=30)
     images = result.images

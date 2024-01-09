@@ -18,7 +18,6 @@ os.makedirs("tests/error/", exist_ok=True)
 results = []
 for i in range(40):
     print(i)
-    torch.manual_seed(0)
     seed = i
     generator = torch.manual_seed(seed)
     result = pipe(prompt, generator=generator, num_inference_steps=30)
