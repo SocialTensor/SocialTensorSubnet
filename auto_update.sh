@@ -4,7 +4,8 @@
 current_head=$(git rev-parse HEAD)
 
 # Pull the latest changes from the repository
-git pull
+git stash
+git pull -f
 
 # Get the new HEAD hash
 new_head=$(git rev-parse HEAD)
