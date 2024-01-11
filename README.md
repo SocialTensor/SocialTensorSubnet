@@ -108,7 +108,7 @@ pm2 logs validator_nicheimage
 Pull the latest code from github and restart the validator every hour.
 **Notice**, the validator must be named validator_nicheimage for the auto-updates to restart the process, so do not change the name from validator_nicheimage.
 ```bash
-pm2 start auto_update.sh --name "auto-update" --cron-restart="0 * * * *" --attach
+pm2 start auto_update.sh --name "auto-update"
 ```
 
 # Roadmap
