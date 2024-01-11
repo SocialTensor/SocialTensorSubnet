@@ -16,7 +16,7 @@ class StableDiffusion(BaseT2IModel):
             checkpoint_file,
             use_safetensors=True,
             torch_dtype=torch.float16,
-            load_safety_checker=False,
+            load_safety_checker=True,
         )
         pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
             pipe.scheduler.config
@@ -41,7 +41,7 @@ class StableDiffusionXL(BaseT2IModel):
             checkpoint_file,
             use_safetensors=True,
             torch_dtype=torch.float16,
-            load_safety_checker=False,
+            load_safety_checker=True,
         )
         pipe.scheduler = diffusers.EulerAncestralDiscreteScheduler.from_config(
             pipe.scheduler.config
