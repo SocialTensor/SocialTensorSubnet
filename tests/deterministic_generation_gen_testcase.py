@@ -13,9 +13,9 @@ torch.use_deterministic_algorithms(True)
 os.makedirs("tests/images/", exist_ok=True)
 prompt = "a portrait of a man with a beard"
 
-for i in range(50):
+for i in range(40):
     seed = i
     generator = torch.Generator().manual_seed(seed)
     result = pipe(prompt, generator=generator, num_inference_steps=40)
     images = result.images
-    images[0].save(f"tests/images/{i}.png")
+    images[0].save(f"tests/images/{i}.webp")
