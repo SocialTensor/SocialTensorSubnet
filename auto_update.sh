@@ -12,7 +12,7 @@ while true; do
     fi
 
     # Log the start of the script execution
-    echo "$(date): Script started" >> /path/to/logfile
+    echo "$(date): Script started"
 
     # Save the current HEAD hash
     current_head=$(git rev-parse HEAD)
@@ -27,11 +27,11 @@ while true; do
     # Check if the new HEAD is different from the current HEAD
     if [ "$current_head" != "$new_head" ]; then
         # The HEAD has changed, meaning there's a new version
-        echo "$(date): New version detected, restarting the validator." >> /path/to/logfile
+        echo "$(date): New version detected, restarting the validator."
         pm2 restart validator_nicheimage
     else
         # No new version, no action needed
-        echo "$(date): No new version detected, no restart needed." >> /path/to/logfile
+        echo "$(date): No new version detected, no restart needed."
     fi
 
     # Sleep until the beginning of the next hour
