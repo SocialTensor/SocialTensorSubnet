@@ -127,7 +127,7 @@ class ValidatorProxy:
             ]
 
             scores = [ self.validator.all_uids_info[str(uid)]["scores"] for uid in available_uids ]
-            scores = [sum(s)/10 for s in scores]
+            scores = [sum(s)/max(1, len(s)) for s in scores]
 
             bt.logging.info(f"Available uids: {available_uids}")
 
