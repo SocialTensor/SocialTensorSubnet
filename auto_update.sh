@@ -1,22 +1,32 @@
 #!/bin/bash
 
-# Save the current HEAD hash
-current_head=$(git rev-parse HEAD)
+# Infinite loop to run the script every hour
+while true; do
 
-# Pull the latest changes from the repository
-git pull
+    # Save the current time for logging
+    echo "$(date): Script started" >> /path/to/logfile
 
-# Get the new HEAD hash
-new_head=$(git rev-parse HEAD)
+    # Save the current HEAD hash
+    current_head=$(git rev-parse HEAD)
 
-# Check if the new HEAD is different from the current HEAD
-if [ "$current_head" != "$new_head" ]; then
-    # The HEAD has changed, meaning there's a new version
-    echo "New version detected, restarting the validator."
-    pm2 restart validator_nicheimage
-else
-    # No new version, no action needed
-    echo "No new version detected, no restart needed."
-fi
+    # Pull the latest changes from the repository
+    git stash
+    git pull -f
 
-# No need for a loop, as PM2 will execute this script every hour
+    # Get the new HEAD hash
+    new_head=$(git rev-parse HEAD)
+
+    # Check if the new HEAD is different from the current HEAD
+    if [ "$current_head" != "$new_head" ]; then
+        # The HEAD has changed, meaning there's a new version
+        echo "$(date): New version detected, restarting the validator." >> /path/to/logfile
+        pm2 restart validator_nicheimage
+    else
+        # No new version, no action needed
+        echo "$(date): No new version detected, no restart needed." >> /path/to/logfile
+    fi
+
+    # Sleep for 1 hour (3600 seconds)
+    sleep 3600
+
+done
