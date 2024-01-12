@@ -98,6 +98,7 @@ class ValidatorProxy:
     async def forward(self, data: dict = {}):
         self.authenticate_token(data["authorization"])
         payload = data.get("payload")
+        miner_uid = data.get("miner_uid", -1)
         if "recheck" in payload:
             bt.logging.info("Rechecking validators")
             self.get_credentials()
@@ -119,41 +120,41 @@ class ValidatorProxy:
             supporting_models = self.validator.supporting_models
             scores = self.validator.scores
             metagraph = self.validator.metagraph
+            if miner_uid >= 0:
+                available_uids = [miner_uid]
+                miner_indexes = [0]
+            else:
+                available_uids = [
+                    int(uid)
+                    for uid in self.validator.all_uids_info.keys()
+                    if self.validator.all_uids_info[uid]["model_name"] == model_name
+                ]
 
-            available_uids = [
-                int(uid)
-                for uid in self.validator.all_uids_info.keys()
-                if self.validator.all_uids_info[uid]["model_name"] == model_name
-            ]
+                scores = [
+                    self.validator.all_uids_info[str(uid)]["scores"]
+                    for uid in available_uids
+                ]
 
-            scores = [ self.validator.all_uids_info[str(uid)]["scores"] for uid in available_uids ]
-            scores = [sum(s)/max(1, len(s)) for s in scores]
+                scores = [sum(s)/max(1, len(s)) for s in scores]
+                bt.logging.info(f"Available uids: {available_uids}")
 
-            bt.logging.info(f"Available uids: {available_uids}")
-
-
-            good_uids_indexes = [
-                i
-                for i in range(len(available_uids))
-                if scores[i]
-                > self.validator.config.proxy.miner_score_threshold
-            ]
-
-            if len(good_uids_indexes) == 0:
                 good_uids_indexes = [
                     i
                     for i in range(len(available_uids))
-                    if scores[i]
-                    > 0
+                    if scores[i] > self.validator.config.proxy.miner_score_threshold
                 ]
-            if len(good_uids_indexes) == 0:
-                raise Exception("No miners meet the score threshold")
 
-            
-            available_uids = [available_uids[index] for index in good_uids_indexes]
-            scores = [scores[index] for index in good_uids_indexes]
+                if len(good_uids_indexes) == 0:
+                    good_uids_indexes = [
+                        i for i in range(len(available_uids)) if scores[i] > 0
+                    ]
+                if len(good_uids_indexes) == 0:
+                    raise Exception("No miners meet the score threshold")
 
-            miner_indexes = list(range(len(available_uids)))
+                available_uids = [available_uids[index] for index in good_uids_indexes]
+                scores = [scores[index] for index in good_uids_indexes]
+
+                miner_indexes = list(range(len(available_uids)))
             random.shuffle(miner_indexes)
             is_valid_response = False
             for miner_uid_index in miner_indexes:
