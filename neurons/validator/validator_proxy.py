@@ -177,6 +177,9 @@ class ValidatorProxy:
                 await asyncio.gather(task)
                 response = task.result()[0]
                 bt.logging.info(f"Received responses")
+                if not response.image:
+                    bt.logging.info("No image in response")
+                    continue
 
                 checking_url = supporting_models[model_name]["checking_url"]
                 if self.random_check(
