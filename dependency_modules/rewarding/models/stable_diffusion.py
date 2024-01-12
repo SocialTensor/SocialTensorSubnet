@@ -1,4 +1,5 @@
 from dependency_modules.rewarding.models import BaseT2IModel
+from dependency_modules.rewarding.models.utils import set_scheduler
 from dependency_modules.rewarding.utils import download_checkpoint
 import diffusers
 import torch
@@ -81,11 +82,12 @@ class NicheSafetyChecker(StableDiffusionSafetyChecker):
         return has_nsfw_concept
 
 
+
 class StableDiffusion(BaseT2IModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def load_model(self, checkpoint_file, download_url):
+    def load_model(self, checkpoint_file, download_url, **kwargs):
         if not os.path.exists(checkpoint_file):
             download_checkpoint(download_url, checkpoint_file)
 
@@ -95,9 +97,8 @@ class StableDiffusion(BaseT2IModel):
             torch_dtype=torch.float16,
             load_safety_checker=True,
         )
-        pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
-            pipe.scheduler.config
-        )
+        scheduler_name = kwargs.get("scheduler", "euler_a")
+        pipe.scheduler = set_scheduler(scheduler_name, pipe.scheduler.config)
         pipe.to("cuda")
 
         def inference_function(*args, **kwargs):
@@ -110,7 +111,7 @@ class StableDiffusionXL(BaseT2IModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def load_model(self, checkpoint_file, download_url):
+    def load_model(self, checkpoint_file, download_url, **kwargs):
         if not os.path.exists(checkpoint_file):
             download_checkpoint(download_url, checkpoint_file)
 
@@ -120,9 +121,8 @@ class StableDiffusionXL(BaseT2IModel):
             torch_dtype=torch.float16,
             load_safety_checker=True,
         )
-        pipe.scheduler = diffusers.EulerAncestralDiscreteScheduler.from_config(
-            pipe.scheduler.config
-        )
+        scheduler_name = kwargs.get("scheduler", "euler_a")
+        pipe.scheduler = set_scheduler(scheduler_name, pipe.scheduler.config)
         pipe.to("cuda")
 
         safety_checker = NicheSafetyChecker.from_pretrained(
