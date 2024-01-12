@@ -89,6 +89,7 @@ async def get_rewards(data: Prompt):
     )
     validator_image = validator_result.images[0]
     rewards, hash_time = measure_time(infer_hash)(validator_image, data.images)
+    rewards = [float(reward) for reward in rewards]
     return {
         "rewards": rewards,
         "component_time": {

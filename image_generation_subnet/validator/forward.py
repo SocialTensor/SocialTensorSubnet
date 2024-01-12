@@ -79,11 +79,7 @@ def get_reward(
     }
     response = requests.post(reward_url, headers=headers, json=data)
     rewards = response.json()["rewards"]
-    for i, item in enumerate(rewards):
-        if item:
-            rewards[i] = 1
-        else:
-            rewards[i] = 0
+    rewards = [float(reward) for reward in rewards]
 
     return rewards
 
