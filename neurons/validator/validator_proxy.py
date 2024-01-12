@@ -15,6 +15,7 @@ import asyncio
 from image_generation_subnet.validator.proxy import ProxyCounter
 import traceback
 
+
 class ValidatorProxy:
     def __init__(
         self,
@@ -177,9 +178,11 @@ class ValidatorProxy:
                 await asyncio.gather(task)
                 response = task.result()[0]
                 bt.logging.info(f"Received responses")
-                if not response.image:
+                if not len(response.image):
                     bt.logging.info("No image in response")
                     continue
+                else:
+                    bt.logging.info("Image in response")
 
                 checking_url = supporting_models[model_name]["checking_url"]
                 if self.random_check(
@@ -197,10 +200,16 @@ class ValidatorProxy:
                 self.proxy_counter.update(is_success=is_valid_response)
                 self.proxy_counter.save()
             except Exception as e:
-                print("Exception occured in updating proxy counter", traceback.format_exc(), flush=True)
+                print(
+                    "Exception occured in updating proxy counter",
+                    traceback.format_exc(),
+                    flush=True,
+                )
             return response.deserialize()
         except Exception as e:
-            print("Exception occured in proxy forward", traceback.format_exc(), flush=True)
+            print(
+                "Exception occured in proxy forward", traceback.format_exc(), flush=True
+            )
             raise HTTPException(status_code=400, detail=str(e))
 
     async def get_self(self):
