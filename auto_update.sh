@@ -28,6 +28,7 @@ while true; do
     if [ "$current_head" != "$new_head" ]; then
         # The HEAD has changed, meaning there's a new version
         echo "$(date): New version detected, restarting the validator."
+        pm2 restart validator_nicheimage
     else
         # No new version, no action needed
         echo "$(date): No new version detected, no restart needed."
