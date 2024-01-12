@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 while true; do
     # Calculate the amount of time to sleep until the beginning of the next hour
     current_minute=$(date +%M)
