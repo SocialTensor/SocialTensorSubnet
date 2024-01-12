@@ -1,6 +1,6 @@
 <div align="center">
 
-# Image Generating Subnet <!-- omit in toc -->
+# NicheImage - Image Generating Subnet <!-- omit in toc -->
 
 ---
 
