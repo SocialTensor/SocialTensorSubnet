@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from concurrent.futures import ThreadPoolExecutor
 import requests
-import torch
 from image_generation_subnet.protocol import ImageGenerating
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -108,16 +107,23 @@ class ValidatorProxy:
             bt.logging.info("Received a request!")
             if "seed" not in payload:
                 payload["seed"] = random.randint(0, 1e9)
-            prompt_template = self.validator.supporting_models[model_name][
-                "inference_params"
-            ].get("prompt_template", "%s")
-            payload["prompt"] = prompt_template % payload["prompt"]
+
             synapse = ImageGenerating(**payload)
+
+            # Override default pipeline params
             for k, v in self.validator.supporting_models[synapse.model_name][
                 "inference_params"
             ].items():
                 if k not in synapse.pipeline_params:
                     synapse.pipeline_params[k] = v
+
+            # Apply prompt template
+            prompt_template = self.validator.supporting_models[synapse.model_name][
+                "inference_params"
+            ].get("prompt_template", "%s")
+            synapse.prompt = prompt_template % synapse.prompt
+
+            # Limit inference steps
             synapse.pipeline_params["num_inference_steps"] = min(
                 50, synapse.pipeline_params["num_inference_steps"]
             )
@@ -203,7 +209,7 @@ class ValidatorProxy:
             try:
                 self.proxy_counter.update(is_success=is_valid_response)
                 self.proxy_counter.save()
-            except Exception as e:
+            except Exception:
                 print(
                     "Exception occured in updating proxy counter",
                     traceback.format_exc(),
