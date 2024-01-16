@@ -3,7 +3,6 @@ from dependency_modules.rewarding.utils import download_checkpoint
 import diffusers
 import torch
 import os
-import torch.nn as nn
 from PIL import Image
 from torchvision import transforms
 from transformers import CLIPFeatureExtractor

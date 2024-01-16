@@ -1,8 +1,6 @@
 import io
-import numpy as np
 import base64
 from PIL import Image
-from io import BytesIO
 import importlib
 import requests
 import os
@@ -22,7 +20,7 @@ def measure_time(func):
 
 
 def instantiate_from_config(config):
-    if not "target" in config:
+    if "target" not in config:
         if config == "__is_first_stage__":
             return None
         elif config == "__is_unconditional__":
@@ -54,7 +52,7 @@ def base64_to_pil_image(base64_image: str) -> Image.Image:
         image_stream = io.BytesIO(base64.b64decode(base64_image))
         image = Image.open(image_stream)
         return image
-    except:
+    except Exception:
         return None
 
 

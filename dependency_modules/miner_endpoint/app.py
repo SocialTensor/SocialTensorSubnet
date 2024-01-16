@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 import torch
-from typing import List
 from pydantic import BaseModel
 import argparse
 from dependency_modules.rewarding.utils import (

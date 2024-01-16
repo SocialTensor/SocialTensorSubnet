@@ -30,6 +30,7 @@ from traceback import print_exception
 from image_generation_subnet.base.neuron import BaseNeuron
 import time
 
+
 class BaseValidatorNeuron(BaseNeuron):
     """
     Base class for Bittensor validators. Your validator should inherit from this class.
@@ -87,8 +88,6 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.error(f"Failed to create Axon initialize with exception: {e}")
             pass
 
-
-
     def run(self):
         """
         Initiates and manages the main loop for the miner on the Bittensor network. The main loop handles graceful shutdown on keyboard interrupts and logs unforeseen errors.
@@ -122,9 +121,11 @@ class BaseValidatorNeuron(BaseNeuron):
         while True:
             try:
                 if self.step < 5:
-                    time_per_loop = 60 # If validator just started, run more frequent tests
+                    time_per_loop = (
+                        60  # If validator just started, run more frequent tests
+                    )
                 else:
-                    time_per_loop = 60 * 10 #One loop every 10 minutes
+                    time_per_loop = 60 * 10  # One loop every 10 minutes
                 start_time_forward_loop = time.time()
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
@@ -140,8 +141,11 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.save_state()
 
                 self.step += 1
-                
-                bt.logging.info(f"Loop completed, uids info:\n", str(self.all_uids_info).replace("},","},\n"))
+
+                bt.logging.info(
+                    "Loop completed, uids info:\n",
+                    str(self.all_uids_info).replace("},", "},\n"),
+                )
 
                 time_elapse_in_loop = time.time() - start_time_forward_loop
                 time_to_sleep = time_per_loop - time_elapse_in_loop
@@ -216,7 +220,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # Check if self.scores contains any NaN values and log a warning if it does.
         if torch.isnan(self.scores).any():
             bt.logging.warning(
-                f"Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
+                "Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
             )
 
         # Calculate the average reward for each uid across non-zero values.
@@ -324,7 +328,6 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def load_state(self):
         """Loads the state of the validator from a file."""
-       
 
         # Load the state of the validator from file.
         try:
@@ -334,7 +337,7 @@ class BaseValidatorNeuron(BaseNeuron):
             self.step = state["step"]
             self.all_uids_info = state["all_uids_info"]
             bt.logging.info("Succesfully loaded state")
-        except:
+        except Exception:
             self.step = 0
             self.all_uids_info = {
                 str((uid.item())): {"scores": [], "model_name": "unknown"}

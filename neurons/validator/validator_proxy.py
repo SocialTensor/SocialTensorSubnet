@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
 from concurrent.futures import ThreadPoolExecutor
 import requests
-import torch
 from image_generation_subnet.protocol import ImageGenerating
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -14,6 +13,7 @@ import random
 import asyncio
 from image_generation_subnet.validator.proxy import ProxyCounter
 import traceback
+
 
 class ValidatorProxy:
     def __init__(
@@ -126,30 +126,27 @@ class ValidatorProxy:
                 if self.validator.all_uids_info[uid]["model_name"] == model_name
             ]
 
-            scores = [ self.validator.all_uids_info[str(uid)]["scores"] for uid in available_uids ]
-            scores = [sum(s)/max(1, len(s)) for s in scores]
+            scores = [
+                self.validator.all_uids_info[str(uid)]["scores"]
+                for uid in available_uids
+            ]
+            scores = [sum(s) / max(1, len(s)) for s in scores]
 
             bt.logging.info(f"Available uids: {available_uids}")
-
 
             good_uids_indexes = [
                 i
                 for i in range(len(available_uids))
-                if scores[i]
-                > self.validator.config.proxy.miner_score_threshold
+                if scores[i] > self.validator.config.proxy.miner_score_threshold
             ]
 
             if len(good_uids_indexes) == 0:
                 good_uids_indexes = [
-                    i
-                    for i in range(len(available_uids))
-                    if scores[i]
-                    > 0
+                    i for i in range(len(available_uids)) if scores[i] > 0
                 ]
             if len(good_uids_indexes) == 0:
                 raise Exception("No miners meet the score threshold")
 
-            
             available_uids = [available_uids[index] for index in good_uids_indexes]
             scores = [scores[index] for index in good_uids_indexes]
 
@@ -175,7 +172,7 @@ class ValidatorProxy:
                 )
                 await asyncio.gather(task)
                 response = task.result()[0]
-                bt.logging.info(f"Received responses")
+                bt.logging.info("Received responses")
 
                 checking_url = supporting_models[model_name]["checking_url"]
                 if self.random_check(
@@ -192,11 +189,17 @@ class ValidatorProxy:
             try:
                 self.proxy_counter.update(is_success=is_valid_response)
                 self.proxy_counter.save()
-            except Exception as e:
-                print("Exception occured in updating proxy counter", traceback.format_exc(), flush=True)
+            except Exception:
+                print(
+                    "Exception occured in updating proxy counter",
+                    traceback.format_exc(),
+                    flush=True,
+                )
             return response.deserialize()
         except Exception as e:
-            print("Exception occured in proxy forward", traceback.format_exc(), flush=True)
+            print(
+                "Exception occured in proxy forward", traceback.format_exc(), flush=True
+            )
             raise HTTPException(status_code=400, detail=str(e))
 
     async def get_self(self):

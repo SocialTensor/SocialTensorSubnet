@@ -1,9 +1,7 @@
 from dependency_modules.rewarding.app import MODEL as pipe
-import random
 import torch
 import os
 
-import numpy as np
 
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 

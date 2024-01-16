@@ -1,6 +1,5 @@
 import requests
 from typing import List
-import bittensor as bt
 
 
 def set_info(self):

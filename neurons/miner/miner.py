@@ -14,7 +14,6 @@ class Miner(BaseMinerNeuron):
     async def forward(
         self, synapse: image_generation_subnet.protocol.ImageGenerating
     ) -> image_generation_subnet.protocol.ImageGenerating:
-        
         bt.logging.info(f"synapse {synapse}")
 
         if synapse.prompt:
@@ -31,7 +30,6 @@ class Miner(BaseMinerNeuron):
     async def blacklist(
         self, synapse: image_generation_subnet.protocol.ImageGenerating
     ) -> typing.Tuple[bool, str]:
-        
         bt.logging.info(f"synapse in blacklist {synapse}")
 
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:

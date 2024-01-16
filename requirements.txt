@@ -6,3 +6,4 @@ accelerate
 transformers
 omegaconf
 imagehash
+pre-commit
