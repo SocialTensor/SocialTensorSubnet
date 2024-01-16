@@ -3,6 +3,7 @@ RealisticVision:
   params:
     checkpoint_file: "checkpoints/RealisticVision.safetensors"
     download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
+    scheduler: "dpm++2m"
 SDXLTurbo:
   target: dependency_modules.rewarding.models.StableDiffusionXL
   params:
