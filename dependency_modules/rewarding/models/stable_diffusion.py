@@ -5,7 +5,6 @@ import torch
 import os
 import torch.nn as nn
 from PIL import Image
-from torchvision import transforms
 from transformers import CLIPFeatureExtractor
 from diffusers.pipelines.stable_diffusion.safety_checker import (
     StableDiffusionSafetyChecker,
@@ -16,7 +15,6 @@ from diffusers.pipelines.stable_diffusion.safety_checker import (
 class NicheSafetyChecker(StableDiffusionSafetyChecker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.transform = transforms.Compose([transforms.PILToTensor()])
         self.feature_extractor = CLIPFeatureExtractor.from_pretrained(
             "CompVis/stable-diffusion-v1-4", subfolder="feature_extractor"
         )
