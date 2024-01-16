@@ -8,3 +8,9 @@ SDXLTurbo:
   params:
     checkpoint_file: "checkpoints/SDXLTurbo.safetensors"
     download_url: "https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true"
+AnimeV3:
+  target: dependency_modules.rewarding.models.StableDiffusionXL
+  params:
+    checkpoint_file: "checkpoints/AnimeV3.safetensors"
+    download_url: "https://civitai.com/api/download/models/173961"
+    scheduler: "dpm++2m_karras"

@@ -41,6 +41,19 @@ class Validator(BaseValidatorNeuron):
                 },
                 "timeout": 4,
             },
+            "AnimeV3": {
+                "incentive_weight": 0.03,
+                "checking_url": self.config.anime_v3.check_url,
+                "inference_params": {
+                    "prompt_template": "anime key visual, acrylic painting, %s, pixiv fanbox, natural lighting",
+                    "num_inference_steps": 20,
+                    "width": 576,
+                    "height": 960,
+                    "guidance_scale": 7.0,
+                    "negative_prompt": "(out of frame), nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+                },
+                "timeout": 20,
+            },
         }
         self.max_validate_batch = 5
 
@@ -55,8 +68,6 @@ class Validator(BaseValidatorNeuron):
                     "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
                     + traceback.format_exc()
                 )
-
-
 
     def forward(self):
         """
@@ -105,6 +116,10 @@ class Validator(BaseValidatorNeuron):
                 )
                 for i in range(num_batch)
             ]
+            prompt_template = self.supporting_models[model_name][
+                "inference_params"
+            ].get("prompt_template", "%s")
+            prompts = [prompt_template % prompt for prompt in prompts]
             synapses = [
                 ImageGenerating(
                     prompt=prompts[i],
@@ -156,14 +171,18 @@ class Validator(BaseValidatorNeuron):
                     self.all_uids_info[uid]["scores"].append(0)
 
                     if len(self.all_uids_info[uid]["scores"]) > 10:
-                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid]["scores"][-10:]
+                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid][
+                            "scores"
+                        ][-10:]
 
                 for i in range(len(valid_uids)):
                     uid = str(valid_uids[i])
                     self.all_uids_info[uid]["scores"].append(rewards[i])
 
                     if len(self.all_uids_info[uid]["scores"]) > 10:
-                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid]["scores"][-10:]
+                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid][
+                            "scores"
+                        ][-10:]
 
         self.update_scores_on_chain()
         self.save_state()
@@ -195,7 +214,9 @@ class Validator(BaseValidatorNeuron):
                 model_specific_weights
                 * self.supporting_models[model_name]["incentive_weight"]
             )
-            bt.logging.info(f"model_specific_weights for {model_name}\n{model_specific_weights}")
+            bt.logging.info(
+                f"model_specific_weights for {model_name}\n{model_specific_weights}"
+            )
             weights = weights + model_specific_weights
 
         # Check if rewards contains NaN values.

@@ -187,6 +187,14 @@ def add_args(cls, parser):
             help="The endpoint to query to see if the image hash is correct.",
             default="http://sdxl_turbo_nicheimage.nichetensor.com:15012/verify",
         )
+        
+        parser.add_argument(
+            "--anime_v3.check_url",
+            type=str,
+            help="The endpoint to query to see if the image hash is correct.",
+            default="http://check_anime_v3_nicheimage.nichetensor.com:15013/verify",
+        )
+
         parser.add_argument(
             "--prompt_generating_endpoint",
             type=str,
