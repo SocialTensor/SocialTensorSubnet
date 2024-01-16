@@ -52,6 +52,7 @@ class Validator(BaseValidatorNeuron):
                     "guidance_scale": 7.0,
                     "negative_prompt": "(out of frame), nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                 },
+                "timeout": 20,
             },
         }
         self.max_validate_batch = 5
