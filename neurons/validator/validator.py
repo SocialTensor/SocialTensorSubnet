@@ -83,6 +83,18 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("Updating available models & uids")
         self.update_active_models_func(self)
 
+        if self.config.proxy.port:
+            try:
+                self.validator_proxy.verify_credentials = (
+                    self.validator_proxy.get_credentials()
+                )
+                bt.logging.info("Validator proxy re-register succesfully")
+            except Exception:
+                bt.logging.warning(
+                    "Warning, can't re-register proxy. Error message:"
+                    + traceback.format_exc()
+                )
+
         for model_name in self.supporting_models.keys():
             batch_size = random.randint(1, self.max_validate_batch)
 
