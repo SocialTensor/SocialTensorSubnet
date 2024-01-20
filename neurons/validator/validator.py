@@ -110,12 +110,21 @@ class Validator(BaseValidatorNeuron):
                 available_uids[i * batch_size : (i + 1) * batch_size]
                 for i in range(num_batch)
             ]
-            prompts = [
-                ig_subnet.validator.get_prompt(
-                    seed=seeds[i], prompt_url=self.config.prompt_generating_endpoint
+            try:
+                prompts = [
+                    ig_subnet.validator.get_prompt(
+                        seed=seeds[i], prompt_url=self.config.prompt_generating_endpoint
+                    )
+                    for i in range(num_batch)
+                ]
+            except:
+                bt.logging.warning(
+                    "Error with prompting, defaulting to local generation: "
+                    + traceback.format_exc()
                 )
-                for i in range(num_batch)
-            ]
+                prompts = self.backup_prompt_generation(num_batch)
+
+
             prompt_template = self.supporting_models[model_name][
                 "inference_params"
             ].get("prompt_template", "%s")
@@ -186,6 +195,15 @@ class Validator(BaseValidatorNeuron):
 
         self.update_scores_on_chain()
         self.save_state()
+
+    def backup_prompt_generation(self, num_batch):
+        adjectives = ["happy", "sad", "bright", "dark", "colorful"]
+        nouns = ["tree", "car", "house", "bird", "computer"]
+        prompts = []
+
+        for i in range(num_batch):
+            prompts.append("A picture of a " + random.choice(adjectives) + " " + random.choice(nouns) + ".")
+        return prompts
 
     def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""

@@ -129,7 +129,10 @@ class BaseValidatorNeuron(BaseNeuron):
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
                 # Run forward.
-                self.forward()
+                try:
+                    self.forward()
+                except Exception as err:
+                    bt.logging.debug(print_exception(type(err), err, err.__traceback__))
 
                 # Check if we should exit.
                 if self.should_exit:

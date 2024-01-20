@@ -41,7 +41,7 @@ def skip(**kwargs):
     return decorator
 
 
-@skip(module="prompting")
+#@skip(module="prompting")
 def get_prompt(seed: int, prompt_url: str) -> str:
     headers = {
         "accept": "application/json",
@@ -59,7 +59,7 @@ def get_prompt(seed: int, prompt_url: str) -> str:
     return prompt
 
 
-@skip(module="rewarding")
+#@skip(module="rewarding")
 def get_reward(
     reward_url: str,
     responses: List[ImageGenerating],
