@@ -12,3 +12,4 @@ Requests==2.31.0
 setuptools==68.0.0
 slowapi==0.1.8
 tqdm==4.65.0
+omegaconf==2.3.0
