@@ -265,10 +265,10 @@ if __name__ == "__main__":
         while True:
             bt.logging.info("Validator running...", time.time())
             try:
-                validator.update_scores_on_chain()
-                validator.save_state()
+                validator.sync()
+                bt.logging.info("Validator synced by interval")
             except Exception as e:
                 bt.logging.error(
-                    f"Error while updating scores on chain: {traceback.format_exc()}"
+                    f"Error while syncing: {traceback.format_exc()}"
                 )
             time.sleep(60*10)
