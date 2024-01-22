@@ -118,11 +118,9 @@ class BaseNeuron(ABC):
 
             if self.should_set_weights():
                 self.set_weights()
+            bt.logging.info("**Synced Done")
         except:
-            bt.logging.info(
-                f"Skip sync"
-            )
-                    
+            bt.logging.info(f"Skip sync")
 
     def check_registered(self):
         # --- Check for registration.
