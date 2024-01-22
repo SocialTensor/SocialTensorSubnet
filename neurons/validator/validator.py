@@ -268,7 +268,5 @@ if __name__ == "__main__":
                 validator.sync()
                 bt.logging.info("Validator synced by interval")
             except Exception as e:
-                bt.logging.error(
-                    f"Error while syncing: {traceback.format_exc()}"
-                )
-            time.sleep(60*10)
+                bt.logging.error(f"Error while syncing: {e}")
+            time.sleep(60 * 10)
