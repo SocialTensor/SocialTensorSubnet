@@ -265,11 +265,7 @@ if __name__ == "__main__":
         while True:
             bt.logging.info("Validator running...", time.time())
             try:
-                if validator.should_sync_metagraph():
-                    validator.resync_metagraph()
-                if validator.should_set_weights():
-                    validator.set_weights()
-                    bt.logging.info("**Validator set weights by interval")
+                validator.sync()
             except Exception as e:
                 bt.logging.error(f"Error while syncing: {e}")
             time.sleep(60 * 10)

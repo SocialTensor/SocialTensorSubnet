@@ -49,9 +49,6 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.info("Building validation weights.")
         self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
 
-        # Init sync with the network. Updates the metagraph.
-        self.sync()
-
         # Serve axon to enable external connections.
         if not self.config.neuron.axon_off:
             self.serve_axon()
@@ -109,9 +106,6 @@ class BaseValidatorNeuron(BaseNeuron):
             Exception: For unforeseen errors during the miner's operation, which are logged for diagnosis.
         """
 
-        # Check that validator is registered on the network.
-        self.sync()
-
         bt.logging.info(
             f"Running validator {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
         )
@@ -138,8 +132,6 @@ class BaseValidatorNeuron(BaseNeuron):
                 if self.should_exit:
                     break
 
-                # Sync metagraph and potentially set weights.
-                self.sync()
                 self.save_state()
 
                 self.step += 1
