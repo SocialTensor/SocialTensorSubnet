@@ -162,23 +162,20 @@ class Validator(BaseValidatorNeuron):
                 )
                 # Filter uid, response that valid
                 valid_uids = [
-                    uid
-                    for uid, response in zip(uids, responses)
-                    if response.is_success()
+                    uid for uid, response in zip(uids, responses) if response.is_success
                 ]
                 invalid_uids = [
                     uid
                     for uid, response in zip(uids, responses)
-                    if not response.is_success()
+                    if not response.is_success
                 ]
-                responses = [
-                    response for response in responses if response.is_success()
-                ]
+                responses = [response for response in responses if response.is_success]
 
                 bt.logging.info("Received responses, calculating rewards")
                 checking_url = self.supporting_models[synapse.model_name][
                     "checking_url"
                 ]
+
                 rewards = ig_subnet.validator.get_reward(
                     checking_url, responses, synapse
                 )
@@ -189,10 +186,8 @@ class Validator(BaseValidatorNeuron):
 
                 bt.logging.info(f"Scored responses: {rewards}")
                 for uid, reward in zip(uids, rewards):
-                    bt.logging.info(f"uid: {uid}, reward: {reward}")
                     self.all_uids_info[str(uid)]["scores"].append(reward)
                     self.all_uids_info[str(uid)]["scores"] = self.all_uids_info[-10:]
-
 
         self.update_scores_on_chain()
         self.save_state()
