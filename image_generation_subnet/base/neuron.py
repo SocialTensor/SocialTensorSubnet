@@ -149,9 +149,16 @@ class BaseNeuron(ABC):
             return False
 
         # Define appropriate logic for when set weights.
-        return (
+        check = (
             self.block - self.metagraph.last_update[self.uid]
         ) > self.config.neuron.epoch_length
+        if check:
+            bt.logging.info(
+                f"Last set weights: {self.metagraph.last_set_weights[self.uid]}",
+                f"Current block: {self.block}",
+                f"Epoch length: {self.config.neuron.epoch_length}",
+            )
+        return check
 
     def save_state(self):
         bt.logging.warning(
