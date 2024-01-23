@@ -268,4 +268,4 @@ if __name__ == "__main__":
                 validator.sync()
             except Exception as e:
                 bt.logging.error(f"Error while syncing: {e}")
-            time.sleep(60 * 10)
+            time.sleep(60)
