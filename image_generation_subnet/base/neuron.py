@@ -154,9 +154,11 @@ class BaseNeuron(ABC):
         ) > self.config.neuron.epoch_length
         if check:
             bt.logging.info(
-                f"Last set weights: {self.metagraph.last_update[self.uid]}",
-                f"Current block: {self.block}",
-                f"Epoch length: {self.config.neuron.epoch_length}",
+                (
+                    f"Last set weights: {self.metagraph.last_update[self.uid]}"
+                    f"Current block: {self.block}"
+                    f"Epoch length: {self.config.neuron.epoch_length}"
+                )
             )
         return check
 
