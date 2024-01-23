@@ -7,7 +7,6 @@ from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
 import image_generation_subnet as ig_subnet
 import traceback
-import asyncio
 
 
 class Validator(BaseValidatorNeuron):
@@ -164,12 +163,8 @@ class Validator(BaseValidatorNeuron):
                 valid_uids = [
                     uid for uid, response in zip(uids, responses) if response.is_success
                 ]
-                invalid_uids = [
-                    uid
-                    for uid, response in zip(uids, responses)
-                    if not response.is_success
-                ]
                 responses = [response for response in responses if response.is_success]
+                invalid_uids = list(set(uids) - set(valid_uids))
 
                 bt.logging.info("Received responses, calculating rewards")
                 checking_url = self.supporting_models[synapse.model_name][
