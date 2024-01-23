@@ -30,6 +30,7 @@ from traceback import print_exception
 from image_generation_subnet.base.neuron import BaseNeuron
 import time
 
+
 class BaseValidatorNeuron(BaseNeuron):
     """
     Base class for Bittensor validators. Your validator should inherit from this class.
@@ -84,8 +85,6 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.error(f"Failed to create Axon initialize with exception: {e}")
             pass
 
-
-
     def run(self):
         """
         Initiates and manages the main loop for the miner on the Bittensor network. The main loop handles graceful shutdown on keyboard interrupts and logs unforeseen errors.
@@ -116,9 +115,11 @@ class BaseValidatorNeuron(BaseNeuron):
         while True:
             try:
                 if self.step < 5:
-                    time_per_loop = 60 # If validator just started, run more frequent tests
+                    time_per_loop = (
+                        60  # If validator just started, run more frequent tests
+                    )
                 else:
-                    time_per_loop = 60 * 10 #One loop every 10 minutes
+                    time_per_loop = 60 * 10  # One loop every 10 minutes
                 start_time_forward_loop = time.time()
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
@@ -135,8 +136,11 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.save_state()
 
                 self.step += 1
-                
-                bt.logging.info(f"Loop completed, uids info:\n", str(self.all_uids_info).replace("},","},\n"))
+
+                bt.logging.info(
+                    f"Loop completed, uids info:\n",
+                    str(self.all_uids_info).replace("},", "},\n"),
+                )
 
                 time_elapse_in_loop = time.time() - start_time_forward_loop
                 time_to_sleep = time_per_loop - time_elapse_in_loop
@@ -236,16 +240,24 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.trace("processed_weight_uids", processed_weight_uids)
 
         # Set the weights on chain via our subtensor connection.
-        self.subtensor.set_weights(
+        result = self.subtensor.set_weights(
             wallet=self.wallet,
             netuid=self.config.netuid,
             uids=processed_weight_uids,
             weights=processed_weights,
             wait_for_finalization=False,
+            wait_for_inclusion=True,
             version_key=self.spec_version,
         )
-
-        bt.logging.info(f"Set weights: {processed_weights}")
+        if result:
+            bt.logging.info(f"Set weights: {processed_weights}")
+            bt.logging.info(
+                (
+                    f"Last set weights: {self.metagraph.last_update[self.uid]}\n"
+                    f"Current block: {self.block}\n"
+                    f"Epoch length: {self.config.neuron.epoch_length}\n"
+                )
+            )
 
     def resync_metagraph(self):
         """Resyncs the metagraph and updates the hotkeys and moving averages based on the new metagraph."""
@@ -319,7 +331,6 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def load_state(self):
         """Loads the state of the validator from a file."""
-       
 
         # Load the state of the validator from file.
         try:
