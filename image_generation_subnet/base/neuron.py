@@ -117,6 +117,7 @@ class BaseNeuron(ABC):
 
         if self.should_set_weights():
             self.set_weights()
+        bt.logging.info(f"Synced at block {self.block}")
 
     def check_registered(self):
         # --- Check for registration.
