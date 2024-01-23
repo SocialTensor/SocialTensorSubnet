@@ -187,7 +187,9 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.info(f"Scored responses: {rewards}")
                 for uid, reward in zip(uids, rewards):
                     self.all_uids_info[str(uid)]["scores"].append(reward)
-                    self.all_uids_info[str(uid)]["scores"] = self.all_uids_info[-10:]
+                    self.all_uids_info[str(uid)]["scores"] = self.all_uids_info[
+                        str(uid)
+                    ]["scores"][-10:]
 
         self.update_scores_on_chain()
         self.save_state()
