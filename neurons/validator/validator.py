@@ -25,13 +25,13 @@ class Validator(BaseValidatorNeuron):
 
         self.supporting_models = {
             "RealisticVision": {
-                "incentive_weight": 0.5,
+                "incentive_weight": 0.33,
                 "checking_url": self.config.realistic_vision.check_url,
                 "inference_params": {"num_inference_steps": 30},
                 "timeout": 12,
             },
             "SDXLTurbo": {
-                "incentive_weight": 0.5,
+                "incentive_weight": 0.33,
                 "checking_url": self.config.sdxl_turbo.check_url,
                 "inference_params": {
                     "num_inference_steps": 4,
@@ -42,7 +42,7 @@ class Validator(BaseValidatorNeuron):
                 "timeout": 4,
             },
             "AnimeV3": {
-                "incentive_weight": 0.03,
+                "incentive_weight": 0.34,
                 "checking_url": self.config.anime_v3.check_url,
                 "inference_params": {
                     "prompt_template": "anime key visual, acrylic painting, %s, pixiv fanbox, natural lighting",
