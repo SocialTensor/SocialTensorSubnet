@@ -253,9 +253,9 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.info(f"Set weights: {processed_weights}")
             bt.logging.info(
                 (
-                    f"Last set weights: {self.metagraph.last_update[self.uid]}\n"
-                    f"Current block: {self.block}\n"
-                    f"Epoch length: {self.config.neuron.epoch_length}\n"
+                    f"Last set weights: {self.metagraph.last_update[self.uid]}, "
+                    f"Current block: {self.block}, "
+                    f"Epoch length: {self.config.neuron.epoch_length}"
                 )
             )
 

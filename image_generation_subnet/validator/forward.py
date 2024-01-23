@@ -54,8 +54,9 @@ def get_prompt(seed: int, prompt_url: str) -> str:
         "max_length": 42,
         "additional_params": {},
     }
-    response = requests.post(prompt_url, headers=headers, json=data)
+    response = requests.post(prompt_url, headers=headers, json=data, timeout=20)
     prompt = response.json()["prompt"]
+    prompt.replace("an image of", "")
     return prompt
 
 
@@ -77,7 +78,7 @@ def get_reward(
         "model_name": synapse.model_name,
         "additional_params": synapse.pipeline_params,
     }
-    response = requests.post(reward_url, headers=headers, json=data)
+    response = requests.post(reward_url, headers=headers, json=data, timeout=20)
     rewards = response.json()["rewards"]
     rewards = [float(reward) for reward in rewards]
 
