@@ -160,21 +160,19 @@ class Validator(BaseValidatorNeuron):
                     synapse=synapse,
                     deserialize=False,
                 )
-                # Filter uid, response that blacklisted
+                # Filter uid, response that valid
                 valid_uids = [
                     uid
                     for uid, response in zip(uids, responses)
-                    if response.axon.status_code != 403
+                    if response.is_success()
                 ]
                 invalid_uids = [
                     uid
                     for uid, response in zip(uids, responses)
-                    if response.axon.status_code == 403
+                    if not response.is_success()
                 ]
                 responses = [
-                    response
-                    for response in responses
-                    if response.axon.status_code != 403
+                    response for response in responses if response.is_success()
                 ]
 
                 bt.logging.info("Received responses, calculating rewards")
@@ -184,26 +182,17 @@ class Validator(BaseValidatorNeuron):
                 rewards = ig_subnet.validator.get_reward(
                     checking_url, responses, synapse
                 )
+                for _ in range(len(invalid_uids)):
+                    rewards.append(0)
+
+                uids = valid_uids + invalid_uids
 
                 bt.logging.info(f"Scored responses: {rewards}")
+                for uid, reward in zip(uids, rewards):
+                    bt.logging.info(f"uid: {uid}, reward: {reward}")
+                    self.all_uids_info[str(uid)]["scores"].append(reward)
+                    self.all_uids_info[str(uid)]["scores"] = self.all_uids_info[-10:]
 
-                for i in range(len(invalid_uids)):
-                    uid = str(invalid_uids[i])
-                    self.all_uids_info[uid]["scores"].append(0)
-
-                    if len(self.all_uids_info[uid]["scores"]) > 10:
-                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid][
-                            "scores"
-                        ][-10:]
-
-                for i in range(len(valid_uids)):
-                    uid = str(valid_uids[i])
-                    self.all_uids_info[uid]["scores"].append(rewards[i])
-
-                    if len(self.all_uids_info[uid]["scores"]) > 10:
-                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid][
-                            "scores"
-                        ][-10:]
 
         self.update_scores_on_chain()
         self.save_state()
