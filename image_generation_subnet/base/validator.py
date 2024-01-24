@@ -171,7 +171,7 @@ class BaseValidatorNeuron(BaseNeuron):
     def async_set_weights(self):
         while True:
             try:
-                bt.logging("Setting weights asynchronously")
+                bt.logging.info("Setting weights asynchronously")
                 self.set_weights()
                 if self.should_exit:
                     break
