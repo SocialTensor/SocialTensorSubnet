@@ -30,6 +30,7 @@ from traceback import print_exception
 from image_generation_subnet.base.neuron import BaseNeuron
 import time
 
+
 class BaseValidatorNeuron(BaseNeuron):
     """
     Base class for Bittensor validators. Your validator should inherit from this class.
@@ -65,6 +66,7 @@ class BaseValidatorNeuron(BaseNeuron):
         self.should_exit: bool = False
         self.is_running: bool = False
         self.thread: threading.Thread = None
+        self.set_weights_thread: threading.Thread = None
         self.lock = asyncio.Lock()
 
     def serve_axon(self):
@@ -86,8 +88,6 @@ class BaseValidatorNeuron(BaseNeuron):
         except Exception as e:
             bt.logging.error(f"Failed to create Axon initialize with exception: {e}")
             pass
-
-
 
     def run(self):
         """
@@ -122,9 +122,11 @@ class BaseValidatorNeuron(BaseNeuron):
         while True:
             try:
                 if self.step < 5:
-                    time_per_loop = 60 # If validator just started, run more frequent tests
+                    time_per_loop = (
+                        60  # If validator just started, run more frequent tests
+                    )
                 else:
-                    time_per_loop = 60 * 10 #One loop every 10 minutes
+                    time_per_loop = 60 * 10  # One loop every 10 minutes
                 start_time_forward_loop = time.time()
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
@@ -143,8 +145,11 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.save_state()
 
                 self.step += 1
-                
-                bt.logging.info(f"Loop completed, uids info:\n", str(self.all_uids_info).replace("},","},\n"))
+
+                bt.logging.info(
+                    f"Loop completed, uids info:\n",
+                    str(self.all_uids_info).replace("},", "},\n"),
+                )
 
                 time_elapse_in_loop = time.time() - start_time_forward_loop
                 time_to_sleep = time_per_loop - time_elapse_in_loop
@@ -162,6 +167,26 @@ class BaseValidatorNeuron(BaseNeuron):
             except Exception as err:
                 bt.logging.error("Error during validation", str(err))
                 bt.logging.debug(print_exception(type(err), err, err.__traceback__))
+
+    def async_set_weights(self):
+        while True:
+            try:
+                bt.logging("Setting weights asynchronously")
+                self.set_weights()
+                if self.should_exit:
+                    break
+                time.sleep(60 * 5)  # Set weights once a day
+            except Exception as err:
+                bt.logging.error("Error during set_weights asynchronously", str(err))
+                bt.logging.debug(print_exception(type(err), err, err.__traceback__))
+
+    def run_set_weights_in_background_thread(self):
+        bt.logging.debug("Starting set weights in background thread.")
+        self.set_weights_thread = threading.Thread(
+            target=self.async_set_weights, daemon=True
+        )
+        self.set_weights_thread.start()
+        bt.logging.debug("Started")
 
     def run_in_background_thread(self):
         """
@@ -184,11 +209,13 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.debug("Stopping validator in background thread.")
             self.should_exit = True
             self.thread.join(5)
+            self
             self.is_running = False
             bt.logging.debug("Stopped")
 
     def __enter__(self):
         self.run_in_background_thread()
+        self.run_set_weights_in_background_thread()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -208,6 +235,7 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.debug("Stopping validator in background thread.")
             self.should_exit = True
             self.thread.join(5)
+            self.set_weights_thread.join(5)
             self.is_running = False
             bt.logging.debug("Stopped")
 
@@ -327,7 +355,6 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def load_state(self):
         """Loads the state of the validator from a file."""
-       
 
         # Load the state of the validator from file.
         try:
