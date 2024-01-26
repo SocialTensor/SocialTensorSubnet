@@ -44,6 +44,7 @@ class ValidatorProxy:
                 "postfix": f":{self.validator.config.proxy.port}/validator_proxy",
                 "uid": self.validator.uid,
             },
+            timeout=10,
         )
         if response.status_code != 200:
             raise Exception("Error getting credentials from market api")
