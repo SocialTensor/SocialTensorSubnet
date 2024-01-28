@@ -2,6 +2,7 @@ import requests
 import bittensor as bt
 from image_generation_subnet.protocol import ImageGenerating
 from typing import List
+from math import pow
 from functools import wraps
 
 
@@ -41,7 +42,7 @@ def skip(**kwargs):
     return decorator
 
 
-#@skip(module="prompting")
+# @skip(module="prompting")
 def get_prompt(seed: int, prompt_url: str) -> str:
     headers = {
         "accept": "application/json",
@@ -59,7 +60,7 @@ def get_prompt(seed: int, prompt_url: str) -> str:
     return prompt
 
 
-#@skip(module="rewarding")
+# @skip(module="rewarding")
 def get_reward(
     reward_url: str,
     responses: List[ImageGenerating],
@@ -128,3 +129,18 @@ def update_active_models(self):
         if self.all_uids_info[uid]["model_name"] != info["model_name"]:
             self.all_uids_info[uid]["model_name"] = info["model_name"]
             self.all_uids_info[uid]["scores"] = []
+
+
+def add_time_penalty(rewards, process_times, max_penalty=0.4):
+    """
+    Add time penalty to rewards, based on process time
+    """
+    penalties = [
+        max_penalty * pow(process_time, 3) / pow(12, 3)
+        for process_time in process_times
+    ]
+    penalties = [min(penalty, max_penalty) for penalty in penalties]
+    for i in range(len(rewards)):
+        if rewards[i] > 0:
+            rewards[i] = rewards[i] - penalties[i]
+    return rewards
