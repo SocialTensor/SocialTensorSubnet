@@ -169,6 +169,10 @@ class Validator(BaseValidatorNeuron):
                 )
                 rewards = ig_subnet.validator.add_time_penalty(rewards, process_times)
 
+                #Rounding
+                rewards = [round(num, 3) for num in rewards]
+
+
                 bt.logging.info(f"Scored responses: {rewards}")
 
                 for i in range(len(invalid_uids)):
