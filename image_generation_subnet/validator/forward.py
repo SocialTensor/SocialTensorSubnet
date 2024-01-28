@@ -140,7 +140,7 @@ def add_time_penalty(rewards, process_times, max_penalty=0.4):
         for process_time in process_times
     ]
     penalties = [min(penalty, max_penalty) for penalty in penalties]
-    for i in range(rewards):
+    for i in range(len(rewards)):
         if rewards[i] > 0:
             rewards[i] = rewards[i] - penalties[i]
     return rewards
