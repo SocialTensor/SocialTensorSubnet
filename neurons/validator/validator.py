@@ -226,7 +226,7 @@ class Validator(BaseValidatorNeuron):
                         sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
                         / num_past_to_check
                     )
-
+            model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
             tensor_sum = torch.sum(model_specific_weights)
             # Normalizing the tensor
             if tensor_sum > 0:
@@ -248,7 +248,6 @@ class Validator(BaseValidatorNeuron):
             bt.logging.warning(f"NaN values detected in weights: {weights}")
             # Replace any NaN values in rewards with 0.
             weights = torch.nan_to_num(weights, 0)
-        weights = torch.clamp(weights, 0, 1)
         self.scores: torch.FloatTensor = weights
         bt.logging.info(f"Updated scores: {self.scores}")
 
