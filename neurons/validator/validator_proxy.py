@@ -42,7 +42,9 @@ class ValidatorProxy:
             f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
             json={
                 "postfix": f":{self.validator.config.proxy.port}/validator_proxy",
+                "uid": self.validator.uid,
             },
+            timeout=30,
         )
         if response.status_code != 200:
             raise Exception("Error getting credentials from market api")
@@ -101,7 +103,7 @@ class ValidatorProxy:
         miner_uid = data.get("miner_uid", -1)
         if "recheck" in payload:
             bt.logging.info("Rechecking validators")
-            self.get_credentials()
+            self.verify_credentials = self.get_credentials()
             return {"message": "Rechecked"}
         try:
             bt.logging.info("Received a request!")
@@ -146,7 +148,7 @@ class ValidatorProxy:
                     for uid in available_uids
                 ]
 
-                scores = [sum(s)/max(1, len(s)) for s in scores]
+                scores = [sum(s) / max(1, len(s)) for s in scores]
                 bt.logging.info(f"Available uids: {available_uids}")
 
                 good_uids_indexes = [

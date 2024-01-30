@@ -124,7 +124,6 @@ class Validator(BaseValidatorNeuron):
                 )
                 prompts = self.backup_prompt_generation(num_batch)
 
-
             prompt_template = self.supporting_models[model_name][
                 "inference_params"
             ].get("prompt_template", "%s")
@@ -148,21 +147,17 @@ class Validator(BaseValidatorNeuron):
                     synapse=synapse,
                     deserialize=False,
                 )
-                # Filter uid, response that blacklisted
                 valid_uids = [
-                    uid
-                    for uid, response in zip(uids, responses)
-                    if response.axon.status_code != 403
+                    uid for uid, response in zip(uids, responses) if response.is_success
                 ]
                 invalid_uids = [
                     uid
                     for uid, response in zip(uids, responses)
-                    if response.axon.status_code == 403
+                    if not response.is_success
                 ]
-                responses = [
-                    response
-                    for response in responses
-                    if response.axon.status_code != 403
+                responses = [response for response in responses if response.is_success]
+                process_times = [
+                    response.dendrite.process_time for response in responses
                 ]
 
                 bt.logging.info("Received responses, calculating rewards")
@@ -172,6 +167,11 @@ class Validator(BaseValidatorNeuron):
                 rewards = ig_subnet.validator.get_reward(
                     checking_url, responses, synapse
                 )
+                rewards = ig_subnet.validator.add_time_penalty(rewards, process_times)
+
+                #Rounding
+                rewards = [round(num, 3) for num in rewards]
+
 
                 bt.logging.info(f"Scored responses: {rewards}")
 
@@ -202,7 +202,13 @@ class Validator(BaseValidatorNeuron):
         prompts = []
 
         for i in range(num_batch):
-            prompts.append("A picture of a " + random.choice(adjectives) + " " + random.choice(nouns) + ".")
+            prompts.append(
+                "A picture of a "
+                + random.choice(adjectives)
+                + " "
+                + random.choice(nouns)
+                + "."
+            )
         return prompts
 
     def update_scores_on_chain(self):
@@ -220,7 +226,7 @@ class Validator(BaseValidatorNeuron):
                         sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
                         / num_past_to_check
                     )
-
+            model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
             tensor_sum = torch.sum(model_specific_weights)
             # Normalizing the tensor
             if tensor_sum > 0:
@@ -242,7 +248,6 @@ class Validator(BaseValidatorNeuron):
             bt.logging.warning(f"NaN values detected in weights: {weights}")
             # Replace any NaN values in rewards with 0.
             weights = torch.nan_to_num(weights, 0)
-
         self.scores: torch.FloatTensor = weights
         bt.logging.info(f"Updated scores: {self.scores}")
 

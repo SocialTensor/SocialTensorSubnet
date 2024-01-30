@@ -30,6 +30,7 @@ from traceback import print_exception
 from image_generation_subnet.base.neuron import BaseNeuron
 import time
 
+
 class BaseValidatorNeuron(BaseNeuron):
     """
     Base class for Bittensor validators. Your validator should inherit from this class.
@@ -87,8 +88,6 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.error(f"Failed to create Axon initialize with exception: {e}")
             pass
 
-
-
     def run(self):
         """
         Initiates and manages the main loop for the miner on the Bittensor network. The main loop handles graceful shutdown on keyboard interrupts and logs unforeseen errors.
@@ -113,18 +112,30 @@ class BaseValidatorNeuron(BaseNeuron):
         self.sync()
 
         bt.logging.info(
-            f"Running validator {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
+            f"Running validator on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
         )
+        if hasattr(self, 'axon'):
+            f"Axon: {self.axon}"
 
         bt.logging.info(f"Validator starting at block: {self.block}")
 
         # This loop maintains the validator's operations until intentionally stopped.
         while True:
             try:
+                if self.config.proxy.port:
+                    try:
+                        self.validator_proxy.verify_credentials = self.validator_proxy.get_credentials()
+                        bt.logging.info("Validator proxy ping to proxy-client successfully")
+                    except Exception as e:
+                        bt.logging.warning(
+                            "Warning, proxy can't ping to proxy-client."
+                        )
                 if self.step < 5:
-                    time_per_loop = 60 # If validator just started, run more frequent tests
+                    time_per_loop = (
+                        60  # If validator just started, run more frequent tests
+                    )
                 else:
-                    time_per_loop = 60 * 10 #One loop every 10 minutes
+                    time_per_loop = 60 * 10  # One loop every 10 minutes
                 start_time_forward_loop = time.time()
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
@@ -143,8 +154,11 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.save_state()
 
                 self.step += 1
-                
-                bt.logging.info(f"Loop completed, uids info:\n", str(self.all_uids_info).replace("},","},\n"))
+
+                bt.logging.info(
+                    f"Loop completed, uids info:\n",
+                    str(self.all_uids_info).replace("},", "},\n"),
+                )
 
                 time_elapse_in_loop = time.time() - start_time_forward_loop
                 time_to_sleep = time_per_loop - time_elapse_in_loop
@@ -327,7 +341,6 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def load_state(self):
         """Loads the state of the validator from a file."""
-       
 
         # Load the state of the validator from file.
         try:
