@@ -1,6 +1,6 @@
 import requests
 import bittensor as bt
-from image_generation_subnet.protocol import ImageGenerating
+from image_generation_subnet.protocol import NicheImageProtocol
 from typing import List
 from math import pow
 from functools import wraps
@@ -42,6 +42,39 @@ def skip(**kwargs):
     return decorator
 
 
+def get_challenge(
+    url: str, sysnapes: List[NicheImageProtocol]
+) -> List[NicheImageProtocol]:
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    data = [synapse.deserialize() for synapse in sysnapes]
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code != 200:
+        raise Exception(f"Error in get_challenge: {response.json()}")
+    challenges = response.json()
+    challenges = [NicheImageProtocol(**challenge) for challenge in challenges]
+    return challenges
+
+
+def get_reward(url: str, sysnapes: List[NicheImageProtocol]) -> List[float]:
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    if not sysnapes:
+        return []
+    data = [synapse.deserialize() for synapse in sysnapes]
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code != 200:
+        raise Exception(f"Error in get_reward: {response.json()}")
+    rewards = response.json()["rewards"]
+    rewards = [float(reward) for reward in rewards]
+
+    return rewards
+
+
 # @skip(module="prompting")
 def get_prompt(seed: int, prompt_url: str) -> str:
     headers = {
@@ -60,75 +93,56 @@ def get_prompt(seed: int, prompt_url: str) -> str:
     return prompt
 
 
-# @skip(module="rewarding")
-def get_reward(
-    reward_url: str,
-    responses: List[ImageGenerating],
-    synapse: ImageGenerating,
-) -> List[float]:
-    images = [response.image for response in responses]
-    headers = {
-        "accept": "application/json",
-        "Content-Type": "application/json",
-    }
-    data = {
-        "prompt": synapse.prompt,
-        "seed": synapse.seed,
-        "images": images,
-        "model_name": synapse.model_name,
-        "additional_params": synapse.pipeline_params,
-    }
-    response = requests.post(reward_url, headers=headers, json=data)
-    rewards = response.json()["rewards"]
-    rewards = [float(reward) for reward in rewards]
-
-    return rewards
 
 
-def get_miner_info(self, payload: dict, query_uids: List[int]):
-    uid_to_axon = dict(zip(self.all_uids, self.metagraph.axons))
+def get_miner_info(validator, query_uids: List[int]):
+    uid_to_axon = dict(zip(validator.all_uids, validator.metagraph.axons))
     query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
-    bt.logging.info("Requesting miner info with payload", payload)
-    protocol_payload = ImageGenerating(request_dict=payload)
-    bt.logging.info("Requesting miner info with", protocol_payload)
-    responses = self.dendrite.query(
+    synapse = NicheImageProtocol()
+    synapse.request_dict = {"get_miner_info": True}
+    bt.logging.info("Requesting miner info")
+    responses = validator.dendrite.query(
         query_axons,
-        protocol_payload,
-        deserialize=False,
-        timeout=5,
+        synapse,
+        deserialize=True,
+        timeout=10,
     )
-    bt.logging.info(f"Received {len(responses)} responses")
     responses = {
-        uid: response.response_dict
+        uid: response
         for uid, response in zip(query_uids, responses)
-        if response.response_dict
+        if response and "model_name" in response and "category" in response
     }
-    bt.logging.info(f"Received {len(responses)} valid responses")
-
     return responses
 
 
-def update_active_models(self):
+def update_active_models(validator):
     """
     1. Query model_name of available uids
     2. Update the available list
     """
-    payload = {"get_miner_info": True}
-
-    self.all_uids = [int(uid) for uid in self.metagraph.uids]
-    valid_miners_info = get_miner_info(self, payload, self.all_uids)
-
+    miner_distribution = {}
+    validator.all_uids = [int(uid) for uid in validator.metagraph.uids]
+    valid_miners_info = get_miner_info(validator.all_uids)
     if not valid_miners_info:
         bt.logging.warning("No active miner available. Skipping setting weights.")
-
     for uid, info in valid_miners_info.items():
         uid = str(uid)
-        if uid not in self.all_uids_info:
-            self.all_uids_info[uid] = {"scores": [], "model_name": "unknown"}
-
-        if self.all_uids_info[uid]["model_name"] != info["model_name"]:
-            self.all_uids_info[uid]["model_name"] = info["model_name"]
-            self.all_uids_info[uid]["scores"] = []
+        miner_state = validator.all_uids_info[uid].setdefault(
+            uid, {"scores": [], "model_name": "", "category": ""}
+        )
+        model_name = info["model_name"]
+        category = info["category"]
+        miner_distribution.setdefault(f"{category}-{model_name}", 0)
+        miner_distribution[f"{category}-{model_name}"] += 1
+        if (
+            miner_state["model_name"] == model_name
+            and miner_state["category"] == category
+        ):
+            continue
+        miner_state["model_name"] = category
+        miner_state["category"] = model_name
+        miner_state["scores"] = []
+    bt.logging.success(f"Updated miner distribution: {miner_distribution}")
 
 
 def add_time_penalty(rewards, process_times, max_penalty=0.4):
