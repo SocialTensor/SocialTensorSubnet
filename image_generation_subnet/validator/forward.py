@@ -43,19 +43,22 @@ def skip(**kwargs):
 
 
 def get_challenge(
-    url: str, sysnapes: List[NicheImageProtocol]
+    url: str, synapses: List[NicheImageProtocol]
 ) -> List[NicheImageProtocol]:
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
     }
-    data = [synapse.deserialize() for synapse in sysnapes]
+    data = [synapse.deserialize() for synapse in synapses]
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
         raise Exception(f"Error in get_challenge: {response.json()}")
     challenges = response.json()
-    challenges = [NicheImageProtocol(**challenge) for challenge in challenges]
-    return challenges
+    synapses = [
+        synapse.copy(update=challenge)
+        for synapse, challenge in zip(synapses, challenges)
+    ]
+    return synapses
 
 
 def get_reward(url: str, sysnapes: List[NicheImageProtocol]) -> List[float]:
@@ -91,8 +94,6 @@ def get_prompt(seed: int, prompt_url: str) -> str:
     response = requests.post(prompt_url, headers=headers, json=data)
     prompt = response.json()["prompt"]
     return prompt
-
-
 
 
 def get_miner_info(validator, query_uids: List[int]):

@@ -20,17 +20,18 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
         self.category_models = {
             "text_to_image": {
-                "base_synapse": protocol.TextToImage(),
+                "base_synapse": protocol.TextToImage,
+                "challenge_url": self.config.challenge.text_to_image,
                 "models": {
                     "RealisticVision": {
                         "model_incentive_weight": 0.33,
-                        "checking_url": self.config.realistic_vision.check_url,
+                        "reward_url": self.config.reward.text_to_image.RealisticVision,
                         "inference_params": {"num_inference_steps": 30},
                         "timeout": 12,
                     },
                     "SDXLTurbo": {
                         "model_incentive_weight": 0.33,
-                        "checking_url": self.config.sdxl_turbo.check_url,
+                        "reward_url": self.config.reward.text_to_image.SDXLTurbo,
                         "inference_params": {
                             "num_inference_steps": 4,
                             "width": 512,
@@ -41,7 +42,7 @@ class Validator(BaseValidatorNeuron):
                     },
                     "AnimeV3": {
                         "model_incentive_weight": 0.34,
-                        "checking_url": self.config.anime_v3.check_url,
+                        "reward_url": self.config.reward.text_to_image.AnimeV3,
                         "inference_params": {
                             "prompt_template": "anime key visual, acrylic painting, %s, pixiv fanbox, natural lighting",
                             "num_inference_steps": 20,
@@ -56,11 +57,12 @@ class Validator(BaseValidatorNeuron):
                 "category_incentive_weight": 0.34,
             },
             "image_to_image": {
-                "base_synapse": protocol.ImageToImage(),
+                "base_synapse": protocol.ImageToImage,
+                "challenge_url": self.config.challenge.image_to_image,
                 "models": {
                     "Artium": {
                         "model_incentive_weight": 1.0,
-                        "checking_url": self.config.artium.check_url,
+                        "reward_url": self.config.reward.image_to_image.Artium,
                         "inference_params": {
                             "prompt_template": "anime key visual, acrylic painting, %s, pixiv fanbox, natural lighting",
                             "num_inference_steps": 28,
@@ -75,11 +77,12 @@ class Validator(BaseValidatorNeuron):
                 "category_incentive_weight": 0.33,
             },
             "ControlNetTextToImage": {
-                "base_synapse": protocol.ControlNetTextToImage(),
+                "base_synapse": protocol.ControlNetTextToImage,
+                "challenge_url": self.config.challenge.controlnet_text_to_image,
                 "models": {
                     "DreamShaper": {
                         "model_incentive_weight": 0.5,
-                        "checking_url": self.config.dream_shaper.check_url,
+                        "reward_url": self.config.reward.controlnet_text_to_image.DreamShaper,
                         "inference_params": {
                             "num_inference_steps": 30,
                             "width": 512,
@@ -122,8 +125,6 @@ class Validator(BaseValidatorNeuron):
         self.update_active_models_func(self)
 
         for category in self.category_models.keys():
-            get_challenge_url = self.category_models[category]["get_challenge_url"]
-            get_reward_url = self.category_models[category]["get_reward_url"]
             category_uids = [
                 int(uid)
                 for uid in self.all_uids_info.keys()
@@ -138,6 +139,8 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(f"Available uids for {category}: {uids}")
 
             for model_name in self.category_models[category]["models"].keys():
+                challenge_url = self.category_models[category]["challenge_url"]
+                reward_url = self.category_models[category]["models"]["reward_url"]
                 model_uids = [
                     uid
                     for uid in category_uids
@@ -164,7 +167,7 @@ class Validator(BaseValidatorNeuron):
                 ]
 
                 synapses = [
-                    deepcopy(self.category_models[category]["base_synapse"])
+                    self.category_models[category]["base_synapse"]()
                     for _ in range(num_batch)
                 ]
                 for i, synapse in enumerate(synapses):
@@ -175,9 +178,7 @@ class Validator(BaseValidatorNeuron):
                     )
                     synapse.seed = seeds[i]
 
-                synapses = ig_subnet.validator.get_challenge(
-                    get_challenge_url, synapses
-                )
+                synapses = ig_subnet.validator.get_challenge(challenge_url, synapses)
 
                 for synapse, uids in zip(synapses, batched_uids):
                     responses = self.dendrite.query(
@@ -203,7 +204,7 @@ class Validator(BaseValidatorNeuron):
                     ]
 
                     bt.logging.info("Received responses, calculating rewards")
-                    rewards = ig_subnet.validator.get_reward(get_reward_url, responses)
+                    rewards = ig_subnet.validator.get_reward(reward_url, responses)
                     rewards = ig_subnet.validator.add_time_penalty(
                         rewards, process_times
                     )

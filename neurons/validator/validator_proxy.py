@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from concurrent.futures import ThreadPoolExecutor
 import requests
-from image_generation_subnet.protocol import ImageGenerating
+import image_generation_subnet.protocol as protocol
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
@@ -80,18 +80,14 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def random_check(self, uid, synapse, response, checking_url):
+    def random_check(self, uid, synapse, url):
         if random.random() < self.validator.config.proxy.checking_probability:
             bt.logging.info(f"Random check for miner {uid}")
-            rewards = image_generation_subnet.validator.get_reward(
-                checking_url,
-                responses=[response],
-                synapse=synapse,
-            )
+            rewards = image_generation_subnet.validator.get_reward(url, [synapse])
             if rewards is None:
                 return False
             self.validator.all_uids_info[str(uid)]["scores"].append(rewards[0])
-            bt.logging.info(f"Scored responses: {rewards}")
+            bt.logging.info(f"Proxy check responses: {rewards}")
             return rewards[0] > 0
         else:
             bt.logging.info("Not doing random check")
@@ -109,30 +105,30 @@ class ValidatorProxy:
             bt.logging.info("Received a request!")
             if "seed" not in payload:
                 payload["seed"] = random.randint(0, 1e9)
-
-            synapse = ImageGenerating(**payload)
+            model_name = payload["model_name"]
+            category = payload["category"]
+            synapse_cls = self.validator.category_models[category]["base_synapse"]
+            synapse = synapse_cls(**payload)
 
             # Override default pipeline params
-            for k, v in self.validator.supporting_models[synapse.model_name][
-                "inference_params"
-            ].items():
+            for k, v in self.validator.category_models[synapse.category]["models"][
+                synapse.model_name
+            ]["inference_params"].items():
                 if k not in synapse.pipeline_params:
                     synapse.pipeline_params[k] = v
 
-            # Apply prompt template
-            prompt_template = self.validator.supporting_models[synapse.model_name][
-                "inference_params"
-            ].get("prompt_template", "%s")
-            synapse.prompt = prompt_template % synapse.prompt
-
             # Limit inference steps
-            synapse.pipeline_params["num_inference_steps"] = min(
-                50, synapse.pipeline_params["num_inference_steps"]
-            )
-            model_name = synapse.model_name
-            supporting_models = self.validator.supporting_models
+            if "num_inference_steps" in synapse.pipeline_params:
+                synapse.pipeline_params["num_inference_steps"] = min(
+                    50, synapse.pipeline_params["num_inference_steps"]
+                )
+            timeout = 20
             scores = self.validator.scores
             metagraph = self.validator.metagraph
+            reward_url = self.validator.category_models[category]["models"][model_name][
+                "reward_url"
+            ]
+
             if miner_uid >= 0:
                 available_uids = [miner_uid]
                 miner_indexes = [0]
@@ -141,6 +137,7 @@ class ValidatorProxy:
                     int(uid)
                     for uid in self.validator.all_uids_info.keys()
                     if self.validator.all_uids_info[uid]["model_name"] == model_name
+                    and self.validator.all_uids_info[uid]["category"] == category
                 ]
 
                 scores = [
@@ -184,7 +181,7 @@ class ValidatorProxy:
                         [axon],
                         synapse,
                         deserialize=False,
-                        timeout=self.validator.supporting_models[model_name]["timeout"],
+                        timeout=timeout,
                     )
                 )
                 await asyncio.gather(task)
@@ -196,12 +193,10 @@ class ValidatorProxy:
                 else:
                     bt.logging.info("Image in response")
 
-                checking_url = supporting_models[model_name]["checking_url"]
                 if self.random_check(
                     miner_uid,
                     synapse,
-                    response,
-                    checking_url,
+                    reward_url,
                 ):
                     is_valid_response = True
                     bt.logging.info("Checked OK")
