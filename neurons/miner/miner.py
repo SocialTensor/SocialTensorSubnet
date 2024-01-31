@@ -12,26 +12,22 @@ class Miner(BaseMinerNeuron):
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
     async def forward(
-        self, synapse: image_generation_subnet.protocol.ImageGenerating
-    ) -> image_generation_subnet.protocol.ImageGenerating:
-        
+        self, synapse: image_generation_subnet.protocol.NicheImageProtocol
+    ) -> image_generation_subnet.protocol.NicheImageProtocol:
         bt.logging.info(f"synapse {synapse}")
-
-        if synapse.prompt:
-            image = image_generation_subnet.miner.generate(
-                self, synapse.prompt, synapse.seed, synapse.pipeline_params
-            )
-            synapse.image = image
-
         if synapse.request_dict:
             synapse.response_dict = self.miner_info
             bt.logging.info(f"Response dict: {self.miner_info}")
+        else:
+            synapse = image_generation_subnet.miner.generate(
+                self, synapse.prompt, synapse.seed, synapse.pipeline_params
+            )
+
         return synapse
 
     async def blacklist(
-        self, synapse: image_generation_subnet.protocol.ImageGenerating
+        self, synapse: image_generation_subnet.protocol.NicheImageProtocol
     ) -> typing.Tuple[bool, str]:
-        
         bt.logging.info(f"synapse in blacklist {synapse}")
 
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
@@ -60,7 +56,7 @@ class Miner(BaseMinerNeuron):
         return False, "All passed!"
 
     async def priority(
-        self, synapse: image_generation_subnet.protocol.ImageGenerating
+        self, synapse: image_generation_subnet.protocol.NicheImageProtocol
     ) -> float:
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
