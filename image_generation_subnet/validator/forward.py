@@ -140,8 +140,8 @@ def update_active_models(validator):
             and miner_state["category"] == category
         ):
             continue
-        miner_state["model_name"] = category
-        miner_state["category"] = model_name
+        miner_state["model_name"] = model_name
+        miner_state["category"] = category
         miner_state["scores"] = []
     bt.logging.success(f"Updated miner distribution: {miner_distribution}")
 
