@@ -7,7 +7,6 @@ from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
 import image_generation_subnet as ig_subnet
 import traceback
-from copy import deepcopy
 
 
 class Validator(BaseValidatorNeuron):
