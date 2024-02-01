@@ -123,7 +123,7 @@ def update_active_models(validator):
     """
     miner_distribution = {}
     validator.all_uids = [int(uid) for uid in validator.metagraph.uids]
-    valid_miners_info = get_miner_info(validator.all_uids)
+    valid_miners_info = get_miner_info(validator, validator.all_uids)
     if not valid_miners_info:
         bt.logging.warning("No active miner available. Skipping setting weights.")
     for uid, info in valid_miners_info.items():
