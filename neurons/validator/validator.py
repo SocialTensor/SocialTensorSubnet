@@ -18,7 +18,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("load_state()")
         self.load_state()
         self.category_models = {
-            "text_to_image": {
+            "TextToImage": {
                 "base_synapse": protocol.TextToImage,
                 "challenge_urls": [self.config.challenge.text],
                 "models": {
@@ -55,7 +55,7 @@ class Validator(BaseValidatorNeuron):
                 },
                 "category_incentive_weight": 0.34,
             },
-            "image_to_image": {
+            "ImageToImage": {
                 "base_synapse": protocol.ImageToImage,
                 "challenge_urls": [
                     self.config.challenge.prompt,

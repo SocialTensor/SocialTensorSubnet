@@ -80,7 +80,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 ARGS = get_args()
-MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.model_name])
+MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.category][ARGS.model_name])
 
 
 @app.middleware("http")

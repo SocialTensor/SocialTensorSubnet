@@ -69,7 +69,7 @@ pipe = instantiate_from_config(MODEL_CONFIG[args.category][args.model_name])
 
 @app.get("/info")
 async def get_model_name():
-    return {"model_name": args.model_name}
+    return {"model_name": args.model_name, "category": args.category}
 
 
 @app.post("/generate")
