@@ -1,5 +1,5 @@
 import time
-from typing import List, Optional, Tuple, Union, TypeVar
+from typing import List, Optional, Tuple
 import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
@@ -11,9 +11,6 @@ from image_generation_subnet.protocol import (
 )
 
 
-T = TypeVar("T", bound=bt.Synapse)
-
-
 class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
@@ -21,9 +18,8 @@ class Miner(BaseMinerNeuron):
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
     async def forward(
-        self,
-        synapse: T,
-    ) -> T:
+        self, synapse: image_generation_subnet.protocol.NicheImageProtocol
+    ) -> image_generation_subnet.protocol.NicheImageProtocol:
         bt.logging.info(f"synapse {synapse}")
         if synapse.request_dict:
             synapse.response_dict = self.miner_info
@@ -36,8 +32,7 @@ class Miner(BaseMinerNeuron):
         return synapse
 
     async def blacklist(
-        self,
-        synapse: T,
+        self, synapse: image_generation_subnet.protocol.NicheImageProtocol
     ) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
 
@@ -67,8 +62,7 @@ class Miner(BaseMinerNeuron):
         return False, "All passed!"
 
     async def priority(
-        self,
-        synapse: TabError,
+        self, synapse: image_generation_subnet.protocol.NicheImageProtocol
     ) -> float:
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
