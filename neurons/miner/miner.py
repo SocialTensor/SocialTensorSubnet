@@ -19,10 +19,8 @@ class Miner(BaseMinerNeuron):
 
     async def forward(
         self,
-        synapse: Union[
-            NicheImageProtocol, TextToImage, ImageToImage, ControlNetTextToImage
-        ],
-    ) -> Union[NicheImageProtocol, TextToImage, ImageToImage, ControlNetTextToImage]:
+        synapse: bt.Synapse,
+    ) -> bt.Synapse:
         bt.logging.info(f"synapse {synapse}")
         if synapse.request_dict:
             synapse.response_dict = self.miner_info
@@ -36,9 +34,7 @@ class Miner(BaseMinerNeuron):
 
     async def blacklist(
         self,
-        synapse: Union[
-            NicheImageProtocol, TextToImage, ImageToImage, ControlNetTextToImage
-        ],
+        synapse: bt.Synapse,
     ) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
 
@@ -69,9 +65,7 @@ class Miner(BaseMinerNeuron):
 
     async def priority(
         self,
-        synapse: Union[
-            NicheImageProtocol, TextToImage, ImageToImage, ControlNetTextToImage
-        ],
+        synapse: bt.Synapse,
     ) -> float:
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
