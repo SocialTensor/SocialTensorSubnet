@@ -1,4 +1,4 @@
-from dependency_modules.rewarding.models import BaseT2IModel
+from dependency_modules.rewarding.models import BaseModel
 from dependency_modules.rewarding.models.utils import set_scheduler
 from dependency_modules.rewarding.utils import download_checkpoint
 import diffusers
@@ -11,6 +11,32 @@ from diffusers.pipelines.stable_diffusion.safety_checker import (
     StableDiffusionSafetyChecker,
     cosine_distance,
 )
+
+
+def base64_to_pil_image(base64_image):
+    from io import BytesIO
+    import base64
+    import PIL.Image
+    import numpy as np
+
+    image = base64.b64decode(base64_image)
+    image = BytesIO(image)
+    image = PIL.Image.open(image)
+    image = np.array(image)
+    image = PIL.Image.fromarray(image).convert("RGB")
+    return image
+
+
+def resize_divisible(image, max_size=1024, divisible=16):
+    W, H = image.size
+    if W > H:
+        W, H = max_size, int(max_size * H / W)
+    else:
+        W, H = int(max_size * W / H), max_size
+    W = W - W % divisible
+    H = H - H % divisible
+    image = image.resize((W, H))
+    return image
 
 
 class NicheSafetyChecker(StableDiffusionSafetyChecker):
@@ -82,8 +108,7 @@ class NicheSafetyChecker(StableDiffusionSafetyChecker):
         return has_nsfw_concept
 
 
-
-class StableDiffusion(BaseT2IModel):
+class StableDiffusionTextToImage(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -107,7 +132,7 @@ class StableDiffusion(BaseT2IModel):
         return inference_function
 
 
-class StableDiffusionXL(BaseT2IModel):
+class StableDiffusionXLTextToImage(BaseModel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -138,6 +163,119 @@ class StableDiffusionXL(BaseT2IModel):
                     print("NSFW image detected")
                     images[i] = Image.new("RGB", (W, H), "black")
             outputs.images = images
+            return outputs
+
+        return inference_function
+
+
+class StableDiffusionImageToImage(BaseModel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def load_model(self, checkpoint_file, download_url, **kwargs):
+        if not os.path.exists(checkpoint_file):
+            download_checkpoint(download_url, checkpoint_file)
+
+        pipe = diffusers.StableDiffusionImg2ImgPipeline.from_single_file(
+            checkpoint_file,
+            use_safetensors=True,
+            torch_dtype=torch.float16,
+            load_safety_checker=True,
+        )
+        scheduler_name = kwargs.get("scheduler", "euler_a")
+        pipe.scheduler = set_scheduler(scheduler_name, pipe.scheduler.config)
+        pipe.to("cuda")
+
+        def inference_function(*args, **kwargs):
+            # Prepare Init Image
+            base64_init_image = kwargs.get("init_image", None)
+            init_image = base64_to_pil_image(base64_init_image)
+            init_image = resize_divisible(init_image, 512)
+            kwargs.update({"image": init_image})
+            # End Prepare Init Image
+
+            outputs = pipe(*args, **kwargs)
+            return outputs
+
+        return inference_function
+
+
+class StableDiffusionXLImageToImage(BaseModel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def load_model(self, checkpoint_file, download_url, **kwargs):
+        if not os.path.exists(checkpoint_file):
+            download_checkpoint(download_url, checkpoint_file)
+        pipe = diffusers.StableDiffusionXLImg2ImgPipeline.from_single_file(
+            checkpoint_file,
+            use_safetensors=True,
+            torch_dtype=torch.float16,
+            load_safety_checker=True,
+        )
+        scheduler_name = kwargs.get("scheduler", "euler_a")
+        pipe.scheduler = set_scheduler(scheduler_name, pipe.scheduler.config)
+        pipe.to("cuda")
+
+        safety_checker = NicheSafetyChecker.from_pretrained(
+            "CompVis/stable-diffusion-safety-checker"
+        ).to("cuda")
+
+        def inference_function(*args, **kwargs):
+            # Prepare Init Image
+            base64_init_image = kwargs.get("init_image", None)
+            init_image = base64_to_pil_image(base64_init_image)
+            init_image = resize_divisible(init_image, 1024)
+            kwargs.update({"image": init_image})
+            # End Prepare Init Image
+            outputs = pipe(*args, **kwargs)
+            images = outputs.images
+            W, H = images[0].size
+            for i, image in enumerate(images):
+                if safety_checker.run_check(image):
+                    print("NSFW image detected")
+                    images[i] = Image.new("RGB", (W, H), "black")
+            outputs.images = images
+            return outputs
+
+        return inference_function
+
+
+class StableDiffusionControlNetTextToImage(BaseModel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def load_model(self, checkpoint_file, download_url, **kwargs):
+        if not os.path.exists(checkpoint_file):
+            download_checkpoint(download_url, checkpoint_file)
+        from controlnet_aux.processor import Processor
+
+        processor = Processor("canny")
+        controlnet = diffusers.ControlNet.from_pretrained(
+            "lllyasviel/control_v11p_sd15_canny",
+            torch_dtype=torch.float16,
+        )
+        pipe = diffusers.StableDiffusionControlNetPipeline.from_single_file(
+            checkpoint_file,
+            use_safetensors=True,
+            torch_dtype=torch.float16,
+            load_safety_checker=True,
+            controlnet=controlnet,
+        )
+        scheduler_name = kwargs.get("scheduler", "euler_a")
+        pipe.scheduler = set_scheduler(scheduler_name, pipe.scheduler.config)
+        pipe.to("cuda")
+
+        def inference_function(*args, **kwargs):
+            # Prepare Init Image
+            base64_controlnet_image = kwargs.get("controlnet_image", None)
+            controlnet_image = base64_to_pil_image(base64_controlnet_image)
+            controlnet_image = resize_divisible(controlnet_image, 512)
+            controlnet_image = processor(controlnet_image, to_pil=True)
+            kwargs.update({"image": controlnet_image})
+            # End Prepare Init Image
+
+            outputs = pipe(*args, **kwargs)
             return outputs
 
         return inference_function

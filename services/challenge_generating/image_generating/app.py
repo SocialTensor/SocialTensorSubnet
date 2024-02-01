@@ -1,9 +1,7 @@
-from fastapi import FastAPI, Request, Response, Depends
-import bittensor as bt
+import diffusers
 import torch
-from typing import List
-from dependency_modules.rewarding.utils import instantiate_from_config, measure_time
-from dependency_modules.rewarding.hash_compare import infer_hash
+from fastapi import FastAPI, Request, Response
+import bittensor as bt
 from pydantic import BaseModel
 import uvicorn
 import argparse
@@ -12,45 +10,30 @@ import threading
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
-import yaml
-import argparse
-import os
+from dependency_modules.rewarding.utils import pil_image_to_base64
 
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
-torch.backends.cudnn.benchmark = False
-torch.use_deterministic_algorithms(True)
-
-MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
+class TextToImagePrompt(BaseModel):
+    prompt: str
+    negative_prompt: str = "bad image, low quality, blurry"
 
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=10002)
-    parser.add_argument("--netuid", type=str, default=1)
+    parser.add_argument("--port", type=int, default=10001)
+    parser.add_argument("--netuid", type=str, default=23)
     parser.add_argument("--min_stake", type=int, default=100)
     parser.add_argument(
         "--chain_endpoint",
         type=str,
-        default="subtensor_fixed_imagenet.thinkiftechnology.com:9944",
+        default="finney",
     )
-    parser.add_argument("--disable_secure", action="store_true")
-    parser.add_argument(
-        "--model_name",
-        type=str,
-        choices=list(MODEL_CONFIG.keys()),
-        default="RealisticVision",
-    )
-    args = parser.parse_known_args()[0]
+    parser.add_argument("--disable_secure", action="store_true", default=False)
+    args = parser.parse_args()
     return args
 
 
-class Prompt(BaseModel):
-    prompt: str
-    seed: int
-    images: List[str]
-    model_name: str
-    additional_params: dict = {}
+ARGS = get_args()
 
 
 app = FastAPI()
@@ -58,8 +41,13 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-ARGS = get_args()
-MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.model_name])
+pipe = diffusers.StableDiffusionPipeline.from_pretrained(
+    "runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16, variant="fp16"
+)
+pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
+    pipe.scheduler.config
+)
+pipe.to("cuda")
 
 
 @app.middleware("http")
@@ -81,22 +69,19 @@ async def filter_allowed_ips(request: Request, call_next):
     return response
 
 
-@app.post("/verify")
-async def get_rewards(data: Prompt):
-    generator = torch.manual_seed(data.seed)
-    validator_result, pipe_time = measure_time(MODEL)(
-        prompt=data.prompt, generator=generator, **data.additional_params
-    )
-    validator_image = validator_result.images[0]
-    rewards, hash_time = measure_time(infer_hash)(validator_image, data.images)
-    rewards = [float(reward) for reward in rewards]
-    return {
-        "rewards": rewards,
-        "component_time": {
-            "pipe_time": pipe_time,
-            "hash_time": hash_time,
-        },
-    }
+@app.post("/generate")
+async def generate(
+    data: TextToImagePrompt,
+):
+    image = pipe(
+        prompt=data.prompt,
+        negative_prompt=data.negative_prompt,
+        height=512,
+        width=512,
+        num_inference_steps=25,
+    ).images[0]
+    image = pil_image_to_base64(image)
+    return {"image": image}
 
 
 def define_allowed_ips(url, netuid, min_stake):

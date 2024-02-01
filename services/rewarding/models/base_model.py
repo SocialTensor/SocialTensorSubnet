@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class BaseT2IModel(ABC):
+class BaseModel(ABC):
     def __init__(self, *args, **kwargs):
         self.inference_function = self.load_model(*args, **kwargs)
 

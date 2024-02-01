@@ -175,32 +175,34 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--realistic_vision.check_url",
+            "--reward.text_to_image.RealisticVision",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
             default="http://check_realistic_vision_nicheimage.nichetensor.com:15011/verify",
         )
 
         parser.add_argument(
-            "--sdxl_turbo.check_url",
+            "--reward.text_to_image.SDXLTurbo",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
             default="http://sdxl_turbo_nicheimage.nichetensor.com:15012/verify",
         )
-        
+
         parser.add_argument(
-            "--anime_v3.check_url",
+            "--reward.text_to_image.AnimeV3",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
             default="http://check_anime_v3_nicheimage.nichetensor.com:15013/verify",
         )
+        # TODO: add more reward endpoints for categories
 
         parser.add_argument(
-            "--prompt_generating_endpoint",
+            "--challenge.text_to_image",
             type=str,
             help="The endpoint to send generate requests to.",
             default="http://generate_prompt_nicheimage.nichetensor.com:15010/prompt_generate",
         )
+        # TODO: add more challenge endpoints for categories
     else:
         parser.add_argument(
             "--blacklist.force_validator_permit",

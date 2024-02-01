@@ -1,6 +1,9 @@
-from transformers import pipeline, set_seed
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, Depends
 import bittensor as bt
+import torch
+from typing import List, Union
+from dependency_modules.rewarding.utils import instantiate_from_config, measure_time
+from dependency_modules.rewarding.hash_compare import infer_hash
 from pydantic import BaseModel
 import uvicorn
 import argparse
@@ -9,28 +12,66 @@ import threading
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
+import yaml
+import argparse
+import os
+
+os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
+
+torch.backends.cudnn.benchmark = False
+torch.use_deterministic_algorithms(True)
+
+MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 
 
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=10001)
-    parser.add_argument("--netuid", type=str, default=1)
+    parser.add_argument("--netuid", type=str, default=23)
     parser.add_argument("--min_stake", type=int, default=100)
     parser.add_argument(
         "--chain_endpoint",
         type=str,
-        default="subtensor_fixed_imagenet.thinkiftechnology.com:9944",
+        default="finney",
     )
     parser.add_argument("--disable_secure", action="store_true")
-    args = parser.parse_known_args()
+    parser.add_argument(
+        "--category", type=str, default="TextToImage", choices=list(MODEL_CONFIG.keys())
+    )
+    parser.add_argument(
+        "--model_name",
+        type=str,
+        default="RealisticVision",
+    )
+    args = parser.parse_args()
+    if args.model_name not in MODEL_CONFIG[args.category]:
+        raise ValueError(
+            (
+                f"Model name {args.model_name} not found in category {args.category}"
+                f"Available models are {list(MODEL_CONFIG[args.category].keys())}"
+            )
+        )
     return args
 
 
-class Data(BaseModel):
-    prompt: str = "an image of"
-    seed: int = 0
-    max_length: int = 77
-    additional_params: dict = {}
+class TextToImagePrompt(BaseModel):
+    prompt: str
+    seed: int
+    pipeline_params: dict = {}
+
+
+class ImageToImagePrompt(BaseModel):
+    prompt: str
+    init_image: str
+    seed: int
+    pipeline_params: dict = {}
+
+
+class ControlNetPrompt(BaseModel):
+    prompt: str
+    controlnet_image: str
+    seed: int
+    pipeline_params: dict = {}
 
 
 app = FastAPI()
@@ -39,7 +80,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 ARGS = get_args()
-generator = pipeline(model="Gustavosta/MagicPrompt-Stable-Diffusion", device="cuda")
+MODEL = instantiate_from_config(MODEL_CONFIG[ARGS.model_name])
 
 
 @app.middleware("http")
@@ -61,16 +102,20 @@ async def filter_allowed_ips(request: Request, call_next):
     return response
 
 
-@app.post("/prompt_generate")
-async def get_rewards(data: Data):
-    set_seed(data.seed)
-    prompt = generator(
-        data.prompt,
-        max_length=data.max_length,
-        **data.additional_params,
-    )[0]["generated_text"]
-    print("Prompt Generated:", prompt, flush=True)
-    return {"prompt": prompt}
+@app.post("/verify")
+async def get_rewards(
+    data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]
+):
+    generator = torch.manual_seed(data.seed)
+    validator_result = MODEL(
+        prompt=data.prompt, generator=generator, **data.additional_params
+    )
+    validator_image = validator_result.images[0]
+    rewards = infer_hash(validator_image, data.images)
+    rewards = [float(reward) for reward in rewards]
+    return {
+        "rewards": rewards,
+    }
 
 
 def define_allowed_ips(url, netuid, min_stake):
