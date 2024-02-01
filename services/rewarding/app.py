@@ -102,7 +102,7 @@ async def filter_allowed_ips(request: Request, call_next):
     return response
 
 
-@app.post("/verify")
+@app.post("/")
 async def get_rewards(
     data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]
 ):

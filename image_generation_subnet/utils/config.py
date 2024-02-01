@@ -178,31 +178,53 @@ def add_args(cls, parser):
             "--reward.text_to_image.RealisticVision",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://check_realistic_vision_nicheimage.nichetensor.com:15011/verify",
+            default="http://nicheimage.nichetensor.com:17777/reward/text_to_image/RealisticVision",
         )
 
         parser.add_argument(
             "--reward.text_to_image.SDXLTurbo",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://sdxl_turbo_nicheimage.nichetensor.com:15012/verify",
+            default="http://nicheimage.nichetensor.com:17777/reward/text_to_image/SDXLTurbo",
         )
 
         parser.add_argument(
             "--reward.text_to_image.AnimeV3",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://check_anime_v3_nicheimage.nichetensor.com:15013/verify",
+            default="http://nicheimage.nichetensor.com:17777/reward/text_to_image/AnimeV3",
+        )
+
+        parser.add_argument(
+            "--reward.image_to_image.Artium",
+            type=str,
+            help="The endpoint to query to see if the image hash is correct.",
+            default="http://nicheimage.nichetensor.com:17777/reward/image_to_image/Artium",
+        )
+
+        parser.add_argument(
+            "--reward.controlnet_text_to_image",
+            type=str,
+            help="The endpoint to query to see if the image hash is correct.",
+            default="http://nicheimage.nichetensor.com:17777/reward/controlnet_text_to_image",
         )
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(
-            "--challenge.text_to_image",
+            "--challenge.prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://generate_prompt_nicheimage.nichetensor.com:15010/prompt_generate",
+            default="http://nicheimage.nichetensor.com:17777/challenge/prompt",
+        )
+
+        parser.add_argument(
+            "--challenge.image",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="http://nicheimage.nichetensor.com:17777/challenge/image",
         )
         # TODO: add more challenge endpoints for categories
+
     else:
         parser.add_argument(
             "--blacklist.force_validator_permit",

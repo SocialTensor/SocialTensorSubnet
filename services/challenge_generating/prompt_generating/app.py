@@ -63,7 +63,7 @@ async def filter_allowed_ips(request: Request, call_next):
     return response
 
 
-@app.post("/generate")
+@app.post("/")
 async def get_rewards(data: Prompt):
     set_seed(data.seed)
     prompt = generator(

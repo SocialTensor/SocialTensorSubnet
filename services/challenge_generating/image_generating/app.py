@@ -69,7 +69,7 @@ async def filter_allowed_ips(request: Request, call_next):
     return response
 
 
-@app.post("/generate")
+@app.post("/")
 async def generate(
     data: TextToImagePrompt,
 ):

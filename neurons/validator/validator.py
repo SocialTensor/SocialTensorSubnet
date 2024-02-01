@@ -20,7 +20,7 @@ class Validator(BaseValidatorNeuron):
         self.category_models = {
             "text_to_image": {
                 "base_synapse": protocol.TextToImage,
-                "challenge_url": self.config.challenge.text_to_image,
+                "challenge_urls": [self.config.challenge.text],
                 "models": {
                     "RealisticVision": {
                         "model_incentive_weight": 0.33,
@@ -57,7 +57,10 @@ class Validator(BaseValidatorNeuron):
             },
             "image_to_image": {
                 "base_synapse": protocol.ImageToImage,
-                "challenge_url": self.config.challenge.image_to_image,
+                "challenge_urls": [
+                    self.config.challenge.prompt,
+                    self.config.challenge.image,
+                ],
                 "models": {
                     "Artium": {
                         "model_incentive_weight": 1.0,
@@ -77,7 +80,10 @@ class Validator(BaseValidatorNeuron):
             },
             "ControlNetTextToImage": {
                 "base_synapse": protocol.ControlNetTextToImage,
-                "challenge_url": self.config.challenge.controlnet_text_to_image,
+                "challenge_urls": [
+                    self.config.challenge.prompt,
+                    self.config.challenge.image,
+                ],
                 "models": {
                     "DreamShaper": {
                         "model_incentive_weight": 0.5,
@@ -138,7 +144,7 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(f"Available uids for {category}: {uids}")
 
             for model_name in self.category_models[category]["models"].keys():
-                challenge_url = self.category_models[category]["challenge_url"]
+                challenge_urls = self.category_models[category]["challenge_urls"]
                 reward_url = self.category_models[category]["models"]["reward_url"]
                 model_uids = [
                     uid
@@ -176,8 +182,10 @@ class Validator(BaseValidatorNeuron):
                         ]
                     )
                     synapse.seed = seeds[i]
-
-                synapses = ig_subnet.validator.get_challenge(challenge_url, synapses)
+                for challenge_url in challenge_urls:
+                    synapses = ig_subnet.validator.get_challenge(
+                        challenge_urls, synapses
+                    )
 
                 for synapse, uids in zip(synapses, batched_uids):
                     responses = self.dendrite.query(
