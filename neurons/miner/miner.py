@@ -21,19 +21,15 @@ class Miner(BaseMinerNeuron):
         self.axon.attach(
             forward_fn=self.forward_info,
             blacklist_fn=self.blacklist_info,
-            priority_fn=self.priority,
         ).attach(
             forward_fn=self.forward_text_to_image,
             blacklist_fn=self.blacklist_text_to_image,
-            priority_fn=self.priority_text_to_image,
         ).attach(
             forward_fn=self.forward_controlnet_text_to_image,
             blacklist_fn=self.blacklist_controlnet_text_to_image,
-            priority_fn=self.priority_controlnet_text_to_image,
         ).attach(
             forward_fn=self.forward_image_to_image,
             blacklist_fn=self.blacklist_image_to_image,
-            priority_fn=self.priority_image_to_image,
         )
 
     async def forward(self, synapse: bt.Synapse) -> T:
