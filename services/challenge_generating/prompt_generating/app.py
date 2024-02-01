@@ -16,8 +16,6 @@ class Prompt(BaseModel, extra=Extra.allow):
     prompt: str
     seed: Optional[int] = 0
     max_length: Optional[int] = 77
-    pipeline_params: Optional[dict] = {}
-
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -70,7 +68,6 @@ async def get_rewards(data: Prompt):
     prompt = generator(
         data.prompt,
         max_length=data.max_length,
-        **data.additional_params,
     )[0]["generated_text"]
     print("Prompt Generated:", prompt, flush=True)
     return {"prompt": prompt}

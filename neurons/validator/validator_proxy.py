@@ -86,7 +86,7 @@ class ValidatorProxy:
             rewards = image_generation_subnet.validator.get_reward(url, [synapse])
             if rewards is None:
                 return False
-            self.validator.all_uids_info[str(uid)]["scores"].append(rewards[0])
+            self.validator.all_uids_info[uid]["scores"].append(rewards[0])
             bt.logging.info(f"Proxy check responses: {rewards}")
             return rewards[0] > 0
         else:
@@ -141,7 +141,7 @@ class ValidatorProxy:
                 ]
 
                 scores = [
-                    self.validator.all_uids_info[str(uid)]["scores"]
+                    self.validator.all_uids_info[uid]["scores"]
                     for uid in available_uids
                 ]
 

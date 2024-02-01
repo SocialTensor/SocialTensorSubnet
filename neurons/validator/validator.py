@@ -191,7 +191,7 @@ class Validator(BaseValidatorNeuron):
 
                 for synapse, uids in zip(synapses, batched_uids):
                     responses = self.dendrite.query(
-                        axons=[self.metagraph.axons[uid] for uid in uids],
+                        axons=[self.metagraph.axons[int(uid)] for uid in uids],
                         synapse=synapse,
                         deserialize=False,
                     )
@@ -225,7 +225,7 @@ class Validator(BaseValidatorNeuron):
                     bt.logging.info(f"Scored responses: {rewards}")
 
                     for i in range(len(total_uids)):
-                        uid = str(total_uids[i])
+                        uid = total_uids[i]
                         self.all_uids_info[uid]["scores"].append(rewards[i])
                         self.all_uids_info[uid]["scores"] = self.all_uids_info[uid][
                             "scores"
