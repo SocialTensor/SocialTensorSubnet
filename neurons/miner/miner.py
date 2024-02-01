@@ -23,7 +23,7 @@ class Miner(BaseMinerNeuron):
     async def forward(
         self,
         synapse: T,
-    ) -> bt.Synapse:
+    ) -> T:
         bt.logging.info(f"synapse {synapse}")
         if synapse.request_dict:
             synapse.response_dict = self.miner_info
