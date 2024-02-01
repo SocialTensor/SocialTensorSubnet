@@ -1,4 +1,4 @@
-from dependency_modules.rewarding.app import MODEL as pipe
+from services.rewarding.app import MODEL as pipe
 import random
 import torch
 import os

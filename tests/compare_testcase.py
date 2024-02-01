@@ -1,5 +1,5 @@
-from dependency_modules.rewarding.app import MODEL as pipe
-from dependency_modules.rewarding.hash_compare import matching_image
+from services.rewarding.app import MODEL as pipe
+from services.rewarding.hash_compare import matching_image
 import torch
 import os
 from PIL import Image

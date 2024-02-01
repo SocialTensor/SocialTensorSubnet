@@ -3,7 +3,7 @@ import torch
 from typing import List, Union
 from pydantic import BaseModel
 import argparse
-from dependency_modules.rewarding.utils import (
+from services.rewarding.utils import (
     instantiate_from_config,
     pil_image_to_base64,
 )

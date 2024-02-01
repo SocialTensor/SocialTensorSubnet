@@ -17,7 +17,7 @@ Welcome to the Image Generating Subnet project. This README provides an overview
 ## Project Structure
 - `image_generation_subnet`: Contains base, feature functions, and utilities for validators and miners.
 - `neurons`: Contains the validator and miner loop.
-- `dependency_modules`: Includes servers for `prompt_generation`, `rewarding`, and `miner_endpoint`.
+- `services`: Includes servers for `prompt_generation`, `rewarding`, and `miner_endpoint`.
 
 ## Installation
 1. Clone the repository.
@@ -42,7 +42,7 @@ Before running the following commands, make sure to replace the placeholder argu
 
 First you need to start an image generation API on a gpu server that your miners can use. A RTX 3090 GPU is enough for several miners.
 ```
-python dependency_modules/miner_endpoint/app.py -h
+python services/miner_endpoint/app.py -h
 usage: app.py [-h] [--port PORT] [--model_name {RealisticVision,SDXLTurbo,AnimeV3}]
 
 options:
@@ -52,21 +52,21 @@ options:
 ```
 
 ```bash
-python dependency_modules/miner_endpoint/app.py --port <port> --model_name <model_name>
+python services/miner_endpoint/app.py --port <port> --model_name <model_name>
 ```
 
 You can also run with pm2. 
 - SDXLTurbo:
 ```bash
-pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name SDXLTurbo
+pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m services.miner_endpoint.app --port 10006 --model_name SDXLTurbo
 ```
 - RealisticVision
 ```bash
-pm2 start python --name "image_generation_endpoint_RealisticVision" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name RealisticVision
+pm2 start python --name "image_generation_endpoint_RealisticVision" -- -m services.miner_endpoint.app --port 10006 --model_name RealisticVision
 ```
 - AnimeV3
 ```bash
-pm2 start python --name "image_generation_endpoint_AnimeV3" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name AnimeV3
+pm2 start python --name "image_generation_endpoint_AnimeV3" -- -m services.miner_endpoint.app --port 10006 --model_name AnimeV3
 ```
 
 
@@ -97,7 +97,7 @@ pm2 logs miner
 
 Requirements: A validator only needs a cpu server to validate by using our free to use APIs for checking image generation. This is the default setting and requires no configuration.
 
-However, it is possible to run your own image checking APIs if you prefer. This does require a GPU with min 20 GB of ram. You can see how to do this [here.](./dependency_modules/README.md)
+However, it is possible to run your own image checking APIs if you prefer. This does require a GPU with min 20 GB of ram. You can see how to do this [here.](./services/README.md)
 
 If validators opt in to share their request capacity they will get paid for each image they generate. Opt in is done by specifying --proxy.port
 If passed, a proxy server will start that allows us to query through their validator, and the validator will get paid weekly for the images they provide.

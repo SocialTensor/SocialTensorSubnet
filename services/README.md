@@ -2,9 +2,9 @@
 
 1. [Validator] Prompting API 
 ```bash
-python dependency_modules/prompt_generating/app.py --port <port>
+python services/prompt_generating/app.py --port <port>
 ```
 2. [Validator] Rewarding API
 ```bash
-python dependency_modules/rewarding/app.py --port <port> --model_name <model_name>
+python services/rewarding/app.py --port <port> --model_name <model_name>
 ```

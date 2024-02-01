@@ -1,6 +1,6 @@
-from dependency_modules.rewarding.models import BaseModel
-from dependency_modules.rewarding.models.utils import set_scheduler
-from dependency_modules.rewarding.utils import download_checkpoint
+from services.rewarding.models import BaseModel
+from services.rewarding.models.utils import set_scheduler
+from services.rewarding.utils import download_checkpoint
 import diffusers
 import torch
 import os

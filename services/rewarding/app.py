@@ -2,8 +2,8 @@ from fastapi import FastAPI, Request, Response, Depends
 import bittensor as bt
 import torch
 from typing import List, Union
-from dependency_modules.rewarding.utils import instantiate_from_config, measure_time
-from dependency_modules.rewarding.hash_compare import infer_hash
+from services.rewarding.utils import instantiate_from_config, measure_time
+from services.rewarding.hash_compare import infer_hash
 from pydantic import BaseModel
 import uvicorn
 import argparse
