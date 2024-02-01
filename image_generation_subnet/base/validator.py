@@ -114,7 +114,7 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.info(
             f"Running validator on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
         )
-        if hasattr(self, 'axon'):
+        if hasattr(self, "axon"):
             f"Axon: {self.axon}"
 
         bt.logging.info(f"Validator starting at block: {self.block}")
@@ -124,12 +124,14 @@ class BaseValidatorNeuron(BaseNeuron):
             try:
                 if self.config.proxy.port:
                     try:
-                        self.validator_proxy.verify_credentials = self.validator_proxy.get_credentials()
-                        bt.logging.info("Validator proxy ping to proxy-client successfully")
-                    except Exception as e:
-                        bt.logging.warning(
-                            "Warning, proxy can't ping to proxy-client."
+                        self.validator_proxy.verify_credentials = (
+                            self.validator_proxy.get_credentials()
                         )
+                        bt.logging.info(
+                            "Validator proxy ping to proxy-client successfully"
+                        )
+                    except Exception as e:
+                        bt.logging.warning("Warning, proxy can't ping to proxy-client.")
                 if self.step < 5:
                     time_per_loop = (
                         60  # If validator just started, run more frequent tests
@@ -353,7 +355,7 @@ class BaseValidatorNeuron(BaseNeuron):
         except:
             self.step = 0
             self.all_uids_info = {
-                str((uid.item())): {"scores": [], "model_name": "unknown"}
+                str((uid.item())): {"scores": [], "model_name": "", "category": ""}
                 for uid in self.metagraph.uids
             }
             bt.logging.info("Could not find previously saved state.")
