@@ -203,10 +203,10 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--reward.controlnet_text_to_image",
+            "--reward.controlnet_text_to_image.DreamShaper",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com:17777/reward/controlnet_text_to_image",
+            default="http://nicheimage.nichetensor.com:17777/reward/controlnet_text_to_image/DreamShaper",
         )
         # TODO: add more reward endpoints for categories
 
