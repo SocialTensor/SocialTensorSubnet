@@ -2,7 +2,7 @@ import diffusers
 import torch
 from fastapi import FastAPI, Request, Response
 import bittensor as bt
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 import uvicorn
 import argparse
 import time
@@ -11,11 +11,11 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from services.rewarding.utils import pil_image_to_base64
+from typing import Optional
 
-
-class TextToImagePrompt(BaseModel):
+class TextToImagePrompt(BaseModel, extra=Extra.allow):
     prompt: str
-    negative_prompt: str = "bad image, low quality, blurry"
+    negative_prompt: Optional[str] = "bad image, low quality, blurry"
 
 
 def get_args():

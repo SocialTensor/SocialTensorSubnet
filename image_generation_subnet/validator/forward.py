@@ -49,11 +49,18 @@ def get_challenge(
         "accept": "application/json",
         "Content-Type": "application/json",
     }
-    data = [synapse.deserialize() for synapse in synapses]
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code != 200:
-        raise Exception(f"Error in get_challenge: {response.json()}")
-    challenges = response.json()
+    datas = [synapse.deserialize() for synapse in synapses]
+    challenges = []
+    for data in datas:
+        try:
+            response = requests.post(url, headers=headers, json=data)
+            if response.status_code != 200:
+                raise Exception(f"Error in get_challenge: {response.json()}")
+            challenge = response.json()
+        except Exception as e:
+            bt.logging.error(f"Error in get_challenge: {e}")
+            challenge = None
+        challenges.append(challenge)
     synapses = [
         synapse.copy(update=challenge)
         for synapse, challenge in zip(synapses, challenges)

@@ -20,7 +20,7 @@ class Validator(BaseValidatorNeuron):
         self.category_models = {
             "TextToImage": {
                 "base_synapse": protocol.TextToImage,
-                "challenge_urls": [self.config.challenge.text],
+                "challenge_urls": [self.config.challenge.prompt],
                 "models": {
                     "RealisticVision": {
                         "model_incentive_weight": 0.33,
@@ -131,7 +131,7 @@ class Validator(BaseValidatorNeuron):
 
         for category in self.category_models.keys():
             category_uids = [
-                int(uid)
+                uid
                 for uid in self.all_uids_info.keys()
                 if self.all_uids_info[uid]["category"] == category
             ]
@@ -145,7 +145,9 @@ class Validator(BaseValidatorNeuron):
 
             for model_name in self.category_models[category]["models"].keys():
                 challenge_urls = self.category_models[category]["challenge_urls"]
-                reward_url = self.category_models[category]["models"]["reward_url"]
+                reward_url = self.category_models[category]["models"][model_name][
+                    "reward_url"
+                ]
                 model_uids = [
                     uid
                     for uid in category_uids
@@ -184,7 +186,7 @@ class Validator(BaseValidatorNeuron):
                     synapse.seed = seeds[i]
                 for challenge_url in challenge_urls:
                     synapses = ig_subnet.validator.get_challenge(
-                        challenge_urls, synapses
+                        challenge_url, synapses
                     )
 
                 for synapse, uids in zip(synapses, batched_uids):

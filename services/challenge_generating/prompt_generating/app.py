@@ -1,7 +1,7 @@
 from transformers import pipeline, set_seed
 from fastapi import FastAPI, Request, Response
 import bittensor as bt
-from pydantic import BaseModel
+from pydantic import BaseModel, Extra
 import uvicorn
 import argparse
 import time
@@ -9,13 +9,14 @@ import threading
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
+from typing import Optional
 
 
-class Prompt(BaseModel):
-    prompt: str = "an image of"
-    seed: int = 0
-    max_length: int = 77
-    additional_params: dict = {}
+class Prompt(BaseModel, extra=Extra.allow):
+    prompt: str
+    seed: Optional[int] = 0
+    max_length: Optional[int] = 77
+    pipeline_params: Optional[dict] = {}
 
 
 def get_args():

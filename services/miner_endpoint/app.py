@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import torch
-from typing import List, Union
-from pydantic import BaseModel
+from typing import List, Union, Optional
+from pydantic import BaseModel, Extra
 import argparse
 from services.rewarding.utils import (
     instantiate_from_config,
@@ -18,24 +18,24 @@ torch.use_deterministic_algorithms(True)
 MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 
 
-class TextToImagePrompt(BaseModel):
+class TextToImagePrompt(BaseModel, extra=Extra.allow):
     prompt: str
     seed: int
-    pipeline_params: dict = {}
+    pipeline_params: Optional[dict] = {}
 
 
-class ImageToImagePrompt(BaseModel):
+class ImageToImagePrompt(BaseModel, extra=Extra.allow):
     prompt: str
     init_image: str
     seed: int
-    pipeline_params: dict = {}
+    pipeline_params: Optional[dict] = {}
 
 
-class ControlNetPrompt(BaseModel):
+class ControlNetPrompt(BaseModel, extra=Extra.allow):
     prompt: str
     controlnet_image: str
     seed: int
-    pipeline_params: dict = {}
+    pipeline_params: Optional[dict] = {}
 
 
 def get_args():
