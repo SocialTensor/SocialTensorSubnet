@@ -141,7 +141,7 @@ class Validator(BaseValidatorNeuron):
                 )
                 continue
 
-            bt.logging.info(f"Available uids for {category}: {uids}")
+            bt.logging.info(f"Available uids for {category}: {category_uids}")
 
             for model_name in self.category_models[category]["models"].keys():
                 challenge_urls = self.category_models[category]["challenge_urls"]
