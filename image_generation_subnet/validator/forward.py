@@ -128,7 +128,7 @@ def update_active_models(validator):
         bt.logging.warning("No active miner available. Skipping setting weights.")
     for uid, info in valid_miners_info.items():
         uid = str(uid)
-        miner_state = validator.all_uids_info[uid].setdefault(
+        miner_state = validator.all_uids_info.setdefault(
             uid, {"scores": [], "model_name": "", "category": ""}
         )
         model_name = info["model_name"]
