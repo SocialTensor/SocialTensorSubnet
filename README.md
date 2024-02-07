@@ -7,7 +7,7 @@
 </div>
 
 ## Introduction
-Welcome to the Image Generating Subnet project. This README provides an overview of the project's structure and example usage for both validators and miners.
+Welcome to the NicheImage - Image Generating Subnet. This README provides an overview of the project's structure and example usage for both validators and miners.
 
 ### The Incentivized Internet
 - [Discord](https://discord.gg/bittensor)
@@ -132,10 +132,7 @@ We will release updates on Tuesdays, in order to make it predictable for when ch
 
 Here is the current roadmap for the subnet:
 
-**9th of January:** Launch of stable version of repo, simple demo frontend released.
-
-**16th of January:** Release paid API for buying images from the network, profit directly distributed to validators. Additional model introduced to the network. 
-
-**23rd of January:** Launch improved frontend.
-
-**February:** Add categories where miners can compete with any model of their choice, and incentive is calculated based on how well their images compares to other miners. We will add categories such as "realistic photographs". This will allow the network to always have the best available models in each category, and incentivize people to create even better image generation models.
+**6 Feb:** Release [NicheImage Studio](https://nicheimage.streamlit.app/): Advanced frontend for image generation and NicheImage Statistics
+**13 Feb:** Upgrade model - SDXL Turbo will be replaced by another high quality SDXL
+**27 Feb:** Release Img2Img and ControlNet, update the NicheImage Studio as well
+**March:** Release MidJourney - one of the most advanced image generation engine
