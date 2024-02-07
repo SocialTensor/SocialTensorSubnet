@@ -7,8 +7,9 @@
 </div>
 
 ## Introduction
-
-Welcome to the NicheImage - A decentralized network of image models powered by the Bittensor protocol.
+Welcome to the NicheImage - Image Generating Subnet. This README provides an overview of the project's structure and example usage for both validators and miners.
+### NicheImage Studio ✨ - https://nicheimage.streamlit.app
+![image](https://github.com/NicheTensor/NicheImage/assets/92072154/a02e299b-308d-40dd-90a2-5cc4789b896d)
 
 This README provides an overview of the project's structure and example usage for both validators and miners.
 
@@ -156,12 +157,10 @@ We will release updates on Tuesdays, in order to make it predictable for when ch
 
 Here is the current roadmap for the subnet:
 
+**6 Feb:** Release [NicheImage Studio](https://nicheimage.streamlit.app/): Advanced frontend for image generation and NicheImage Statistics
 
-**13 Feb:** Upgrade model - SDXL Turbo will be gradually replaced by another high quality SDXL model
+**13 Feb:** Upgrade model - SDXL Turbo will be replaced by another high quality SDXL
 
-**27 Feb:** Adding Img2Img and ControlNet, updates to NicheImage Studio
+**27 Feb:** Release Img2Img and ControlNet, update the NicheImage Studio as well
 
-**March:** Adding MidJourney to the network- one of the most advanced image generation engine
-
-**April:** Adding open categories - where different models can compete and the best ones will win and remain on the network
-
+**March:** Release MidJourney - one of the most advanced image generation engine
