@@ -7,6 +7,7 @@
 </div>
 
 ## Introduction
+
 Welcome to the NicheImage - A decentralized network of image models powered by the Bittensor protocol.
 
 This README provides an overview of the project's structure and example usage for both validators and miners.
@@ -138,6 +139,7 @@ We will release updates on Tuesdays, in order to make it predictable for when ch
 
 Here is the current roadmap for the subnet:
 
+
 **13 Feb:** Upgrade model - SDXL Turbo will be gradually replaced by another high quality SDXL model
 
 **27 Feb:** Adding Img2Img and ControlNet, updates to NicheImage Studio
@@ -145,3 +147,4 @@ Here is the current roadmap for the subnet:
 **March:** Adding MidJourney to the network- one of the most advanced image generation engine
 
 **April:** Adding open categories - where different models can compete and the best ones will win and remain on the network
+
