@@ -31,7 +31,7 @@ class Validator(BaseValidatorNeuron):
                 "timeout": 12,
             },
             "SDXLTurbo": {
-                "incentive_weight": 0.33,
+                "incentive_weight": 0.20,
                 "checking_url": self.config.sdxl_turbo.check_url,
                 "inference_params": {
                     "num_inference_steps": 4,
@@ -40,6 +40,17 @@ class Validator(BaseValidatorNeuron):
                     "guidance_scale": 0.5,
                 },
                 "timeout": 4,
+            },
+            "RealitiesEdgeXL": {
+                "incentive_weight": 0.13,
+                "checking_url": self.config.sdxl_turbo.check_url,
+                "inference_params": {
+                    "num_inference_steps": 7,
+                    "width": 1024,
+                    "height": 1024,
+                    "guidance_scale": 5.5,
+                },
+                "timeout": 12,
             },
             "AnimeV3": {
                 "incentive_weight": 0.34,
