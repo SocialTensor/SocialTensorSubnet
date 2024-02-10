@@ -40,7 +40,7 @@ def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
         else:
             nsfw_check = nsfw_filter(validator_image, miner_image)
             if nsfw_check:
-                reward = -10 if nsfw_check == 2 else 0
+                reward = -5 if nsfw_check == 2 else 0
             else:
                 reward = matching_image(miner_image, validator_image)
         rewards.append(reward)

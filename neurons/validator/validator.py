@@ -169,9 +169,8 @@ class Validator(BaseValidatorNeuron):
                 )
                 rewards = ig_subnet.validator.add_time_penalty(rewards, process_times)
 
-                #Rounding
+                # Rounding
                 rewards = [round(num, 3) for num in rewards]
-
 
                 bt.logging.info(f"Scored responses: {rewards}")
 
@@ -221,7 +220,7 @@ class Validator(BaseValidatorNeuron):
 
             for uid in self.all_uids_info.keys():
                 if self.all_uids_info[uid]["model_name"] == model_name:
-                    num_past_to_check = 5
+                    num_past_to_check = 10
                     model_specific_weights[int(uid)] = (
                         sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
                         / num_past_to_check
