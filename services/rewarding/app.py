@@ -57,6 +57,7 @@ def get_args():
 class TextToImagePrompt(BaseModel):
     prompt: str
     seed: int
+    image: str
     pipeline_params: dict = {}
 
 
@@ -64,6 +65,7 @@ class ImageToImagePrompt(BaseModel):
     prompt: str
     init_image: str
     seed: int
+    image: str
     pipeline_params: dict = {}
 
 
@@ -71,6 +73,7 @@ class ControlNetPrompt(BaseModel):
     prompt: str
     controlnet_image: str
     seed: int
+    image: str
     pipeline_params: dict = {}
 
 
@@ -104,14 +107,16 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/")
 async def get_rewards(
-    data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]
+    miner_data: List[Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]]
 ):
-    generator = torch.manual_seed(data.seed)
+    sample_data = miner_data[0]
+    generator = torch.manual_seed(sample_data.seed)
     validator_result = MODEL(
-        prompt=data.prompt, generator=generator, **data.additional_params
+        prompt=sample_data.prompt, generator=generator, **sample_data.pipeline_params
     )
     validator_image = validator_result.images[0]
-    rewards = infer_hash(validator_image, data.images)
+    miner_images = [d.image for d in miner_data]
+    rewards = infer_hash(validator_image, miner_images)
     rewards = [float(reward) for reward in rewards]
     return {
         "rewards": rewards,

@@ -77,7 +77,8 @@ async def generate(
     data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]
 ):
     generator = torch.manual_seed(data.seed)
-    image = pipe(generator=generator, **data, **data.additional_params).images[0]
+    data = dict(data)
+    image = pipe(generator=generator, **data, **data["pipeline_params"]).images[0]
     image = pil_image_to_base64(image)
     return {"image": image}
 
