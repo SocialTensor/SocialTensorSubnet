@@ -44,7 +44,7 @@ class Miner(BaseMinerNeuron):
         return synapse
 
     async def forward_info(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
-        return self.forward(synapse)
+        return await self.forward(synapse)
 
     async def forward_text_to_image(self, synapse: TextToImage) -> TextToImage:
         return await self.forward(synapse)
