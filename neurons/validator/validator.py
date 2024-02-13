@@ -43,7 +43,7 @@ class Validator(BaseValidatorNeuron):
             },
             "RealitiesEdgeXL": {
                 "incentive_weight": 0.08,
-                "checking_url": self.config.sdxl_turbo.check_url,
+                "checking_url": self.config.realities_edge_xl.check_url,
                 "inference_params": {
                     "num_inference_steps": 7,
                     "width": 1024,

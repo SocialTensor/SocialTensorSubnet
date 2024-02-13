@@ -196,6 +196,13 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--realities_edge_xl.check_url",
+            type=str,
+            help="The endpoint to query to see if the image hash is correct.",
+            default="http://check_realities_edge_xl_nicheimage.nichetensor.com:15014/verify",
+        )
+
+        parser.add_argument(
             "--prompt_generating_endpoint",
             type=str,
             help="The endpoint to send generate requests to.",
