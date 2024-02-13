@@ -69,7 +69,7 @@ pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_m
 ```
 - RealitiesEdgeXL:
 ```bash
-pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name SDXLTurbo
+pm2 start python --name "image_generation_endpoint_RealitiesEdgeXL" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name RealitiesEdgeXL
 ```
 - RealisticVision
 ```bash
