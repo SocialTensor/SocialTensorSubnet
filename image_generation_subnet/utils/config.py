@@ -171,7 +171,7 @@ def add_args(cls, parser):
             "--proxy.checking_probability",
             type=float,
             help="Probability of checking if a miner is valid",
-            default=0.01,
+            default=0.1,
         )
 
         parser.add_argument(
@@ -187,12 +187,19 @@ def add_args(cls, parser):
             help="The endpoint to query to see if the image hash is correct.",
             default="http://sdxl_turbo_nicheimage.nichetensor.com:15012/verify",
         )
-        
+
         parser.add_argument(
             "--anime_v3.check_url",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
             default="http://check_anime_v3_nicheimage.nichetensor.com:15013/verify",
+        )
+
+        parser.add_argument(
+            "--realities_edge_xl.check_url",
+            type=str,
+            help="The endpoint to query to see if the image hash is correct.",
+            default="http://check_realities_edge_xl_nicheimage.nichetensor.com:15014/verify",
         )
 
         parser.add_argument(

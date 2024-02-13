@@ -31,7 +31,7 @@ class Validator(BaseValidatorNeuron):
                 "timeout": 12,
             },
             "SDXLTurbo": {
-                "incentive_weight": 0.33,
+                "incentive_weight": 0.25,
                 "checking_url": self.config.sdxl_turbo.check_url,
                 "inference_params": {
                     "num_inference_steps": 4,
@@ -40,6 +40,17 @@ class Validator(BaseValidatorNeuron):
                     "guidance_scale": 0.5,
                 },
                 "timeout": 4,
+            },
+            "RealitiesEdgeXL": {
+                "incentive_weight": 0.08,
+                "checking_url": self.config.realities_edge_xl.check_url,
+                "inference_params": {
+                    "num_inference_steps": 7,
+                    "width": 1024,
+                    "height": 1024,
+                    "guidance_scale": 5.5,
+                },
+                "timeout": 12,
             },
             "AnimeV3": {
                 "incentive_weight": 0.34,
@@ -169,9 +180,8 @@ class Validator(BaseValidatorNeuron):
                 )
                 rewards = ig_subnet.validator.add_time_penalty(rewards, process_times)
 
-                #Rounding
+                # Rounding
                 rewards = [round(num, 3) for num in rewards]
-
 
                 bt.logging.info(f"Scored responses: {rewards}")
 
@@ -221,7 +231,7 @@ class Validator(BaseValidatorNeuron):
 
             for uid in self.all_uids_info.keys():
                 if self.all_uids_info[uid]["model_name"] == model_name:
-                    num_past_to_check = 5
+                    num_past_to_check = 10
                     model_specific_weights[int(uid)] = (
                         sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
                         / num_past_to_check

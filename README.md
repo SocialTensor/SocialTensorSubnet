@@ -7,14 +7,19 @@
 </div>
 
 ## Introduction
-Welcome to the NicheImage - Image Generating Subnet. This README provides an overview of the project's structure and example usage for both validators and miners.
+
+Welcome to the NicheImage - A decentralized network of image models powered by the Bittensor protocol.
+
+This README provides an overview of the project's structure and example usage for both validators and miners.
+
+
 ### NicheImage Studio ✨ - https://nicheimage.streamlit.app
 ![image](https://github.com/NicheTensor/NicheImage/assets/92072154/a02e299b-308d-40dd-90a2-5cc4789b896d)
 
-### The Incentivized Internet
+### Bittensor Resources
 - [Discord](https://discord.gg/bittensor)
-- [Network](https://taostats.io/)
-- [Research](https://bittensor.com/whitepaper)
+- [Network Information](https://taostats.io/)
+- [Bittensor Homepage](https://bittensor.com/)
 
 ## Project Structure
 - `image_generation_subnet`: Contains base, feature functions, and utilities for validators and miners.
@@ -45,12 +50,12 @@ Before running the following commands, make sure to replace the placeholder argu
 First you need to start an image generation API on a gpu server that your miners can use. A RTX 3090 GPU is enough for several miners.
 ```
 python dependency_modules/miner_endpoint/app.py -h
-usage: app.py [-h] [--port PORT] [--model_name {RealisticVision,SDXLTurbo,AnimeV3}]
+usage: app.py [-h] [--port PORT] [--model_name {RealisticVision,SDXLTurbo,AnimeV3,RealitiesEdgeXL}]
 
 options:
   -h, --help            show this help message and exit
   --port PORT
-  --model_name {RealisticVision,SDXLTurbo,AnimeV3}
+  --model_name {RealisticVision,SDXLTurbo,AnimeV3,RealitiesEdgeXL}
 ```
 
 ```bash
@@ -59,6 +64,10 @@ python dependency_modules/miner_endpoint/app.py --port <port> --model_name <mode
 
 You can also run with pm2. 
 - SDXLTurbo:
+```bash
+pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name SDXLTurbo
+```
+- RealitiesEdgeXL:
 ```bash
 pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name SDXLTurbo
 ```
@@ -134,10 +143,12 @@ We will release updates on Tuesdays, in order to make it predictable for when ch
 
 Here is the current roadmap for the subnet:
 
-**6 Feb:** Release [NicheImage Studio](https://nicheimage.streamlit.app/): Advanced frontend for image generation and NicheImage Statistics
 
-**13 Feb:** Upgrade model - SDXL Turbo will be replaced by another high quality SDXL
+**13 Feb:** Upgrade model - SDXL Turbo will be gradually replaced by another high quality SDXL model
 
-**27 Feb:** Release Img2Img and ControlNet, update the NicheImage Studio as well
+**27 Feb:** Adding Img2Img and ControlNet, updates to NicheImage Studio
 
-**March:** Release MidJourney - one of the most advanced image generation engine
+**March:** Adding MidJourney to the network- one of the most advanced image generation engine
+
+**April:** Adding open categories - where different models can compete and the best ones will win and remain on the network
+
