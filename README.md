@@ -137,6 +137,19 @@ Pull the latest code from github and restart the validator every hour.
 pm2 start auto_update.sh --name "auto-update"
 ```
 
+### Multi-GPU Usage
+Set `CUDA_VISIBLE_DEVICES` in your environment to specify which GPU (by index) the model should be deployed to.
+
+```bash
+export CUDA_VISIBLE_DEVICES=1
+```
+
+Or if you are using pm2
+
+```bash
+CUDA_VISIBLE_DEVICES=1 pm2 start .....
+```
+
 # Roadmap
 
 We will release updates on Tuesdays, in order to make it predictable for when changes to the network will be introduced. Furhter we will do our best to share updates in advance.
