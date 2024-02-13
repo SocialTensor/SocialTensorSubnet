@@ -50,12 +50,12 @@ Before running the following commands, make sure to replace the placeholder argu
 First you need to start an image generation API on a gpu server that your miners can use. A RTX 3090 GPU is enough for several miners.
 ```
 python dependency_modules/miner_endpoint/app.py -h
-usage: app.py [-h] [--port PORT] [--model_name {RealisticVision,SDXLTurbo,AnimeV3}]
+usage: app.py [-h] [--port PORT] [--model_name {RealisticVision,SDXLTurbo,AnimeV3,RealitiesEdgeXL}]
 
 options:
   -h, --help            show this help message and exit
   --port PORT
-  --model_name {RealisticVision,SDXLTurbo,AnimeV3}
+  --model_name {RealisticVision,SDXLTurbo,AnimeV3,RealitiesEdgeXL}
 ```
 
 ```bash
@@ -64,6 +64,10 @@ python dependency_modules/miner_endpoint/app.py --port <port> --model_name <mode
 
 You can also run with pm2. 
 - SDXLTurbo:
+```bash
+pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name SDXLTurbo
+```
+- RealitiesEdgeXL:
 ```bash
 pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name SDXLTurbo
 ```
