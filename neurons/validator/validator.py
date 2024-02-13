@@ -31,7 +31,7 @@ class Validator(BaseValidatorNeuron):
                 "timeout": 12,
             },
             "SDXLTurbo": {
-                "incentive_weight": 0.20,
+                "incentive_weight": 0.25,
                 "checking_url": self.config.sdxl_turbo.check_url,
                 "inference_params": {
                     "num_inference_steps": 4,
@@ -42,7 +42,7 @@ class Validator(BaseValidatorNeuron):
                 "timeout": 4,
             },
             "RealitiesEdgeXL": {
-                "incentive_weight": 0.13,
+                "incentive_weight": 0.08,
                 "checking_url": self.config.sdxl_turbo.check_url,
                 "inference_params": {
                     "num_inference_steps": 7,
