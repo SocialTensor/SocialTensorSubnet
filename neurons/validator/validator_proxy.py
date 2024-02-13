@@ -43,6 +43,7 @@ class ValidatorProxy:
             json={
                 "postfix": f":{self.validator.config.proxy.port}/validator_proxy",
                 "uid": self.validator.uid,
+                "all_uid_info": self.validator.all_uids_info,
             },
             timeout=30,
         )
