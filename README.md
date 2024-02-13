@@ -69,7 +69,7 @@ pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_m
 ```
 - RealitiesEdgeXL:
 ```bash
-pm2 start python --name "image_generation_endpoint_SDXLTurbo" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name SDXLTurbo
+pm2 start python --name "image_generation_endpoint_RealitiesEdgeXL" -- -m dependency_modules.miner_endpoint.app --port 10006 --model_name RealitiesEdgeXL
 ```
 - RealisticVision
 ```bash
@@ -135,6 +135,19 @@ Pull the latest code from github and restart the validator every hour.
 **Notice**, the validator must be named validator_nicheimage for the auto-updates to restart the process, so do not change the name from validator_nicheimage.
 ```bash
 pm2 start auto_update.sh --name "auto-update"
+```
+
+### Multi-GPU Usage
+Set `CUDA_VISIBLE_DEVICES` in your environment to specify which GPU (by index) the model should be deployed to.
+
+```bash
+export CUDA_VISIBLE_DEVICES=1
+```
+
+Or if you are using pm2
+
+```bash
+CUDA_VISIBLE_DEVICES=1 pm2 start .....
 ```
 
 # Roadmap
