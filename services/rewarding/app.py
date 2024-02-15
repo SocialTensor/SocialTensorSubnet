@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Response, Depends
+from fastapi import FastAPI, Request, Response
 import bittensor as bt
 import torch
 from typing import List, Union
@@ -54,27 +54,17 @@ def get_args():
     return args
 
 
-class TextToImagePrompt(BaseModel):
+class Prompt(BaseModel):
     prompt: str
     seed: int
     image: str
     pipeline_params: dict = {}
+    conditional_image: str = ""
 
 
-class ImageToImagePrompt(BaseModel):
-    prompt: str
-    conditional_image: str
-    seed: int
-    image: str
-    pipeline_params: dict = {}
-
-
-class ControlNetPrompt(BaseModel):
-    prompt: str
-    conditional_image: str
-    seed: int
-    image: str
-    pipeline_params: dict = {}
+class RewardRequest(BaseModel):
+    miner_data: List[Prompt]
+    base_data: Prompt
 
 
 app = FastAPI()
@@ -107,14 +97,15 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/")
 async def get_rewards(
-    miner_data: Union[
-        List[TextToImagePrompt], List[ImageToImagePrompt], List[ControlNetPrompt]
-    ],
-    base_data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt],
+    reward_request: RewardRequest,
 ):
+    base_data = reward_request.base_data
+    miner_data = reward_request.miner_data
     generator = torch.manual_seed(base_data.seed)
     validator_result = MODEL(
-        prompt=base_data.prompt, generator=generator, **base_data.pipeline_params
+        generator=generator,
+        **base_data.pipeline_params,
+        **base_data.dict(),
     )
     validator_image = validator_result.images[0]
     miner_images = [d.image for d in miner_data]
