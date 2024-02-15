@@ -68,14 +68,19 @@ def get_challenge(
     return synapses
 
 
-def get_reward(url: str, synapes: List[NicheImageProtocol]) -> List[float]:
+def get_reward(
+    url: str, base_synapse: NicheImageProtocol, synapes: List[NicheImageProtocol]
+) -> List[float]:
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
     }
     if not synapes:
         return []
-    data = [synapse.deserialize() for synapse in synapes]
+    data = {
+        "miner_data": [synapse.deserialize() for synapse in synapes],
+        "base_data": base_synapse.deserialize(),
+    }
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
         raise Exception(f"Error in get_reward: {response.json()}")

@@ -63,7 +63,7 @@ class TextToImagePrompt(BaseModel):
 
 class ImageToImagePrompt(BaseModel):
     prompt: str
-    init_image: str
+    conditional_image: str
     seed: int
     image: str
     pipeline_params: dict = {}
@@ -71,7 +71,7 @@ class ImageToImagePrompt(BaseModel):
 
 class ControlNetPrompt(BaseModel):
     prompt: str
-    controlnet_image: str
+    conditional_image: str
     seed: int
     image: str
     pipeline_params: dict = {}
@@ -107,12 +107,14 @@ async def filter_allowed_ips(request: Request, call_next):
 
 @app.post("/")
 async def get_rewards(
-    miner_data: List[Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]]
+    miner_data: Union[
+        List[TextToImagePrompt], List[ImageToImagePrompt], List[ControlNetPrompt]
+    ],
+    base_data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt],
 ):
-    sample_data = miner_data[0]
-    generator = torch.manual_seed(sample_data.seed)
+    generator = torch.manual_seed(base_data.seed)
     validator_result = MODEL(
-        prompt=sample_data.prompt, generator=generator, **sample_data.pipeline_params
+        prompt=base_data.prompt, generator=generator, **base_data.pipeline_params
     )
     validator_image = validator_result.images[0]
     miner_images = [d.image for d in miner_data]

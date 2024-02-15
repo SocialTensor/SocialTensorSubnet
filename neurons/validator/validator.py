@@ -190,6 +190,7 @@ class Validator(BaseValidatorNeuron):
                     )
 
                 for synapse, uids in zip(synapses, batched_uids):
+                    base_synapse = synapse.copy()
                     responses = self.dendrite.query(
                         axons=[self.metagraph.axons[int(uid)] for uid in uids],
                         synapse=synapse,
@@ -213,7 +214,7 @@ class Validator(BaseValidatorNeuron):
                     ]
 
                     bt.logging.info("Received responses, calculating rewards")
-                    rewards = ig_subnet.validator.get_reward(reward_url, responses)
+                    rewards = ig_subnet.validator.get_reward(reward_url, base_synapse, responses)
                     rewards = ig_subnet.validator.add_time_penalty(
                         rewards, process_times
                     )
