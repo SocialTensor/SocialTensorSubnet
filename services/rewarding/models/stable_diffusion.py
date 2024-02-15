@@ -188,7 +188,7 @@ class StableDiffusionImageToImage(BaseModel):
 
         def inference_function(*args, **kwargs):
             # Prepare Init Image
-            base64_init_image = kwargs.get("init_image", None)
+            base64_init_image = kwargs.get("conditional_image", None)
             init_image = base64_to_pil_image(base64_init_image)
             init_image = resize_divisible(init_image, 512)
             kwargs.update({"image": init_image})
@@ -223,7 +223,7 @@ class StableDiffusionXLImageToImage(BaseModel):
 
         def inference_function(*args, **kwargs):
             # Prepare Init Image
-            base64_init_image = kwargs.get("init_image", None)
+            base64_init_image = kwargs.get("conditional_image", None)
             init_image = base64_to_pil_image(base64_init_image)
             init_image = resize_divisible(init_image, 1024)
             kwargs.update({"image": init_image})
@@ -268,7 +268,7 @@ class StableDiffusionControlNetTextToImage(BaseModel):
 
         def inference_function(*args, **kwargs):
             # Prepare Init Image
-            base64_controlnet_image = kwargs.get("controlnet_image", None)
+            base64_controlnet_image = kwargs.get("image", None)
             controlnet_image = base64_to_pil_image(base64_controlnet_image)
             controlnet_image = resize_divisible(controlnet_image, 512)
             controlnet_image = processor(controlnet_image, to_pil=True)

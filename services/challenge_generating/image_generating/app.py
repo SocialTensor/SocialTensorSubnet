@@ -13,6 +13,7 @@ from slowapi.util import get_remote_address
 from services.rewarding.utils import pil_image_to_base64
 from typing import Optional
 
+
 class TextToImagePrompt(BaseModel, extra=Extra.allow):
     prompt: str
     negative_prompt: Optional[str] = "bad image, low quality, blurry"
@@ -81,7 +82,7 @@ async def generate(
         num_inference_steps=25,
     ).images[0]
     image = pil_image_to_base64(image)
-    return {"image": image}
+    return {"conditional_image": image}
 
 
 def define_allowed_ips(url, netuid, min_stake):

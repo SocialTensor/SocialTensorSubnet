@@ -23,7 +23,7 @@ def generate(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
     }
 
     response = requests.post(self.config.generate_endpoint, headers=headers, json=data)
-    synapse = synapse.copy(update={"image": response.json()["image"]})
+    synapse = synapse.copy(update=response.json())
     return synapse
 
 

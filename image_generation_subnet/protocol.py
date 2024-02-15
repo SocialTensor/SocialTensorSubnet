@@ -80,9 +80,9 @@ class ImageToImage(NicheImageProtocol):
         title="Category Name",
         description="Name of the category used for generation",
     )
-    init_image: str = pydantic.Field(
+    conditional_image: str = pydantic.Field(
         default="",
-        title="Initial Image",
+        title="Conditional Image",
         description="Initial image in base64 format",
     )
     pipeline_params: dict = pydantic.Field(
@@ -102,9 +102,8 @@ class ImageToImage(NicheImageProtocol):
             "seed": self.seed,
             "model_name": self.model_name,
             "category_name": self.category_name,
-            "init_image": self.init_image,
+            "conditional_image": self.conditional_image,
             "pipeline_params": self.pipeline_params,
-            "image": self.image,
         }
 
 
@@ -127,7 +126,7 @@ class ControlNetTextToImage(NicheImageProtocol):
         title="Category Name",
         description="Name of the category used for generation",
     )
-    controlnet_image: str = pydantic.Field(
+    conditional_image: str = pydantic.Field(
         default="",
         title="Controlnet Image",
         description="Controlnet image in base64 format",
@@ -144,6 +143,6 @@ class ControlNetTextToImage(NicheImageProtocol):
             "seed": self.seed,
             "model_name": self.model_name,
             "category_name": self.category_name,
-            "controlnet_image": self.controlnet_image,
+            "conditional_image": self.controlnet_image,
             "pipeline_params": self.pipeline_params,
         }
