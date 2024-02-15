@@ -104,6 +104,7 @@ class ImageToImage(NicheImageProtocol):
             "category_name": self.category_name,
             "conditional_image": self.conditional_image,
             "pipeline_params": self.pipeline_params,
+            "image": self.image,
         }
 
 
@@ -145,4 +146,5 @@ class ControlNetTextToImage(NicheImageProtocol):
             "category_name": self.category_name,
             "conditional_image": self.controlnet_image,
             "pipeline_params": self.pipeline_params,
+            "image": self.image,
         }
