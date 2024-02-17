@@ -152,7 +152,7 @@ CUDA_VISIBLE_DEVICES=1 pm2 start .....
 
 # Roadmap
 
-We will release updates on Tuesdays, in order to make it predictable for when changes to the network will be introduced. Furhter we will do our best to share updates in advance.
+We will release updates on Tuesdays, in order to make it predictable for when changes to the network will be introduced. Further, we will do our best to share updates in advance.
 
 Here is the current roadmap for the subnet:
 
