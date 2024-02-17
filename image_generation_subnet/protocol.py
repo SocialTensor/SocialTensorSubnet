@@ -45,7 +45,7 @@ class TextToImage(NicheImageProtocol):
         title="Model Name",
         description="Name of the model used for generation",
     )
-    category_name: str = pydantic.Field(
+    category: str = pydantic.Field(
         default="",
         title="Category Name",
         description="Name of the category used for generation",
@@ -66,7 +66,7 @@ class TextToImage(NicheImageProtocol):
             "prompt": self.prompt,
             "seed": self.seed,
             "model_name": self.model_name,
-            "category_name": self.category_name,
+            "category": self.category,
             "image": self.image,
             "pipeline_params": self.pipeline_params,
         }
@@ -86,7 +86,7 @@ class ImageToImage(NicheImageProtocol):
         title="Model Name",
         description="Name of the model used for generation",
     )
-    category_name: str = pydantic.Field(
+    category: str = pydantic.Field(
         default="",
         title="Category Name",
         description="Name of the category used for generation",
@@ -112,7 +112,7 @@ class ImageToImage(NicheImageProtocol):
             "prompt": self.prompt,
             "seed": self.seed,
             "model_name": self.model_name,
-            "category_name": self.category_name,
+            "category": self.category,
             "conditional_image": self.conditional_image,
             "pipeline_params": self.pipeline_params,
             "image": self.image,
@@ -133,7 +133,7 @@ class ControlNetTextToImage(NicheImageProtocol):
         title="Model Name",
         description="Name of the model used for generation",
     )
-    category_name: str = pydantic.Field(
+    category: str = pydantic.Field(
         default="",
         title="Category Name",
         description="Name of the category used for generation",
@@ -154,7 +154,7 @@ class ControlNetTextToImage(NicheImageProtocol):
             "prompt": self.prompt,
             "seed": self.seed,
             "model_name": self.model_name,
-            "category_name": self.category_name,
+            "category": self.category,
             "conditional_image": self.controlnet_image,
             "pipeline_params": self.pipeline_params,
             "image": self.image,
