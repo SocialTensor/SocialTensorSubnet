@@ -214,7 +214,9 @@ class Validator(BaseValidatorNeuron):
                     ]
 
                     bt.logging.info("Received responses, calculating rewards")
-                    rewards = ig_subnet.validator.get_reward(reward_url, base_synapse, responses)
+                    rewards = ig_subnet.validator.get_reward(
+                        reward_url, base_synapse, responses
+                    )
                     rewards = ig_subnet.validator.add_time_penalty(
                         rewards, process_times
                     )

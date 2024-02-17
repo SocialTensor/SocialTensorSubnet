@@ -89,25 +89,6 @@ def get_reward(
 
     return rewards
 
-
-# @skip(module="prompting")
-def get_prompt(seed: int, prompt_url: str) -> str:
-    headers = {
-        "accept": "application/json",
-        "Content-Type": "application/json",
-    }
-
-    data = {
-        "prompt": "an image of",
-        "seed": seed,
-        "max_length": 42,
-        "additional_params": {},
-    }
-    response = requests.post(prompt_url, headers=headers, json=data)
-    prompt = response.json()["prompt"]
-    return prompt
-
-
 def get_miner_info(validator, query_uids: List[int]):
     uid_to_axon = dict(zip(validator.all_uids, validator.metagraph.axons))
     query_axons = [uid_to_axon[int(uid)] for uid in query_uids]

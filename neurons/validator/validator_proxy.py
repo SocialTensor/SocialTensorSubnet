@@ -13,6 +13,10 @@ import random
 import asyncio
 from image_generation_subnet.validator.proxy import ProxyCounter
 import traceback
+import git
+import httpx
+
+SHA = git.Repo(search_parent_directories=True).head.object.hexsha
 
 
 class ValidatorProxy:
@@ -38,14 +42,21 @@ class ValidatorProxy:
         self.start_server()
 
     def get_credentials(self):
-        response = requests.post(
-            f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
-            json={
-                "postfix": f":{self.validator.config.proxy.port}/validator_proxy",
-                "uid": self.validator.uid,
-            },
-            timeout=30,
-        )
+        with httpx.Client() as client:
+            response = client.post(
+                f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
+                json={
+                    "postfix": (
+                        f":{self.validator.config.proxy.port}/validator_proxy"
+                        if self.validator.config.proxy.port
+                        else ""
+                    ),
+                    "uid": self.validator.uid,
+                    "all_uid_info": self.validator.all_uids_info,
+                    "sha": SHA,
+                },
+                timeout=30,
+            )
         if response.status_code != 200:
             raise Exception("Error getting credentials from market api")
         response = response.json()
@@ -80,13 +91,16 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def random_check(self, uid, synapse, url):
+    def organic_reward(self, uid, synapse, url):
+        if not len(synapse.image):
+            self.validator.all_uids_info[uid]["scores"].append(0)
+            return False
         if random.random() < self.validator.config.proxy.checking_probability:
             bt.logging.info(f"Random check for miner {uid}")
             rewards = image_generation_subnet.validator.get_reward(url, [synapse])
             if rewards is None:
                 return False
-            self.validator.all_uids_info[uid]["scores"].append(rewards[0])
+            self.validator.all_uids_info[uid]["scores"].append(float(rewards[0]))
             bt.logging.info(f"Proxy check responses: {rewards}")
             return rewards[0] > 0
         else:
@@ -109,6 +123,7 @@ class ValidatorProxy:
             category = payload["category"]
             synapse_cls = self.validator.category_models[category]["base_synapse"]
             synapse = synapse_cls(**payload)
+            synapse.limit_params()
 
             # Override default pipeline params
             for k, v in self.validator.category_models[synapse.category]["models"][
@@ -116,13 +131,12 @@ class ValidatorProxy:
             ]["inference_params"].items():
                 if k not in synapse.pipeline_params:
                     synapse.pipeline_params[k] = v
-
-            # Limit inference steps
-            if "num_inference_steps" in synapse.pipeline_params:
-                synapse.pipeline_params["num_inference_steps"] = min(
-                    50, synapse.pipeline_params["num_inference_steps"]
-                )
-            timeout = 20
+            timeout = (
+                self.validator.category_models[synapse.category]["models"][model_name][
+                    "timeout"
+                ]
+                * 2
+            )
             scores = self.validator.scores
             metagraph = self.validator.metagraph
             reward_url = self.validator.category_models[category]["models"][model_name][
@@ -163,11 +177,10 @@ class ValidatorProxy:
 
                 available_uids = [available_uids[index] for index in good_uids_indexes]
                 scores = [scores[index] for index in good_uids_indexes]
-
                 miner_indexes = list(range(len(available_uids)))
             random.shuffle(miner_indexes)
             is_valid_response = False
-            for miner_uid_index in miner_indexes:
+            for miner_uid_index in miner_indexes[:5]:
                 bt.logging.info(f"Selected miner index: {miner_uid_index}")
                 miner_uid = available_uids[miner_uid_index]
                 bt.logging.info(f"Selected miner uid: {miner_uid}")
@@ -187,13 +200,7 @@ class ValidatorProxy:
                 await asyncio.gather(task)
                 response = task.result()[0]
                 bt.logging.info(f"Received responses")
-                if not len(response.image):
-                    bt.logging.info("No image in response")
-                    continue
-                else:
-                    bt.logging.info("Image in response")
-
-                if self.random_check(
+                if self.organic_reward(
                     miner_uid,
                     synapse,
                     reward_url,
@@ -201,6 +208,10 @@ class ValidatorProxy:
                     is_valid_response = True
                     bt.logging.info("Checked OK")
                     break
+                else:
+                    bt.logging.info("Checked not OK, trying another miner")
+                    continue
+
             if not is_valid_response:
                 raise Exception("No valid response")
             try:

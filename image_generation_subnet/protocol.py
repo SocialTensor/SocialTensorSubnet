@@ -15,6 +15,17 @@ class NicheImageProtocol(bt.Synapse):
         title="Dictionary contains response",
         description="Dict contains arbitary information",
     )
+    pipeline_params: dict = pydantic.Field(
+        default={},
+        title="Pipeline Params",
+        description="Dictionary of additional parameters for diffusers pipeline",
+    )
+
+    def limit_params(self):
+        for k, v in self.pipeline_params.items():
+            if k == "num_inference_steps":
+                self.pipeline_params[k] = min(50, v)
+        self.pipeline_params = self.pipeline_params
 
     def deserialize(self) -> dict:
         return self.response_dict
