@@ -227,7 +227,7 @@ class ValidatorProxy:
                     traceback.format_exc(),
                     flush=True,
                 )
-            return response.deserialize()
+            return response.deserialize().get("image", "")
         except Exception as e:
             print(
                 "Exception occured in proxy forward", traceback.format_exc(), flush=True
