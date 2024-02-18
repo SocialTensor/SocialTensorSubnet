@@ -190,7 +190,7 @@ class StableDiffusionImageToImage(BaseModel):
             # Prepare Init Image
             base64_init_image = kwargs.get("conditional_image", None)
             init_image = base64_to_pil_image(base64_init_image)
-            init_image = resize_divisible(init_image, 512)
+            init_image = resize_divisible(init_image, 768)
             kwargs.update({"image": init_image})
             # End Prepare Init Image
 

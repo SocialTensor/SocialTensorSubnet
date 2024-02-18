@@ -123,8 +123,8 @@ def update_active_models(validator):
         miner_state = validator.all_uids_info.setdefault(
             uid, {"scores": [], "model_name": "", "category": ""}
         )
-        model_name = info["model_name"]
-        category = info["category"]
+        model_name = info.get("model_name", "")
+        category = info.get("category", "")
         miner_distribution.setdefault(f"{category}-{model_name}", 0)
         miner_distribution[f"{category}-{model_name}"] += 1
         if (
