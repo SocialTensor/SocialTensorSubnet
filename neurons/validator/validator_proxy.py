@@ -202,7 +202,7 @@ class ValidatorProxy:
                 bt.logging.info(f"Received responses")
                 if self.organic_reward(
                     miner_uid,
-                    synapse,
+                    response,
                     reward_url,
                 ):
                     is_valid_response = True
