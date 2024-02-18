@@ -251,7 +251,7 @@ class StableDiffusionControlNetTextToImage(BaseModel):
         from controlnet_aux.processor import Processor
 
         processor = Processor("canny")
-        controlnet = diffusers.ControlNet.from_pretrained(
+        controlnet = diffusers.ControlNetModel.from_pretrained(
             "lllyasviel/control_v11p_sd15_canny",
             torch_dtype=torch.float16,
         )
@@ -268,7 +268,7 @@ class StableDiffusionControlNetTextToImage(BaseModel):
 
         def inference_function(*args, **kwargs):
             # Prepare Init Image
-            base64_controlnet_image = kwargs.get("image", None)
+            base64_controlnet_image = kwargs.get("conditional_image", None)
             controlnet_image = base64_to_pil_image(base64_controlnet_image)
             controlnet_image = resize_divisible(controlnet_image, 768)
             controlnet_image = processor(controlnet_image, to_pil=True)

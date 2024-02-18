@@ -92,6 +92,7 @@ class Validator(BaseValidatorNeuron):
                             "guidance_scale": 7.0,
                             "negative_prompt": "worst quality, greyscale, low quality, bad art, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, signature, logo",
                         },
+                        "timeout": 8,
                     },
                 },
                 "category_incentive_weight": 0.33,

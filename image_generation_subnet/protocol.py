@@ -148,6 +148,11 @@ class ControlNetTextToImage(NicheImageProtocol):
         title="Pipeline Params",
         description="Dictionary of additional parameters for diffusers pipeline",
     )
+    image: str = pydantic.Field(
+        default="",
+        title="Image",
+        description="Output of text to image model in base64 format",
+    )
 
     def deserialize(self) -> dict:
         return {
@@ -155,7 +160,7 @@ class ControlNetTextToImage(NicheImageProtocol):
             "seed": self.seed,
             "model_name": self.model_name,
             "category": self.category,
-            "conditional_image": self.controlnet_image,
+            "conditional_image": self.conditional_image,
             "pipeline_params": self.pipeline_params,
             "image": self.image,
         }
