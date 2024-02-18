@@ -270,7 +270,7 @@ class StableDiffusionControlNetTextToImage(BaseModel):
             # Prepare Init Image
             base64_controlnet_image = kwargs.get("image", None)
             controlnet_image = base64_to_pil_image(base64_controlnet_image)
-            controlnet_image = resize_divisible(controlnet_image, 512)
+            controlnet_image = resize_divisible(controlnet_image, 768)
             controlnet_image = processor(controlnet_image, to_pil=True)
             kwargs.update({"image": controlnet_image})
             # End Prepare Init Image
