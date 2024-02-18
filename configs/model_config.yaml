@@ -17,11 +17,11 @@ TextToImage:
       download_url: "https://civitai.com/api/download/models/173961"
       scheduler: "dpm++2m_karras"
 ImageToImage:
-  Artium:
+  DreamShaper:
     target: services.rewarding.models.StableDiffusionImageToImage
     params:
-      checkpoint_file: "checkpoints/Artium.safetensors"
-      download_url: "https://civitai.com/api/download/models/277071"
+      checkpoint_file: "checkpoints/DreamShaper.safetensors"
+      download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"
       scheduler: "dpm++2m_karras"
 ControlNetTextToImage:
   DreamShaper:

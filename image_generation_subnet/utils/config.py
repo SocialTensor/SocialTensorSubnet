@@ -196,10 +196,10 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--reward.image_to_image.Artium",
+            "--reward.image_to_image.DreamShaper",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com:17777/reward/image_to_image/Artium",
+            default="http://nicheimage.nichetensor.com:17777/reward/image_to_image/DreamShaper",
         )
 
         parser.add_argument(

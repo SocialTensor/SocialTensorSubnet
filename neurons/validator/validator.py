@@ -62,14 +62,11 @@ class Validator(BaseValidatorNeuron):
                     self.config.challenge.image,
                 ],
                 "models": {
-                    "Artium": {
+                    "DreamShaper": {
                         "model_incentive_weight": 1.0,
-                        "reward_url": self.config.reward.image_to_image.Artium,
+                        "reward_url": self.config.reward.image_to_image.DreamShaper,
                         "inference_params": {
-                            "prompt_template": "anime key visual, acrylic painting, %s, pixiv fanbox, natural lighting",
-                            "num_inference_steps": 28,
-                            "width": 1024,
-                            "height": 1024,
+                            "num_inference_steps": 30,
                             "guidance_scale": 7.0,
                             "negative_prompt": "Compression artifacts, bad art, worst quality, low quality, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, signature, logo",
                         },
