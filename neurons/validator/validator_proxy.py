@@ -92,7 +92,7 @@ class ValidatorProxy:
             )
 
     def organic_reward(self, uid, synapse, response, url):
-        if not len(synapse.image):
+        if not len(response.image):
             bt.logging.info(f"Empty image for miner {uid}")
             self.validator.all_uids_info[uid]["scores"].append(0)
             return False
