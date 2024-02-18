@@ -87,8 +87,6 @@ class Validator(BaseValidatorNeuron):
                         "reward_url": self.config.reward.controlnet_text_to_image.DreamShaper,
                         "inference_params": {
                             "num_inference_steps": 30,
-                            "width": 512,
-                            "height": 512,
                             "guidance_scale": 7.0,
                             "negative_prompt": "worst quality, greyscale, low quality, bad art, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, signature, logo",
                         },

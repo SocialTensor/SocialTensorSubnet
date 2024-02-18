@@ -91,13 +91,15 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def organic_reward(self, uid, synapse, url):
+    def organic_reward(self, uid, synapse, response, url):
         if not len(synapse.image):
             self.validator.all_uids_info[uid]["scores"].append(0)
             return False
         if random.random() < self.validator.config.proxy.checking_probability:
             bt.logging.info(f"Random check for miner {uid}")
-            rewards = image_generation_subnet.validator.get_reward(url, [synapse])
+            rewards = image_generation_subnet.validator.get_reward(
+                url, synapse, [response]
+            )
             if rewards is None:
                 return False
             self.validator.all_uids_info[uid]["scores"].append(float(rewards[0]))
@@ -202,6 +204,7 @@ class ValidatorProxy:
                 bt.logging.info(f"Received responses")
                 if self.organic_reward(
                     miner_uid,
+                    synapse,
                     response,
                     reward_url,
                 ):
