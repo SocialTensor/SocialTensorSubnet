@@ -17,7 +17,7 @@ class MinerManager:
         1. Query model_name of available uids
         """
         self.all_uids = [int(uid) for uid in self.validator.metagraph.uids]
-        uid_to_axon = dict(zip(self.validator.all_uids, self.validator.metagraph.axons))
+        uid_to_axon = dict(zip(self.all_uids, self.validator.metagraph.axons))
         query_axons = [uid_to_axon[int(uid)] for uid in self.all_uids]
         synapse = NicheImageProtocol()
         synapse.request_dict = {"get_miner_info": True}
