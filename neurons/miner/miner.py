@@ -34,15 +34,13 @@ class Miner(BaseMinerNeuron):
 
     async def forward(self, synapse: bt.Synapse) -> T:
         bt.logging.info(f"synapse prompt: {synapse.prompt}")
-        if synapse.request_dict:
-            synapse.response_dict = self.miner_info
-            bt.logging.info(f"Response dict: {self.miner_info}")
-        else:
-            synapse = image_generation_subnet.miner.generate(self, synapse)
+        synapse = image_generation_subnet.miner.generate(self, synapse)
         return synapse
 
     async def forward_info(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
-        return await self.forward(synapse)
+        synapse.response_dict = self.miner_info
+        bt.logging.info(f"Response dict: {self.miner_info}")
+        return synapse
 
     async def forward_text_to_image(self, synapse: TextToImage) -> TextToImage:
         return await self.forward(synapse)

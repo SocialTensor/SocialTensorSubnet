@@ -196,7 +196,7 @@ class Validator(BaseValidatorNeuron):
     def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
 
-        weights = torch.zeros(len(self.all_uids))
+        weights = torch.zeros(len(self.miner_manager.all_uids))
         for category in self.nicheimage_catalogue.keys():
             for model_name in self.nicheimage_catalogue[category]["models"].keys():
                 model_specific_weights = self.miner_manager.get_model_specific_weights(

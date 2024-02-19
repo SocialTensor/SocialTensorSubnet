@@ -50,7 +50,7 @@ class ValidatorProxy:
                         else ""
                     ),
                     "uid": self.validator.uid,
-                    "all_uid_info": self.validator.all_uids_info,
+                    "all_uid_info": self.validator.miner_manager.all_uids_info,
                     "sha": SHA,
                 },
                 timeout=30,
