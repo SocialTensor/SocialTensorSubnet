@@ -182,7 +182,7 @@ class Validator(BaseValidatorNeuron):
             self.nicheimage_catalogue[category]["base_synapse"]()
             for _ in range(num_batch)
         ]
-        for synapse in enumerate(synapses):
+        for synapse in synapses:
             synapse.pipeline_params.update(
                 self.nicheimage_catalogue[category]["models"][model_name][
                     "inference_params"

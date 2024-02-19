@@ -159,7 +159,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
                 bt.logging.info(
                     "Loop completed, uids info:\n",
-                    str(self.all_uids_info).replace("},", "},\n"),
+                    str(self.miner_manager.all_uids_info).replace("},", "},\n"),
                 )
 
                 time_elapse_in_loop = time.time() - start_time_forward_loop
