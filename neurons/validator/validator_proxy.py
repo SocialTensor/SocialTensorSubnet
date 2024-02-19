@@ -1,7 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
 from concurrent.futures import ThreadPoolExecutor
-import requests
-import image_generation_subnet.protocol as protocol
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
@@ -124,27 +122,27 @@ class ValidatorProxy:
                 payload["seed"] = random.randint(0, 1e9)
             model_name = payload["model_name"]
             category = payload["category"]
-            synapse_cls = self.validator.category_models[category]["base_synapse"]
+            synapse_cls = self.validator.nicheimage_catalogue[category]["base_synapse"]
             synapse = synapse_cls(**payload)
             synapse.limit_params()
 
             # Override default pipeline params
-            for k, v in self.validator.category_models[synapse.category]["models"][
+            for k, v in self.validator.nicheimage_catalogue[synapse.category]["models"][
                 synapse.model_name
             ]["inference_params"].items():
                 if k not in synapse.pipeline_params:
                     synapse.pipeline_params[k] = v
             timeout = (
-                self.validator.category_models[synapse.category]["models"][model_name][
-                    "timeout"
-                ]
+                self.validator.nicheimage_catalogue[synapse.category]["models"][
+                    model_name
+                ]["timeout"]
                 * 2
             )
             scores = self.validator.scores
             metagraph = self.validator.metagraph
-            reward_url = self.validator.category_models[category]["models"][model_name][
-                "reward_url"
-            ]
+            reward_url = self.validator.nicheimage_catalogue[category]["models"][
+                model_name
+            ]["reward_url"]
 
             if miner_uid >= 0:
                 available_uids = [miner_uid]
@@ -202,7 +200,7 @@ class ValidatorProxy:
                 )
                 await asyncio.gather(task)
                 response = task.result()[0]
-                bt.logging.info(f"Received responses")
+                bt.logging.info("Received responses")
                 if self.organic_reward(
                     miner_uid,
                     synapse,

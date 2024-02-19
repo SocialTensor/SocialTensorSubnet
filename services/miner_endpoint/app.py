@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import torch
-from typing import List, Union, Optional
+from typing import Union, Optional
 from pydantic import BaseModel, Extra
 import argparse
 from services.rewarding.utils import (
@@ -74,7 +74,7 @@ async def get_model_name():
 
 @app.post("/generate")
 async def generate(
-    data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]
+    data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt],
 ):
     generator = torch.manual_seed(data.seed)
     data = dict(data)

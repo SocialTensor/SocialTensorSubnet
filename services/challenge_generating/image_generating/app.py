@@ -60,12 +60,12 @@ async def filter_allowed_ips(request: Request, call_next):
     if (request.client.host not in ALLOWED_IPS) and (
         request.client.host != "127.0.0.1"
     ):
-        print(f"Blocking an unallowed ip:", request.client.host, flush=True)
+        print("Blocking an unallowed ip:", request.client.host, flush=True)
         return Response(
             content="You do not have permission to access this resource",
             status_code=403,
         )
-    print(f"Allow an ip:", request.client.host, flush=True)
+    print("Allow an ip:", request.client.host, flush=True)
     response = await call_next(request)
     return response
 

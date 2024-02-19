@@ -17,7 +17,7 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("load_state()")
         self.load_state()
-        self.category_models = {
+        self.nicheimage_catalogue = {
             "TextToImage": {
                 "base_synapse": protocol.TextToImage,
                 "challenge_urls": [self.config.challenge.prompt],
@@ -104,7 +104,7 @@ class Validator(BaseValidatorNeuron):
             try:
                 self.validator_proxy = ValidatorProxy(self)
                 bt.logging.info("Validator proxy started succesfully")
-            except Exception as e:
+            except Exception:
                 bt.logging.warning(
                     "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
                     + traceback.format_exc()
@@ -114,9 +114,10 @@ class Validator(BaseValidatorNeuron):
     def forward(self):
         """
         Validator forward pass. Consists of:
-        - Querying all miners to get what model they run
-        - Generating the query
-        - Querying the miners
+        - Querying all miners to get their model_name and category
+        - Looping through all the categories and models
+        - Generating the challenge: prompt and image[optional]
+        - Batching miners and sending the challenge
         - Getting the responses
         - Rewarding the miners
         - Updating the scores
@@ -125,7 +126,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("Updating available models & uids")
         self.update_active_models_func(self)
 
-        for category in self.category_models.keys():
+        for category in self.nicheimage_catalogue.keys():
             category_uids = [
                 uid
                 for uid in self.all_uids_info.keys()
@@ -139,9 +140,9 @@ class Validator(BaseValidatorNeuron):
 
             bt.logging.info(f"Available uids for {category}: {category_uids}")
 
-            for model_name in self.category_models[category]["models"].keys():
-                challenge_urls = self.category_models[category]["challenge_urls"]
-                reward_url = self.category_models[category]["models"][model_name][
+            for model_name in self.nicheimage_catalogue[category]["models"].keys():
+                challenge_urls = self.nicheimage_catalogue[category]["challenge_urls"]
+                reward_url = self.nicheimage_catalogue[category]["models"][model_name][
                     "reward_url"
                 ]
                 model_uids = [
@@ -170,12 +171,12 @@ class Validator(BaseValidatorNeuron):
                 ]
 
                 synapses = [
-                    self.category_models[category]["base_synapse"]()
+                    self.nicheimage_catalogue[category]["base_synapse"]()
                     for _ in range(num_batch)
                 ]
                 for i, synapse in enumerate(synapses):
                     synapse.pipeline_params.update(
-                        self.category_models[category]["models"][model_name][
+                        self.nicheimage_catalogue[category]["models"][model_name][
                             "inference_params"
                         ]
                     )
@@ -237,8 +238,8 @@ class Validator(BaseValidatorNeuron):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
 
         weights = torch.zeros(len(self.all_uids))
-        for category in self.category_models.keys():
-            for model_name in self.category_models[category]["models"].keys():
+        for category in self.nicheimage_catalogue.keys():
+            for model_name in self.nicheimage_catalogue[category]["models"].keys():
                 model_specific_weights = torch.zeros(len(self.all_uids))
 
                 for uid in self.all_uids_info.keys():
@@ -261,10 +262,10 @@ class Validator(BaseValidatorNeuron):
                 # Correcting reward
                 model_specific_weights = (
                     model_specific_weights
-                    * self.category_models[category]["models"][model_name][
+                    * self.nicheimage_catalogue[category]["models"][model_name][
                         "model_incentive_weight"
                     ]
-                    * self.category_models[category]["category_incentive_weight"]
+                    * self.nicheimage_catalogue[category]["category_incentive_weight"]
                 )
                 bt.logging.info(
                     f"model_specific_weights for {model_name}\n{model_specific_weights}"

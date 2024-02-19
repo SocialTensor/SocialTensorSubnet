@@ -4,7 +4,6 @@ from services.rewarding.utils import download_checkpoint
 import diffusers
 import torch
 import os
-import torch.nn as nn
 from PIL import Image
 from transformers import CLIPFeatureExtractor
 from diffusers.pipelines.stable_diffusion.safety_checker import (

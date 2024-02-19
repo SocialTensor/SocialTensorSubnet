@@ -1,6 +1,4 @@
 import requests
-from typing import List
-import bittensor as bt
 from image_generation_subnet.protocol import NicheImageProtocol
 
 

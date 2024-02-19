@@ -1,6 +1,4 @@
-import typing
 import bittensor as bt
-from bittensor.synapse import Synapse
 import pydantic
 
 

@@ -16,7 +16,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 import copy
-import typing
 
 import bittensor as bt
 
@@ -117,7 +116,6 @@ class BaseNeuron(ABC):
 
         if self.should_set_weights():
             self.set_weights()
-                    
 
     def check_registered(self):
         # --- Check for registration.

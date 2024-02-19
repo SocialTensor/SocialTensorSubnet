@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request, Response
 import bittensor as bt
 import torch
-from typing import List, Union
-from services.rewarding.utils import instantiate_from_config, measure_time
+from typing import List
+from services.rewarding.utils import instantiate_from_config
 from services.rewarding.hash_compare import infer_hash
 from pydantic import BaseModel
 import uvicorn
@@ -13,7 +13,6 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 import yaml
-import argparse
 import os
 
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
@@ -85,12 +84,12 @@ async def filter_allowed_ips(request: Request, call_next):
     if (request.client.host not in ALLOWED_IPS) and (
         request.client.host != "127.0.0.1"
     ):
-        print(f"Blocking an unallowed ip:", request.client.host, flush=True)
+        print("Blocking an unallowed ip:", request.client.host, flush=True)
         return Response(
             content="You do not have permission to access this resource",
             status_code=403,
         )
-    print(f"Allow an ip:", request.client.host, flush=True)
+    print("Allow an ip:", request.client.host, flush=True)
     response = await call_next(request)
     return response
 

@@ -89,6 +89,7 @@ def get_reward(
 
     return rewards
 
+
 def get_miner_info(validator, query_uids: List[int]):
     uid_to_axon = dict(zip(validator.all_uids, validator.metagraph.axons))
     query_axons = [uid_to_axon[int(uid)] for uid in query_uids]

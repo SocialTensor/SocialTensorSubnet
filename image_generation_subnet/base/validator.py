@@ -130,7 +130,7 @@ class BaseValidatorNeuron(BaseNeuron):
                         bt.logging.info(
                             "Validator proxy ping to proxy-client successfully"
                         )
-                    except Exception as e:
+                    except Exception:
                         bt.logging.warning("Warning, proxy can't ping to proxy-client.")
                 if self.step < 5:
                     time_per_loop = (
@@ -158,7 +158,7 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.step += 1
 
                 bt.logging.info(
-                    f"Loop completed, uids info:\n",
+                    "Loop completed, uids info:\n",
                     str(self.all_uids_info).replace("},", "},\n"),
                 )
 
@@ -235,7 +235,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # Check if self.scores contains any NaN values and log a warning if it does.
         if torch.isnan(self.scores).any():
             bt.logging.warning(
-                f"Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
+                "Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
             )
 
         # Calculate the average reward for each uid across non-zero values.
@@ -352,10 +352,10 @@ class BaseValidatorNeuron(BaseNeuron):
             self.step = state["step"]
             self.all_uids_info = state["all_uids_info"]
             bt.logging.info("Succesfully loaded state")
-        except:
+        except Exception as e:
             self.step = 0
             self.all_uids_info = {
                 str((uid.item())): {"scores": [], "model_name": "", "category": ""}
                 for uid in self.metagraph.uids
             }
-            bt.logging.info("Could not find previously saved state.")
+            bt.logging.info("Could not find previously saved state.", e)

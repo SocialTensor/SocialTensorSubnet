@@ -1,5 +1,5 @@
 import time
-from typing import List, Optional, Tuple, TypeVar
+from typing import Tuple, TypeVar
 import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
@@ -33,7 +33,7 @@ class Miner(BaseMinerNeuron):
         )
 
     async def forward(self, synapse: bt.Synapse) -> T:
-        bt.logging.info(f"synapse {synapse}")
+        bt.logging.info(f"synapse prompt: {synapse.prompt}")
         if synapse.request_dict:
             synapse.response_dict = self.miner_info
             bt.logging.info(f"Response dict: {self.miner_info}")
