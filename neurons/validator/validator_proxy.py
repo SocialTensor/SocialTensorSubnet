@@ -95,17 +95,17 @@ class ValidatorProxy:
             self.validator.all_uids_info[uid]["scores"].append(0)
             return False
         if random.random() < self.validator.config.proxy.checking_probability:
-            bt.logging.info(f"Random check for miner {uid}")
+            bt.logging.info(f"Rewarding an organic request for miner {uid}")
             rewards = image_generation_subnet.validator.get_reward(
-                url, synapse, [response]
+                url, synapse, [response], [uid]
             )
             if rewards is None:
                 return False
-            self.validator.all_uids_info[uid]["scores"].append(float(rewards[0]))
-            bt.logging.info(f"Proxy check responses: {rewards}")
+            self.validator.miner_manager.update_scores([uid], rewards)
+            bt.logging.info(f"Organic rewards: {rewards}")
             return rewards[0] > 0
         else:
-            bt.logging.info("Not doing random check")
+            bt.logging.info("Not doing organic reward")
             return True
 
     async def forward(self, data: dict = {}):
@@ -138,55 +138,35 @@ class ValidatorProxy:
                 ]["timeout"]
                 * 2
             )
-            scores = self.validator.scores
             metagraph = self.validator.metagraph
             reward_url = self.validator.nicheimage_catalogue[category]["models"][
                 model_name
             ]["reward_url"]
 
+            specific_weights = self.validator.miner_manager.get_model_specific_weights(
+                model_name, category
+            )
+
             if miner_uid >= 0:
+                if specific_weights[miner_uid] == 0:
+                    raise Exception("Selected miner score is 0")
                 available_uids = [miner_uid]
-                miner_indexes = [0]
             else:
                 available_uids = [
-                    int(uid)
-                    for uid in self.validator.all_uids_info.keys()
-                    if self.validator.all_uids_info[uid]["model_name"] == model_name
-                    and self.validator.all_uids_info[uid]["category"] == category
-                ]
-
-                scores = [
-                    self.validator.all_uids_info[uid]["scores"]
-                    for uid in available_uids
-                ]
-
-                scores = [sum(s) / max(1, len(s)) for s in scores]
-                bt.logging.info(f"Available uids: {available_uids}")
-
-                good_uids_indexes = [
                     i
-                    for i in range(len(available_uids))
-                    if scores[i] > self.validator.config.proxy.miner_score_threshold
+                    for i in range(len(specific_weights))
+                    if specific_weights[i]
+                    > self.validator.config.proxy.miner_score_threshold
                 ]
 
-                if len(good_uids_indexes) == 0:
-                    good_uids_indexes = [
-                        i for i in range(len(available_uids)) if scores[i] > 0
-                    ]
-                if len(good_uids_indexes) == 0:
+                if not available_uids:
                     raise Exception("No miners meet the score threshold")
-
-                available_uids = [available_uids[index] for index in good_uids_indexes]
-                scores = [scores[index] for index in good_uids_indexes]
-                miner_indexes = list(range(len(available_uids)))
-            random.shuffle(miner_indexes)
             is_valid_response = False
-            for miner_uid_index in miner_indexes[:5]:
-                bt.logging.info(f"Selected miner index: {miner_uid_index}")
-                miner_uid = available_uids[miner_uid_index]
-                bt.logging.info(f"Selected miner uid: {miner_uid}")
+            random.shuffle(available_uids)
+            for uid in available_uids[:5]:
+                bt.logging.info(f"Selected miner uid: {uid}")
                 bt.logging.info(
-                    f"Forwarding request to miner {miner_uid} with score {scores[miner_uid_index]}"
+                    f"Forwarding request to miner {uid} with score {specific_weights[uid]}"
                 )
                 axon = metagraph.axons[miner_uid]
                 bt.logging.info(f"Sending request to axon: {axon}")
@@ -227,9 +207,6 @@ class ValidatorProxy:
                 )
             return response.deserialize().get("image", "")
         except Exception as e:
-            print(
-                "Exception occured in proxy forward", traceback.format_exc(), flush=True
-            )
             raise HTTPException(status_code=400, detail=str(e))
 
     async def get_self(self):

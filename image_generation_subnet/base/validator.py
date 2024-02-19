@@ -328,34 +328,3 @@ class BaseValidatorNeuron(BaseNeuron):
             1 - alpha
         ) * self.scores.to(self.device)
         bt.logging.info(f"Updated moving avg scores: {self.scores}")
-
-    def save_state(self):
-        """Saves the state of the validator to a file."""
-
-        # Save the state of the validator to file.
-        torch.save(
-            {
-                "step": self.step,
-                "all_uids_info": self.all_uids_info,
-            },
-            self.config.neuron.full_path + "/state.pt",
-        )
-
-    def load_state(self):
-        """Loads the state of the validator from a file."""
-
-        # Load the state of the validator from file.
-        try:
-            path = self.config.neuron.full_path + "/state.pt"
-            bt.logging.info("Loading validator state from: " + path)
-            state = torch.load(path)
-            self.step = state["step"]
-            self.all_uids_info = state["all_uids_info"]
-            bt.logging.info("Succesfully loaded state")
-        except Exception as e:
-            self.step = 0
-            self.all_uids_info = {
-                str((uid.item())): {"scores": [], "model_name": "", "category": ""}
-                for uid in self.metagraph.uids
-            }
-            bt.logging.info("Could not find previously saved state.", e)

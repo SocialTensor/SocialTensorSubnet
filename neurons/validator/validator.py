@@ -5,6 +5,7 @@ import torch
 import image_generation_subnet.protocol as protocol
 from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
+from image_generation_subnet.validator import MinerManager
 import image_generation_subnet as ig_subnet
 import traceback
 
@@ -13,7 +14,7 @@ class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
 
-        self.all_uids = [int(uid.item()) for uid in self.metagraph.uids]
+        self.miner_manager = MinerManager(self)
 
         bt.logging.info("load_state()")
         self.load_state()
@@ -26,7 +27,7 @@ class Validator(BaseValidatorNeuron):
                         "model_incentive_weight": 0.33,
                         "reward_url": self.config.reward.text_to_image.RealisticVision,
                         "inference_params": {"num_inference_steps": 30},
-                        "timeout": 12,
+                        "timeout": 4,
                     },
                     "SDXLTurbo": {
                         "model_incentive_weight": 0.33,
@@ -50,7 +51,7 @@ class Validator(BaseValidatorNeuron):
                             "guidance_scale": 7.0,
                             "negative_prompt": "(out of frame), nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                         },
-                        "timeout": 20,
+                        "timeout": 12,
                     },
                 },
                 "category_incentive_weight": 0.34,
@@ -70,7 +71,7 @@ class Validator(BaseValidatorNeuron):
                             "guidance_scale": 7.0,
                             "negative_prompt": "Compression artifacts, bad art, worst quality, low quality, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, signature, logo",
                         },
-                        "timeout": 20,
+                        "timeout": 4,
                     },
                 },
                 "category_incentive_weight": 0.33,
@@ -90,16 +91,13 @@ class Validator(BaseValidatorNeuron):
                             "guidance_scale": 7.0,
                             "negative_prompt": "worst quality, greyscale, low quality, bad art, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, signature, logo",
                         },
-                        "timeout": 8,
+                        "timeout": 4,
                     },
                 },
                 "category_incentive_weight": 0.33,
             },
         }
         self.max_validate_batch = 5
-
-        self.update_active_models_func = ig_subnet.validator.update_active_models
-
         if self.config.proxy.port:
             try:
                 self.validator_proxy = ValidatorProxy(self)
@@ -109,7 +107,7 @@ class Validator(BaseValidatorNeuron):
                     "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
                     + traceback.format_exc()
                 )
-        self.update_active_models_func(self)
+        self.miner_manager.update_miners_identity()
 
     def forward(self):
         """
@@ -124,115 +122,76 @@ class Validator(BaseValidatorNeuron):
         """
 
         bt.logging.info("Updating available models & uids")
-        self.update_active_models_func(self)
+        self.miner_manager.update_miners_identity()
 
         for category in self.nicheimage_catalogue.keys():
-            category_uids = [
-                uid
-                for uid in self.all_uids_info.keys()
-                if self.all_uids_info[uid]["category"] == category
-            ]
-            if not category_uids:
-                bt.logging.warning(
-                    f"No active miner available for specified category {category}. Skipping setting weights."
-                )
-                continue
-
-            bt.logging.info(f"Available uids for {category}: {category_uids}")
-
             for model_name in self.nicheimage_catalogue[category]["models"].keys():
-                challenge_urls = self.nicheimage_catalogue[category]["challenge_urls"]
                 reward_url = self.nicheimage_catalogue[category]["models"][model_name][
                     "reward_url"
                 ]
-                model_uids = [
-                    uid
-                    for uid in category_uids
-                    if self.all_uids_info[uid]["model_name"] == model_name
-                ]
-                if not model_uids:
+                available_uids = self.miner_manager.get_miner_uids(model_name, category)
+                if not available_uids:
                     bt.logging.warning(
-                        f"No active miner available for specified model {model_name}. Skipping setting weights."
+                        f"No active miner available for specified model {category}-{model_name}. Skipping setting weights."
                     )
                     continue
 
-                bt.logging.info(f"Available uids for {model_name}: {model_uids}")
+                bt.logging.info(
+                    f"Available uids for {category}-{model_name}: {available_uids}"
+                )
 
-                num_batch = (
-                    len(model_uids) + self.max_validate_batch - 1
-                ) // self.max_validate_batch
-
-                seeds = [random.randint(0, 1e9) for _ in range(num_batch)]
-                batched_uids = [
-                    model_uids[
-                        i * self.max_validate_batch : (i + 1) * self.max_validate_batch
-                    ]
-                    for i in range(num_batch)
-                ]
-
-                synapses = [
-                    self.nicheimage_catalogue[category]["base_synapse"]()
-                    for _ in range(num_batch)
-                ]
-                for i, synapse in enumerate(synapses):
-                    synapse.pipeline_params.update(
-                        self.nicheimage_catalogue[category]["models"][model_name][
-                            "inference_params"
-                        ]
-                    )
-                    synapse.seed = seeds[i]
-                for challenge_url in challenge_urls:
-                    synapses = ig_subnet.validator.get_challenge(
-                        challenge_url, synapses
-                    )
+                synapses, batched_uids = self.prepare_challenge(
+                    available_uids, category, model_name
+                )
 
                 for synapse, uids in zip(synapses, batched_uids):
-                    base_synapse = synapse.copy()
-                    responses = self.dendrite.query(
-                        axons=[self.metagraph.axons[int(uid)] for uid in uids],
-                        synapse=synapse,
-                        deserialize=False,
-                    )
-                    valid_uids = [
-                        uid
-                        for uid, response in zip(uids, responses)
-                        if response.is_success
-                    ]
-                    invalid_uids = [
-                        uid
-                        for uid, response in zip(uids, responses)
-                        if not response.is_success
-                    ]
-                    responses = [
-                        response for response in responses if response.is_success
-                    ]
-                    process_times = [
-                        response.dendrite.process_time for response in responses
-                    ]
+                    try:
+                        base_synapse = synapse.copy()
+                        responses = self.dendrite.query(
+                            axons=[self.metagraph.axons[int(uid)] for uid in uids],
+                            synapse=synapse,
+                            deserialize=False,
+                        )
 
-                    bt.logging.info("Received responses, calculating rewards")
-                    rewards = ig_subnet.validator.get_reward(
-                        reward_url, base_synapse, responses
-                    )
-                    rewards = ig_subnet.validator.add_time_penalty(
-                        rewards, process_times
-                    )
-                    rewards = [round(num, 3) for num in rewards]
+                        bt.logging.info("Received responses, calculating rewards")
+                        uids, rewards = ig_subnet.validator.get_reward(
+                            reward_url, base_synapse, responses, uids
+                        )
 
-                    total_uids = valid_uids + invalid_uids
-                    rewards = rewards + [0] * len(invalid_uids)
+                        bt.logging.info(f"Scored responses: {rewards}")
 
-                    bt.logging.info(f"Scored responses: {rewards}")
-
-                    for i in range(len(total_uids)):
-                        uid = total_uids[i]
-                        self.all_uids_info[uid]["scores"].append(rewards[i])
-                        self.all_uids_info[uid]["scores"] = self.all_uids_info[uid][
-                            "scores"
-                        ][-10:]
+                        self.miner_manager.update_scores(uids, rewards)
+                    except Exception as e:
+                        bt.logging.error(
+                            f"Error while processing forward pass for {category}-{model_name}: {e}"
+                        )
+                        continue
 
         self.update_scores_on_chain()
         self.save_state()
+
+    def prepare_challenge(self, available_uids, category, model_name):
+        batch_size = random.randint(1, 5)
+        random.shuffle(available_uids)
+        batched_uids = [
+            available_uids[i * batch_size : (i + 1) * batch_size]
+            for i in range(len(available_uids) // batch_size)
+        ]
+        num_batch = len(batched_uids)
+        synapses = [
+            self.nicheimage_catalogue[category]["base_synapse"]()
+            for _ in range(num_batch)
+        ]
+        for synapse in enumerate(synapses):
+            synapse.pipeline_params.update(
+                self.nicheimage_catalogue[category]["models"][model_name][
+                    "inference_params"
+                ]
+            )
+            synapse.seed = random.randint(0, 1e9)
+        for challenge_url in self.nicheimage_catalogue[category]["challenge_urls"]:
+            synapses = ig_subnet.validator.get_challenge(challenge_url, synapses)
+        return synapses, batched_uids
 
     def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
@@ -240,26 +199,9 @@ class Validator(BaseValidatorNeuron):
         weights = torch.zeros(len(self.all_uids))
         for category in self.nicheimage_catalogue.keys():
             for model_name in self.nicheimage_catalogue[category]["models"].keys():
-                model_specific_weights = torch.zeros(len(self.all_uids))
-
-                for uid in self.all_uids_info.keys():
-                    if (
-                        self.all_uids_info[uid]["model_name"] == model_name
-                        and self.all_uids_info[uid]["category"] == category
-                    ):
-                        num_past_to_check = 5
-                        model_specific_weights[int(uid)] = (
-                            sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
-                            / num_past_to_check
-                        )
-                model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
-                tensor_sum = torch.sum(model_specific_weights)
-                # Normalizing the tensor
-                if tensor_sum > 0:
-                    model_specific_weights = model_specific_weights / tensor_sum
-                else:
-                    continue
-                # Correcting reward
+                model_specific_weights = self.miner_manager.get_model_specific_weights(
+                    model_name, category
+                )
                 model_specific_weights = (
                     model_specific_weights
                     * self.nicheimage_catalogue[category]["models"][model_name][
@@ -268,7 +210,7 @@ class Validator(BaseValidatorNeuron):
                     * self.nicheimage_catalogue[category]["category_incentive_weight"]
                 )
                 bt.logging.info(
-                    f"model_specific_weights for {model_name}\n{model_specific_weights}"
+                    f"model_specific_weights for {category}-{model_name}\n{model_specific_weights}"
                 )
                 weights = weights + model_specific_weights
 
@@ -279,6 +221,32 @@ class Validator(BaseValidatorNeuron):
             weights = torch.nan_to_num(weights, 0)
         self.scores: torch.FloatTensor = weights
         bt.logging.success(f"Updated scores: {self.scores}")
+
+    def save_state(self):
+        """Saves the state of the validator to a file."""
+
+        torch.save(
+            {
+                "step": self.step,
+                "all_uids_info": self.miner_manager.all_uids_info,
+            },
+            self.config.neuron.full_path + "/state.pt",
+        )
+
+    def load_state(self):
+        """Loads the state of the validator from a file."""
+
+        # Load the state of the validator from file.
+        try:
+            path = self.config.neuron.full_path + "/state.pt"
+            bt.logging.info("Loading validator state from: " + path)
+            state = torch.load(path)
+            self.step = state["step"]
+            self.miner_manager.all_uids_info = state["all_uids_info"]
+            bt.logging.info("Succesfully loaded state")
+        except Exception as e:
+            self.step = 0
+            bt.logging.info("Could not find previously saved state.", e)
 
 
 # The main function parses the configuration and runs the validator.

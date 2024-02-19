@@ -5,6 +5,7 @@ from .forward import (
     add_time_penalty,
     update_active_models,
 )
+from .miner_manager import MinerManager
 
 __all__ = [
     "get_reward",
@@ -12,4 +13,5 @@ __all__ = [
     "get_miner_info",
     "add_time_penalty",
     "update_active_models",
+    "MinerManager",
 ]

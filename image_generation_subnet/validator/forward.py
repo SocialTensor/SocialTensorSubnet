@@ -45,15 +45,11 @@ def skip(**kwargs):
 def get_challenge(
     url: str, synapses: List[NicheImageProtocol]
 ) -> List[NicheImageProtocol]:
-    headers = {
-        "accept": "application/json",
-        "Content-Type": "application/json",
-    }
     datas = [synapse.deserialize() for synapse in synapses]
     challenges = []
     for data in datas:
         try:
-            response = requests.post(url, headers=headers, json=data)
+            response = requests.post(url, json=data)
             if response.status_code != 200:
                 raise Exception(f"Error in get_challenge: {response.json()}")
             challenge = response.json()
@@ -69,25 +65,37 @@ def get_challenge(
 
 
 def get_reward(
-    url: str, base_synapse: NicheImageProtocol, synapes: List[NicheImageProtocol]
+    url: str,
+    base_synapse: NicheImageProtocol,
+    synapses: List[NicheImageProtocol],
+    uids: List[int],
 ) -> List[float]:
-    headers = {
-        "accept": "application/json",
-        "Content-Type": "application/json",
-    }
-    if not synapes:
-        return []
-    data = {
-        "miner_data": [synapse.deserialize() for synapse in synapes],
-        "base_data": base_synapse.deserialize(),
-    }
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code != 200:
-        raise Exception(f"Error in get_reward: {response.json()}")
-    rewards = response.json()["rewards"]
-    rewards = [float(reward) for reward in rewards]
+    valid_uids = [uid for uid, response in zip(uids, synapses) if response.is_success]
+    invalid_uids = [
+        uid for uid, synapse in zip(uids, synapses) if not synapse.is_success
+    ]
+    total_uids = valid_uids + invalid_uids
+    valid_synapses = [synapse for synapse in synapses if synapse.is_success]
+    if valid_uids:
+        data = {
+            "miner_data": [synapse.deserialize() for synapse in valid_synapses],
+            "base_data": base_synapse.deserialize(),
+        }
+        response = requests.post(url, json=data)
+        if response.status_code != 200:
+            raise Exception(f"Error in get_reward: {response.json()}")
+        valid_rewards = response.json()["rewards"]
+        valid_rewards = [float(reward) for reward in valid_rewards]
+        process_times = [response.dendrite.process_time for response in synapses]
 
-    return rewards
+        valid_rewards = add_time_penalty(valid_rewards, process_times)
+        valid_rewards = [round(num, 3) for num in valid_rewards]
+    else:
+        valid_rewards = []
+
+    total_rewards = valid_rewards + [0] * len(invalid_uids)
+
+    return total_uids, total_rewards
 
 
 def get_miner_info(validator, query_uids: List[int]):
