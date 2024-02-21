@@ -11,6 +11,7 @@ class ModelDeployment:
         self.pipe = instantiate_from_config(model_config)
 
     async def generate(self, prompt_data: Dict[str, Any]):
+        prompt_data = dict(prompt_data)
         generator = torch.manual_seed(prompt_data["seed"])
         image = self.pipe(
             generator=generator, **prompt_data, **prompt_data.get("pipeline_params", {})

@@ -1,4 +1,3 @@
-from transformers import pipeline, set_seed
 from fastapi import FastAPI, Request, Response
 import bittensor as bt
 from pydantic import BaseModel, Extra
@@ -10,6 +9,9 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from typing import Optional
+from ray import serve
+from ray.serve.handle import DeploymentHandle
+from transformers import pipeline, set_seed
 
 
 class Prompt(BaseModel, extra=Extra.allow):
@@ -29,76 +31,112 @@ def get_args():
         default="finney",
     )
     parser.add_argument("--disable_secure", action="store_true", default=False)
+    parser.add_argument(
+        "--num_gpus",
+        type=float,
+        default=1.0,
+    )
+    parser.add_argument(
+        "--num_replicas",
+        type=int,
+        default=1,
+    )
     args = parser.parse_args()
     return args
 
 
-ARGS = get_args()
+class PromptGenerator:
+    def __init__(self):
+        generator = pipeline(
+            model="Gustavosta/MagicPrompt-Stable-Diffusion", device="cuda"
+        )
+        self.generator = generator
+
+    async def __call__(self, data: dict):
+        set_seed(data["seed"])
+        prompt = self.generator(
+            data["prompt"],
+            max_length=data["max_length"],
+        )[0]["generated_text"]
+        print("Prompt Generated:", prompt, flush=True)
+        return prompt
 
 
-app = FastAPI()
 limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
-generator = pipeline(model="Gustavosta/MagicPrompt-Stable-Diffusion", device="cuda")
 
 
-@app.middleware("http")
-@limiter.limit("60/minute")
-async def filter_allowed_ips(request: Request, call_next):
-    if ARGS.disable_secure:
+class ChallengeImage:
+    def __init__(self, model_handle: DeploymentHandle, args):
+        self.args = args
+        self.model_handle = model_handle
+        self.app = FastAPI()
+        self.app.add_api_route("/", self.__call__, methods=["POST"])
+        self.app.middleware("http")(self.filter_allowed_ips)
+        self.app.state.limiter = limiter
+        self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        if not self.args.disable_secure:
+            self.allowed_ips_thread = threading.Thread(
+                target=self.define_allowed_ips,
+                args=(self.args.chain_endpoint, self.args.netuid, self.args.min_stake),
+            )
+            self.allowed_ips_thread.daemon = True
+            self.allowed_ips_thread.start()
+
+    async def __call__(
+        self,
+        data: Prompt,
+    ):
+        data = dict(data)
+        prompt = await self.model_handle.remote(data)
+        return {"prompt": prompt}
+
+    @limiter.limit("60/minute")
+    async def filter_allowed_ips(self, request: Request, call_next):
+        if self.args.disable_secure:
+            response = await call_next(request)
+            return response
+        if (request.client.host not in ALLOWED_IPS) and (
+            request.client.host != "127.0.0.1"
+        ):
+            print("Blocking an unallowed ip:", request.client.host, flush=True)
+            return Response(
+                content="You do not have permission to access this resource",
+                status_code=403,
+            )
+        print("Allow an ip:", request.client.host, flush=True)
         response = await call_next(request)
         return response
-    if (request.client.host not in ALLOWED_IPS) and (
-        request.client.host != "127.0.0.1"
-    ):
-        print("Blocking an unallowed ip:", request.client.host, flush=True)
-        return Response(
-            content="You do not have permission to access this resource",
-            status_code=403,
-        )
-    print("Allow an ip:", request.client.host, flush=True)
-    response = await call_next(request)
-    return response
 
-
-@app.post("/")
-async def get_rewards(data: Prompt):
-    set_seed(data.seed)
-    prompt = generator(
-        data.prompt,
-        max_length=data.max_length,
-    )[0]["generated_text"]
-    print("Prompt Generated:", prompt, flush=True)
-    return {"prompt": prompt}
-
-
-def define_allowed_ips(url, netuid, min_stake):
-    global ALLOWED_IPS
-    ALLOWED_IPS = []
-    while True:
-        all_allowed_ips = []
-        subtensor = bt.subtensor(url)
-        metagraph = subtensor.metagraph(netuid)
-        for uid in range(len(metagraph.total_stake)):
-            if metagraph.total_stake[uid] > min_stake:
-                all_allowed_ips.append(metagraph.axons[uid].ip)
-        ALLOWED_IPS = all_allowed_ips
-        print("Updated allowed ips:", ALLOWED_IPS, flush=True)
-        time.sleep(60)
+    def define_allowed_ips(self, url, netuid, min_stake):
+        global ALLOWED_IPS
+        ALLOWED_IPS = []
+        while True:
+            all_allowed_ips = []
+            subtensor = bt.subtensor(url)
+            metagraph = subtensor.metagraph(netuid)
+            for uid in range(len(metagraph.total_stake)):
+                if metagraph.total_stake[uid] > min_stake:
+                    all_allowed_ips.append(metagraph.axons[uid].ip)
+            ALLOWED_IPS = all_allowed_ips
+            print("Updated allowed ips:", ALLOWED_IPS, flush=True)
+            time.sleep(60)
 
 
 if __name__ == "__main__":
-    if not ARGS.disable_secure:
-        allowed_ips_thread = threading.Thread(
-            target=define_allowed_ips,
-            args=(
-                ARGS.chain_endpoint,
-                ARGS.netuid,
-                ARGS.min_stake,
-            ),
-        )
-        allowed_ips_thread.setDaemon(True)
-        allowed_ips_thread.start()
-    uvicorn.run(app, host="0.0.0.0", port=ARGS.port)
+    args = get_args()
+    print(args)
+    model_deployment = serve.deployment(
+        PromptGenerator,
+        name="deployment",
+        num_replicas=args.num_replicas,
+        ray_actor_options={"num_gpus": args.num_gpus},
+    )
+    serve.run(
+        model_deployment.bind(),
+        name="deployment-prompt-challenge",
+    )
+    model_handle = serve.get_deployment_handle(
+        "deployment", "deployment-prompt-challenge"
+    )
+    app = ChallengeImage(model_handle, args)
+    uvicorn.run(app.app, host="0.0.0.0", port=args.port)

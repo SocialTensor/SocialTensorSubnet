@@ -50,6 +50,7 @@ def get_args():
         type=int,
         default=1,
     )
+
     args = parser.parse_args()
     if args.model_name not in MODEL_CONFIG[args.category]:
         raise ValueError(
@@ -99,10 +100,7 @@ class RewardApp:
     async def __call__(self, reward_request: RewardRequest):
         base_data = reward_request.base_data
         miner_data = reward_request.miner_data
-        validator_result = await self.model_handle.generate.remote(
-            prompt_data=base_data
-        )
-        validator_image = validator_result.images[0]
+        validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
         miner_images = [d.image for d in miner_data]
         rewards = infer_hash(validator_image, miner_images)
         rewards = [float(reward) for reward in rewards]
@@ -112,7 +110,7 @@ class RewardApp:
 
     @limiter.limit("60/minute")
     async def filter_allowed_ips(self, request: Request, call_next):
-        if self.disable_secure:
+        if self.args.disable_secure:
             response = await call_next(request)
             return response
         if (request.client.host not in self.allowed_ips) and (

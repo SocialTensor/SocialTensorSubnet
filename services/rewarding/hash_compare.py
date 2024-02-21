@@ -1,4 +1,4 @@
-from services.rewarding.utils import base64_to_pil_image, pil_image_to_base64
+from services.rewarding.utils import base64_to_pil_image
 import imagehash
 from PIL import Image
 from typing import List
@@ -34,7 +34,7 @@ def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
     rewards = []
     for miner_image in batched_miner_images:
         miner_image = base64_to_pil_image(miner_image)
-        validator_image = base64_to_pil_image(pil_image_to_base64(validator_image))
+        validator_image = base64_to_pil_image(validator_image)
         if miner_image is None:
             reward = False
         else:
