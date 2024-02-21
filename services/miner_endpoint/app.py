@@ -3,12 +3,12 @@ import torch
 from typing import Union, Optional
 from pydantic import BaseModel, Extra
 import argparse
-from services.rewarding.utils import (
-    instantiate_from_config,
-    pil_image_to_base64,
-)
+import uvicorn
+from ray.serve.handle import DeploymentHandle
+from ray import serve
 import yaml
 import os
+from services.rays.image_generating import ModelDeployment
 
 os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
 
@@ -49,6 +49,7 @@ def get_args():
         type=str,
         default="RealisticVision",
     )
+    parser.add_argument("--num_gpus", type=int, default=1)
     args = parser.parse_args()
     if args.model_name not in MODEL_CONFIG[args.category]:
         raise ValueError(
@@ -63,27 +64,47 @@ def get_args():
 args = get_args()
 
 
-app = FastAPI()
-pipe = instantiate_from_config(MODEL_CONFIG[args.category][args.model_name])
+class MinerEndpoint:
+    def __init__(self, model_handle: DeploymentHandle):
+        self.model_handle = model_handle
+        self.app = FastAPI()
+        self.app.add_api_route("/generate", self.generate, methods=["POST"])
+        self.app.add_api_route("/info", self.info, methods=["GET"])
 
+    async def generate(
+        self, prompt: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]
+    ):
+        prompt_data = prompt.dict()
+        print(prompt_data)
+        base_64_image = await self.model_handle.generate.remote(prompt_data=prompt_data)
+        return base_64_image
 
-@app.get("/info")
-async def get_model_name():
-    return {"model_name": args.model_name, "category": args.category}
-
-
-@app.post("/generate")
-async def generate(
-    data: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt],
-):
-    generator = torch.manual_seed(data.seed)
-    data = dict(data)
-    image = pipe(generator=generator, **data, **data["pipeline_params"]).images[0]
-    image = pil_image_to_base64(image)
-    return {"image": image}
+    async def info(self):
+        return {
+            "model_name": args.model_name,
+            "category": args.category,
+        }
 
 
 if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=args.port)
+    model_deployment = serve.deployment(
+        ModelDeployment,
+        name="deployment",
+        num_replicas=args.num_gpus,
+        ray_actor_options={"num_gpus": args.num_gpus},
+    )
+    serve.run(
+        model_deployment.bind(
+            MODEL_CONFIG[args.category][args.model_name],
+        ),
+        name=f"deployment-{args.category}-{args.model_name}",
+    )
+    model_handle = serve.get_deployment_handle(
+        "deployment", f"deployment-{args.category}-{args.model_name}"
+    )
+    app = MinerEndpoint(model_handle)
+    uvicorn.run(
+        app.app,
+        host="0.0.0.0",
+        port=args.port,
+    )

@@ -156,7 +156,7 @@ def add_args(cls, parser):
             "--proxy.proxy_client_url",
             type=str,
             help="The url initialize credentials for proxy.",
-            default="http://proxy_client_nicheimage.nichetensor.com:10003",
+            default="http://nicheimage.nichetensor.com/proxy_client",
         )
 
         parser.add_argument(
@@ -176,36 +176,33 @@ def add_args(cls, parser):
         parser.add_argument(
             "--reward.text_to_image.RealisticVision",
             type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com:17777/reward/text_to_image/RealisticVision",
+            default="http://nicheimage.nichetensor.com/reward/text_to_image/RealisticVision",
         )
 
         parser.add_argument(
-            "--reward.text_to_image.SDXLTurbo",
+            "--reward.text_to_image.REXL",
             type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com:17777/reward/text_to_image/SDXLTurbo",
+            default="http://nicheimage.nichetensor.com/reward/text_to_image/REXL",
         )
 
         parser.add_argument(
             "--reward.text_to_image.AnimeV3",
             type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com:17777/reward/text_to_image/AnimeV3",
+            default="http://nicheimage.nichetensor.com/reward/text_to_image/AnimeV3",
         )
 
         parser.add_argument(
             "--reward.image_to_image.DreamShaper",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com:17777/reward/image_to_image/DreamShaper",
+            default="http://nicheimage.nichetensor.com/reward/image_to_image/DreamShaper",
         )
 
         parser.add_argument(
             "--reward.controlnet_text_to_image.DreamShaper",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com:17777/reward/controlnet_text_to_image/DreamShaper",
+            default="http://nicheimage.nichetensor.com/reward/controlnet_text_to_image/DreamShaper",
         )
         # TODO: add more reward endpoints for categories
 
@@ -213,14 +210,14 @@ def add_args(cls, parser):
             "--challenge.prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com:17777/challenge/prompt",
+            default="http://nicheimage.nichetensor.com/challenge/prompt",
         )
 
         parser.add_argument(
             "--challenge.image",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com:17777/challenge/image",
+            default="http://nicheimage.nichetensor.com/challenge/image",
         )
         # TODO: add more challenge endpoints for categories
 

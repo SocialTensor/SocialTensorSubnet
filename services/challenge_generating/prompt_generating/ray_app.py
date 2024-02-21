@@ -1,5 +1,3 @@
-import diffusers
-import torch
 from fastapi import FastAPI, Request, Response
 import bittensor as bt
 from pydantic import BaseModel, Extra
@@ -10,15 +8,16 @@ import threading
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
-from services.rewarding.utils import pil_image_to_base64
 from typing import Optional
 from ray import serve
 from ray.serve.handle import DeploymentHandle
+from transformers import pipeline, set_seed
 
 
-class TextToImagePrompt(BaseModel, extra=Extra.allow):
+class Prompt(BaseModel, extra=Extra.allow):
     prompt: str
-    negative_prompt: Optional[str] = "bad image, low quality, blurry"
+    seed: Optional[int] = 0
+    max_length: Optional[int] = 77
 
 
 def get_args():
@@ -46,27 +45,21 @@ def get_args():
     return args
 
 
-class ImageGenerator:
+class PromptGenerator:
     def __init__(self):
-        pipe = diffusers.StableDiffusionPipeline.from_pretrained(
-            "runwayml/stable-diffusion-v1-5", torch_dtype=torch.float16, variant="fp16"
+        generator = pipeline(
+            model="Gustavosta/MagicPrompt-Stable-Diffusion", device="cuda"
         )
-        pipe.scheduler = diffusers.DPMSolverMultistepScheduler.from_config(
-            pipe.scheduler.config
-        )
-        pipe.to("cuda")
-        self.pipe = pipe
+        self.generator = generator
 
     async def __call__(self, data: dict):
-        image = self.pipe(
-            prompt=data["prompt"],
-            negative_prompt=data["negative_prompt"],
-            height=512,
-            width=512,
-            num_inference_steps=25,
-        ).images[0]
-        image = pil_image_to_base64(image)
-        return image
+        set_seed(data["seed"])
+        prompt = self.generator(
+            data["prompt"],
+            max_length=data["max_length"],
+        )[0]["generated_text"]
+        print("Prompt Generated:", prompt, flush=True)
+        return prompt
 
 
 limiter = Limiter(key_func=get_remote_address)
@@ -91,11 +84,11 @@ class ChallengeImage:
 
     async def __call__(
         self,
-        data: TextToImagePrompt,
+        data: Prompt,
     ):
         data = dict(data)
-        image = await self.model_handle.remote(data)
-        return {"conditional_image": image}
+        prompt = await self.model_handle.remote(data)
+        return {"prompt": prompt}
 
     @limiter.limit("60/minute")
     async def filter_allowed_ips(self, request: Request, call_next):
@@ -133,17 +126,17 @@ if __name__ == "__main__":
     args = get_args()
     print(args)
     model_deployment = serve.deployment(
-        ImageGenerator,
+        PromptGenerator,
         name="deployment",
         num_replicas=args.num_replicas,
         ray_actor_options={"num_gpus": args.num_gpus},
     )
     serve.run(
         model_deployment.bind(),
-        name="deployment-image-challenge",
+        name="deployment-prompt-challenge",
     )
     model_handle = serve.get_deployment_handle(
-        "deployment", "deployment-image-challenge"
+        "deployment", "deployment-prompt-challenge"
     )
     app = ChallengeImage(model_handle, args)
     uvicorn.run(app.app, host="0.0.0.0", port=args.port)
