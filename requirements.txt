@@ -16,3 +16,4 @@ omegaconf==2.3.0
 gitpython
 httpx
 ray[serve]
+accelerate
