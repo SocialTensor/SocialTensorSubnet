@@ -17,14 +17,18 @@ class StableDiffusionXLImageToImage(BaseModel):
     def load_model(self, checkpoint_file, download_url, **kwargs):
         if not os.path.exists(checkpoint_file):
             download_checkpoint(download_url, checkpoint_file)
-
+        vae = diffusers.AutoencoderKL.from_pretrained(
+            "madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16
+        )
         pipe = diffusers.StableDiffusionXLImg2ImgPipeline.from_single_file(
             checkpoint_file,
             use_safetensors=True,
             torch_dtype=torch.float16,
             load_safety_checker=False,
         )
+        pipe.vae = vae
         scheduler_name = kwargs.get("scheduler", "euler_a")
+        print(scheduler_name)
         pipe.scheduler = set_scheduler(scheduler_name, pipe.scheduler.config)
         pipe.to("cuda")
 
@@ -32,7 +36,7 @@ class StableDiffusionXLImageToImage(BaseModel):
             # Prepare Init Image
             base64_init_image = kwargs.get("conditional_image", None)
             init_image = base64_to_pil_image(base64_init_image)
-            init_image = resize_divisible(init_image, 768)
+            init_image = resize_divisible(init_image, 1024)
             kwargs.update({"image": init_image})
             # End Prepare Init Image
 

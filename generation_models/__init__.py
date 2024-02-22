@@ -2,7 +2,7 @@ from .text_to_image import (
     StableDiffusionTextToImage,
     StableDiffusionXLTextToImage,
 )
-from .control_to_image import StableDiffusionXLControlNetTextToImage
+from .control_to_image import StableDiffusionControlNetTextToImage
 from .image_to_image import (
     StableDiffusionXLImageToImage,
 )
@@ -10,6 +10,6 @@ from .image_to_image import (
 __all__ = [
     "StableDiffusionTextToImage",
     "StableDiffusionXLTextToImage",
-    "StableDiffusionXLControlNetTextToImage",
+    "StableDiffusionControlNetTextToImage",
     "StableDiffusionXLImageToImage",
 ]

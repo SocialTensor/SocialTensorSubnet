@@ -21,14 +21,14 @@ class TextToImagePrompt(BaseModel, extra=Extra.allow):
 
 class ImageToImagePrompt(BaseModel, extra=Extra.allow):
     prompt: str
-    init_image: str
+    conditional_image: str
     seed: int
     pipeline_params: Optional[dict] = {}
 
 
 class ControlNetPrompt(BaseModel, extra=Extra.allow):
     prompt: str
-    controlnet_image: str
+    conditional_image: str
     seed: int
     pipeline_params: Optional[dict] = {}
 
@@ -70,7 +70,6 @@ class MinerEndpoint:
         self, prompt: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]
     ):
         prompt_data = prompt.dict()
-        print(prompt_data)
         base_64_image = await self.model_handle.generate.remote(prompt_data=prompt_data)
         return base_64_image
 

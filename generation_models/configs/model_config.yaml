@@ -1,10 +1,10 @@
 TextToImage:
-  RealisticVision:
-    target: generation_models.StableDiffusionTextToImage
+  DreamShaperXL:
+    target: generation_models.StableDiffusionXLTextToImage
     params:
-      checkpoint_file: "checkpoints/RealisticVision.safetensors"
-      download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-      scheduler: "dpm++2m"
+      checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
+      download_url: "https://civitai.com/api/download/models/354657"
+      scheduler: "dpm++sde_karras"
   SDXLTurbo:
     target: generation_models.StableDiffusionXLTextToImage
     params:
@@ -17,16 +17,16 @@ TextToImage:
       download_url: "https://civitai.com/api/download/models/173961"
       scheduler: "dpm++2m_karras"
 ImageToImage:
-  DreamShaper:
-    target: generation_models.StableDiffusionImageToImage
+  DreamShaperXL:
+    target: generation_models.StableDiffusionXLImageToImage
     params:
-      checkpoint_file: "checkpoints/DreamShaper.safetensors"
-      download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-      scheduler: "dpm++2m_karras"
+      checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
+      download_url: "https://civitai.com/api/download/models/354657"
+      scheduler: "dpm++sde_karras"
 ControlNetTextToImage:
   DreamShaper:
     target: generation_models.StableDiffusionControlNetTextToImage
     params:
       checkpoint_file: "checkpoints/DreamShaper.safetensors"
       download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-      scheduler: "dpm++2m_karras"
+      scheduler: "euler_a"
