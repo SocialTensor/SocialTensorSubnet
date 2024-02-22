@@ -10,7 +10,7 @@ import threading
 from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
-from services.rewarding.utils import pil_image_to_base64
+from generation_models.utils import pil_image_to_base64
 from typing import Optional
 from ray import serve
 from ray.serve.handle import DeploymentHandle
