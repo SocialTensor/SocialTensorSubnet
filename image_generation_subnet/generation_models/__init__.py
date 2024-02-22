@@ -1,19 +1,17 @@
 from .base_model import BaseModel
-from .stable_diffusion import (
+from .text_to_image import (
     StableDiffusionTextToImage,
     StableDiffusionXLTextToImage,
+)
+from .control_to_image import StableDiffusionXLControlNetTextToImage
+from .image_to_image import (
     StableDiffusionXLImageToImage,
-    StableDiffusionControlNetTextToImage,
-    StableDiffusionImageToImage,
-    StableDiffusionSafetyChecker,
 )
 
 __all__ = [
     "BaseModel",
     "StableDiffusionTextToImage",
     "StableDiffusionXLTextToImage",
+    "StableDiffusionXLControlNetTextToImage",
     "StableDiffusionXLImageToImage",
-    "StableDiffusionControlNetTextToImage",
-    "StableDiffusionImageToImage",
-    "StableDiffusionSafetyChecker",
 ]

@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-import torch
 from typing import Union, Optional
 from pydantic import BaseModel, Extra
 import argparse
@@ -7,13 +6,7 @@ import uvicorn
 from ray.serve.handle import DeploymentHandle
 from ray import serve
 import yaml
-import os
 from services.rays.image_generating import ModelDeployment
-
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
-
-torch.backends.cudnn.benchmark = False
-torch.use_deterministic_algorithms(True)
 
 MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 

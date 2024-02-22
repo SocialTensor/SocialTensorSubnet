@@ -1,31 +1,31 @@
 TextToImage:
   RealisticVision:
-    target: services.rewarding.models.StableDiffusionTextToImage
+    target: image_generation_subnet.generation_models.StableDiffusionTextToImage
     params:
       checkpoint_file: "checkpoints/RealisticVision.safetensors"
       download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
       scheduler: "dpm++2m"
   SDXLTurbo:
-    target: services.rewarding.models.StableDiffusionXLTextToImage
+    target: image_generation_subnet.generation_models.StableDiffusionXLTextToImage
     params:
       checkpoint_file: "checkpoints/SDXLTurbo.safetensors"
       download_url: "https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true"
   AnimeV3:
-    target: services.rewarding.models.StableDiffusionXLTextToImage
+    target: image_generation_subnet.generation_models.StableDiffusionXLTextToImage
     params:
       checkpoint_file: "checkpoints/AnimeV3.safetensors"
       download_url: "https://civitai.com/api/download/models/173961"
       scheduler: "dpm++2m_karras"
 ImageToImage:
   DreamShaper:
-    target: services.rewarding.models.StableDiffusionImageToImage
+    target: image_generation_subnet.generation_models.StableDiffusionImageToImage
     params:
       checkpoint_file: "checkpoints/DreamShaper.safetensors"
       download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"
       scheduler: "dpm++2m_karras"
 ControlNetTextToImage:
   DreamShaper:
-    target: services.rewarding.models.StableDiffusionControlNetTextToImage
+    target: image_generation_subnet.generation_models.StableDiffusionControlNetTextToImage
     params:
       checkpoint_file: "checkpoints/DreamShaper.safetensors"
       download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"

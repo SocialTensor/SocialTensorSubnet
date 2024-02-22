@@ -15,5 +15,6 @@ tqdm==4.65.0
 omegaconf==2.3.0
 gitpython
 httpx
+ray
 ray[serve]
 accelerate

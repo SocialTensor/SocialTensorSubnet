@@ -1,5 +1,5 @@
 import torch
-from services.rewarding.utils import (
+from image_generation_subnet.generation_models.utils import (
     instantiate_from_config,
     pil_image_to_base64,
 )
@@ -15,6 +15,6 @@ class ModelDeployment:
         generator = torch.manual_seed(prompt_data["seed"])
         image = self.pipe(
             generator=generator, **prompt_data, **prompt_data.get("pipeline_params", {})
-        ).images[0]
+        )
         base_64_image = pil_image_to_base64(image)
         return base_64_image

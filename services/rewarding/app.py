@@ -1,8 +1,6 @@
 from fastapi import FastAPI, Request, Response
 import bittensor as bt
-import torch
 from typing import List
-from services.rewarding.hash_compare import infer_hash
 from pydantic import BaseModel
 import uvicorn
 import argparse
@@ -12,16 +10,10 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 import yaml
-import os
 from services.rays.image_generating import ModelDeployment
 from ray import serve
 from ray.serve.handle import DeploymentHandle
-
-
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
-
-torch.backends.cudnn.benchmark = False
-torch.use_deterministic_algorithms(True)
+from .hash_compare import infer_hash
 
 MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
 
