@@ -18,3 +18,4 @@ httpx
 ray
 ray[serve]
 accelerate
+controlnet_aux

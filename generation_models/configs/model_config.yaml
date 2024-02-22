@@ -5,11 +5,11 @@ TextToImage:
       checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
       download_url: "https://civitai.com/api/download/models/354657"
       scheduler: "dpm++sde_karras"
-  SDXLTurbo:
-    target: generation_models.StableDiffusionXLTextToImage
+  RealisticVision:
+    target: generation_models.StableDiffusionTextToImage
     params:
-      checkpoint_file: "checkpoints/SDXLTurbo.safetensors"
-      download_url: "https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors?download=true"
+      checkpoint_file: "checkpoints/RealisticVision.safetensors"
+      download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
   AnimeV3:
     target: generation_models.StableDiffusionXLTextToImage
     params:
