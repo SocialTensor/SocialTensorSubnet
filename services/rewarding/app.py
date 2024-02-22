@@ -13,9 +13,11 @@ import yaml
 from services.rays.image_generating import ModelDeployment
 from ray import serve
 from ray.serve.handle import DeploymentHandle
-from .hash_compare import infer_hash
+from services.rewarding.hash_compare import infer_hash
 
-MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
+MODEL_CONFIG = yaml.load(
+    open("generation_models/configs/model_config.yaml"), yaml.FullLoader
+)
 
 
 def get_args():

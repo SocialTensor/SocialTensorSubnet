@@ -1,5 +1,5 @@
-from image_generation_subnet.generation_models import BaseModel
-from image_generation_subnet.generation_models.utils import (
+from .base_model import BaseModel
+from .utils import (
     download_checkpoint,
     base64_to_pil_image,
     resize_divisible,

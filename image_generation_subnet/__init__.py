@@ -4,7 +4,6 @@ from . import base
 from . import validator
 from . import miner
 
-
 __version__ = "0.0.0"
 version_split = __version__.split(".")
 __spec_version__ = (

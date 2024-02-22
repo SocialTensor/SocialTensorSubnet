@@ -1,5 +1,5 @@
-from image_generation_subnet.generation_models import BaseModel
-from image_generation_subnet.generation_models.utils import (
+from .base_model import BaseModel
+from .utils import (
     download_checkpoint,
     set_scheduler,
 )
@@ -27,7 +27,7 @@ class StableDiffusionTextToImage(BaseModel):
         pipe.to("cuda")
 
         def inference_function(*args, **kwargs):
-            return pipe(*args, **kwargs).images
+            return pipe(*args, **kwargs).images[0]
 
         return inference_function
 
@@ -51,6 +51,6 @@ class StableDiffusionXLTextToImage(BaseModel):
         pipe.to("cuda")
 
         def inference_function(*args, **kwargs):
-            return pipe(*args, **kwargs).images
+            return pipe(*args, **kwargs).images[0]
 
         return inference_function

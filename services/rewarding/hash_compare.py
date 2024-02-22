@@ -1,4 +1,4 @@
-from services.rewarding.utils import base64_to_pil_image
+from generation_models.utils import base64_to_pil_image
 import imagehash
 from PIL import Image
 from typing import List

@@ -1,5 +1,5 @@
 import torch
-from image_generation_subnet.generation_models.utils import (
+from generation_models.utils import (
     instantiate_from_config,
     pil_image_to_base64,
 )

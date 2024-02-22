@@ -8,7 +8,9 @@ from ray import serve
 import yaml
 from services.rays.image_generating import ModelDeployment
 
-MODEL_CONFIG = yaml.load(open("configs/model_config.yaml"), yaml.FullLoader)
+MODEL_CONFIG = yaml.load(
+    open("generation_models/configs/model_config.yaml"), yaml.FullLoader
+)
 
 
 class TextToImagePrompt(BaseModel, extra=Extra.allow):

@@ -1,4 +1,3 @@
-from .base_model import BaseModel
 from .text_to_image import (
     StableDiffusionTextToImage,
     StableDiffusionXLTextToImage,
@@ -9,7 +8,6 @@ from .image_to_image import (
 )
 
 __all__ = [
-    "BaseModel",
     "StableDiffusionTextToImage",
     "StableDiffusionXLTextToImage",
     "StableDiffusionXLControlNetTextToImage",
