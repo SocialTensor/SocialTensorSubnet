@@ -179,7 +179,7 @@ class Validator(BaseValidatorNeuron):
         random.shuffle(available_uids)
         batched_uids = [
             available_uids[i * batch_size : (i + 1) * batch_size]
-            for i in range(len(available_uids) // batch_size)
+            for i in range((len(available_uids) + batch_size - 1) // batch_size)
         ]
         num_batch = len(batched_uids)
         synapses = [
