@@ -71,7 +71,7 @@ class MinerEndpoint:
     ):
         prompt_data = prompt.dict()
         base_64_image = await self.model_handle.generate.remote(prompt_data=prompt_data)
-        return base_64_image
+        return {"image": base_64_image}
 
     async def info(self):
         return {

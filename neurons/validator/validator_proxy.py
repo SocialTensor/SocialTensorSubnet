@@ -168,7 +168,7 @@ class ValidatorProxy:
                 bt.logging.info(
                     f"Forwarding request to miner {uid} with score {specific_weights[uid]}"
                 )
-                axon = metagraph.axons[miner_uid]
+                axon = metagraph.axons[uid]
                 bt.logging.info(f"Sending request to axon: {axon}")
                 task = asyncio.create_task(
                     self.dendrite.forward(
