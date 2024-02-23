@@ -180,9 +180,9 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--reward.text_to_image.REXL",
+            "--reward.text_to_image.DreamShaperXL",
             type=str,
-            default="http://nicheimage.nichetensor.com/reward/text_to_image/REXL",
+            default="http://nicheimage.nichetensor.com/reward/text_to_image/DreamShaperXL",
         )
 
         parser.add_argument(
@@ -192,10 +192,10 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--reward.image_to_image.DreamShaper",
+            "--reward.image_to_image.DreamShaperXL",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com/reward/image_to_image/DreamShaper",
+            default="http://nicheimage.nichetensor.com/reward/image_to_image/DreamShaperXL",
         )
 
         parser.add_argument(

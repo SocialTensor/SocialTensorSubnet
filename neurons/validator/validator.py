@@ -26,17 +26,21 @@ class Validator(BaseValidatorNeuron):
                     "RealisticVision": {
                         "model_incentive_weight": 0.33,
                         "reward_url": self.config.reward.text_to_image.RealisticVision,
-                        "inference_params": {"num_inference_steps": 30},
+                        "inference_params": {
+                            "num_inference_steps": 30,
+                            "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+                        },
                         "timeout": 4,
                     },
-                    "SDXLTurbo": {
+                    "DreamShaperXL": {
                         "model_incentive_weight": 0.33,
-                        "reward_url": self.config.reward.text_to_image.SDXLTurbo,
+                        "reward_url": self.config.reward.text_to_image.DreamShaperXL,
                         "inference_params": {
-                            "num_inference_steps": 4,
-                            "width": 512,
-                            "height": 512,
-                            "guidance_scale": 0.5,
+                            "num_inference_steps": 6,
+                            "width": 1024,
+                            "height": 1024,
+                            "guidance_scale": 2,
+                            "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                         },
                         "timeout": 4,
                     },
@@ -44,12 +48,11 @@ class Validator(BaseValidatorNeuron):
                         "model_incentive_weight": 0.34,
                         "reward_url": self.config.reward.text_to_image.AnimeV3,
                         "inference_params": {
-                            "prompt_template": "anime key visual, acrylic painting, %s, pixiv fanbox, natural lighting",
                             "num_inference_steps": 20,
-                            "width": 576,
-                            "height": 960,
+                            "width": 1024,
+                            "height": 1024,
                             "guidance_scale": 7.0,
-                            "negative_prompt": "(out of frame), nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+                            "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                         },
                         "timeout": 12,
                     },
@@ -63,12 +66,13 @@ class Validator(BaseValidatorNeuron):
                     self.config.challenge.image,
                 ],
                 "models": {
-                    "DreamShaper": {
+                    "DreamShaperXL": {
                         "model_incentive_weight": 1.0,
-                        "reward_url": self.config.reward.image_to_image.DreamShaper,
+                        "reward_url": self.config.reward.image_to_image.DreamShaperXL,
                         "inference_params": {
-                            "num_inference_steps": 30,
-                            "guidance_scale": 7.0,
+                            "num_inference_steps": 6,
+                            "guidance_scale": 2,
+                            "strength": 0.9,
                             "negative_prompt": "Compression artifacts, bad art, worst quality, low quality, plastic, fake, bad limbs, conjoined, featureless, bad features, incorrect objects, watermark, signature, logo",
                         },
                         "timeout": 4,
@@ -84,7 +88,7 @@ class Validator(BaseValidatorNeuron):
                 ],
                 "models": {
                     "DreamShaper": {
-                        "model_incentive_weight": 0.5,
+                        "model_incentive_weight": 1.0,
                         "reward_url": self.config.reward.controlnet_text_to_image.DreamShaper,
                         "inference_params": {
                             "num_inference_steps": 30,
