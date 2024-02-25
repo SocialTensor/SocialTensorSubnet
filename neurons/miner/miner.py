@@ -15,11 +15,6 @@ class Miner(BaseMinerNeuron):
         super(Miner, self).__init__(config=config)
         self.validator_logs = {}
         self.miner_info = image_generation_subnet.miner.set_info(self)
-        self.axon.attach(
-            forward_fn=self.forward,
-            blacklist_fn=self.blacklist,
-            priority_fn=self.priority,
-        )
 
     async def forward(self, synapse: bt.Synapse) -> T:
         if synapse.response_dict:
