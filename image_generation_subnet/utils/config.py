@@ -174,32 +174,25 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--reward.text_to_image.RealisticVision",
+            "--reward_url.RealisticVision",
             type=str,
             default="http://nicheimage.nichetensor.com/reward/text_to_image/RealisticVision",
         )
 
         parser.add_argument(
-            "--reward.text_to_image.DreamShaperXL",
+            "--reward_url.DreamShaperXL",
             type=str,
             default="http://nicheimage.nichetensor.com/reward/text_to_image/DreamShaperXL",
         )
 
         parser.add_argument(
-            "--reward.text_to_image.AnimeV3",
+            "--reward_url.AnimeV3",
             type=str,
             default="http://nicheimage.nichetensor.com/reward/text_to_image/AnimeV3",
         )
 
         parser.add_argument(
-            "--reward.image_to_image.DreamShaperXL",
-            type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com/reward/image_to_image/DreamShaperXL",
-        )
-
-        parser.add_argument(
-            "--reward.controlnet_text_to_image.DreamShaper",
+            "--reward_url.DreamShaper",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
             default="http://nicheimage.nichetensor.com/reward/controlnet_text_to_image/DreamShaper",
