@@ -16,7 +16,7 @@ class Miner(BaseMinerNeuron):
         self.validator_logs = {}
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
-    async def forward(self, synapse: bt.Synapse) -> T:
+    async def forward(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
         if synapse.response_dict:
             return await self.forward_info(synapse)
         bt.logging.info(f"synapse prompt: {synapse.prompt}")
@@ -28,7 +28,7 @@ class Miner(BaseMinerNeuron):
         bt.logging.info(f"Response dict: {self.miner_info}")
         return synapse
 
-    async def blacklist(self, synapse: bt.Synapse) -> Tuple[bool, str]:
+    async def blacklist(self, synapse: NicheImageProtocol) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
 
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
