@@ -62,5 +62,6 @@ class NicheImageProtocol(bt.Synapse):
             "model_name": self.model_name,
             "pipeline_type": self.pipeline_type,
             "pipeline_params": self.pipeline_params,
+            "conditional_image": self.conditional_image,
             "image": self.image,
         }

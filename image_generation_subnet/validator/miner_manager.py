@@ -24,13 +24,13 @@ class MinerManager:
         responses = self.validator.dendrite.query(
             query_axons,
             synapse,
-            deserialize=True,
+            deserialize=False,
             timeout=10,
         )
         responses = {
-            uid: response
+            uid: response.response_dict
             for uid, response in zip(self.all_uids, responses)
-            if response and "model_name" in response
+            if response.response_dict and "model_name" in response.response_dict
         }
         return responses
 

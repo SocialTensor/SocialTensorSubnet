@@ -19,7 +19,9 @@ class Miner(BaseMinerNeuron):
     async def forward(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
         if synapse.request_dict:
             return await self.forward_info(synapse)
-        bt.logging.info(f"synapse prompt: {synapse.prompt}")
+        bt.logging.info(
+            f"synapse prompt: {synapse.prompt}, pipeline_type: {synapse.pipeline_type}"
+        )
         synapse = await image_generation_subnet.miner.generate(self, synapse)
         return synapse
 
