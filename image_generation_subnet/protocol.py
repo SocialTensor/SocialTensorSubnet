@@ -18,6 +18,11 @@ class NicheImageProtocol(bt.Synapse):
         title="",
         description="Name of the model used for generation",
     )
+    conditional_image: str = pydantic.Field(
+        default="",
+        title="Base64 Image",
+        description="Base64 encoded image",
+    )
     pipeline_type: str = pydantic.Field(
         default="txt2img",
         title="Pipeline Type",
