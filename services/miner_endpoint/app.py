@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from typing import Union, Optional
+from typing import Optional
 from pydantic import BaseModel, Extra
 import argparse
 import uvicorn
@@ -13,23 +13,10 @@ MODEL_CONFIG = yaml.load(
 )
 
 
-class TextToImagePrompt(BaseModel, extra=Extra.allow):
+class Prompt(BaseModel, extra=Extra.allow):
     prompt: str
     seed: int
-    pipeline_params: Optional[dict] = {}
-
-
-class ImageToImagePrompt(BaseModel, extra=Extra.allow):
-    prompt: str
-    conditional_image: str
-    seed: int
-    pipeline_params: Optional[dict] = {}
-
-
-class ControlNetPrompt(BaseModel, extra=Extra.allow):
-    prompt: str
-    conditional_image: str
-    seed: int
+    pipeline_type: str
     pipeline_params: Optional[dict] = {}
 
 
@@ -37,22 +24,13 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=10006)
     parser.add_argument(
-        "--category", type=str, default="TextToImage", choices=list(MODEL_CONFIG.keys())
-    )
-    parser.add_argument(
         "--model_name",
         type=str,
         default="RealisticVision",
     )
-    parser.add_argument("--num_gpus", type=int, default=1)
+    parser.add_argument("--num_gpus", type=float, default=1.0)
+    parser.add_argument("--num_replicas", type=int, default=1)
     args = parser.parse_args()
-    if args.model_name not in MODEL_CONFIG[args.category]:
-        raise ValueError(
-            (
-                f"Model name {args.model_name} not found in category {args.category}"
-                f"Available models are {list(MODEL_CONFIG[args.category].keys())}"
-            )
-        )
     return args
 
 
@@ -66,9 +44,7 @@ class MinerEndpoint:
         self.app.add_api_route("/generate", self.generate, methods=["POST"])
         self.app.add_api_route("/info", self.info, methods=["GET"])
 
-    async def generate(
-        self, prompt: Union[TextToImagePrompt, ImageToImagePrompt, ControlNetPrompt]
-    ):
+    async def generate(self, prompt: Prompt):
         prompt_data = prompt.dict()
         base_64_image = await self.model_handle.generate.remote(prompt_data=prompt_data)
         return {"image": base_64_image}
@@ -76,7 +52,6 @@ class MinerEndpoint:
     async def info(self):
         return {
             "model_name": args.model_name,
-            "category": args.category,
         }
 
 
@@ -84,17 +59,17 @@ if __name__ == "__main__":
     model_deployment = serve.deployment(
         ModelDeployment,
         name="deployment",
-        num_replicas=args.num_gpus,
+        num_replicas=args.num_replicas,
         ray_actor_options={"num_gpus": args.num_gpus},
     )
     serve.run(
         model_deployment.bind(
-            MODEL_CONFIG[args.category][args.model_name],
+            MODEL_CONFIG[args.model_name],
         ),
-        name=f"deployment-{args.category}-{args.model_name}",
+        name=f"deployment-{args.model_name}",
     )
     model_handle = serve.get_deployment_handle(
-        "deployment", f"deployment-{args.category}-{args.model_name}"
+        "deployment", f"deployment-{args.model_name}"
     )
     app = MinerEndpoint(model_handle)
     uvicorn.run(

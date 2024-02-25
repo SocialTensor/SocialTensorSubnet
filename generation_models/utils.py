@@ -14,6 +14,20 @@ import os
 from tqdm import tqdm
 import io
 import importlib
+import torch
+
+
+def make_inpaint_condition(image, image_mask):
+    image = np.array(image.convert("RGB")).astype(np.float32) / 255.0
+    image_mask = np.array(image_mask.convert("L")).astype(np.float32) / 255.0
+
+    assert (
+        image.shape[0:1] == image_mask.shape[0:1]
+    ), "image and image_mask must have the same image size"
+    image[image_mask > 0.5] = -1.0  # set as masked pixel
+    image = np.expand_dims(image, 0).transpose(0, 3, 1, 2)
+    image = torch.from_numpy(image)
+    return image
 
 
 def instantiate_from_config(config):
@@ -92,6 +106,18 @@ def resize_divisible(image, max_size=1024, divisible=16):
     H = H - H % divisible
     image = image.resize((W, H))
     return image
+
+
+def resize_for_condition_image(input_image: Image, resolution: int):
+    input_image = input_image.convert("RGB")
+    W, H = input_image.size
+    k = float(resolution) / min(H, W)
+    H *= k
+    W *= k
+    H = int(round(H / 64.0)) * 64
+    W = int(round(W / 64.0)) * 64
+    img = input_image.resize((W, H), resample=Image.LANCZOS)
+    return img
 
 
 def download_checkpoint(download_url, checkpoint_file):

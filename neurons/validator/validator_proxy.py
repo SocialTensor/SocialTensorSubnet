@@ -10,6 +10,7 @@ import os
 import random
 import asyncio
 from image_generation_subnet.validator.proxy import ProxyCounter
+from image_generation_subnet.protocol import NicheImageProtocol
 import traceback
 import git
 import httpx
@@ -121,30 +122,21 @@ class ValidatorProxy:
             if "seed" not in payload:
                 payload["seed"] = random.randint(0, 1e9)
             model_name = payload["model_name"]
-            category = payload["category"]
-            synapse_cls = self.validator.nicheimage_catalogue[category]["base_synapse"]
-            synapse = synapse_cls(**payload)
+            synapse = NicheImageProtocol(**payload)
             synapse.limit_params()
 
             # Override default pipeline params
-            for k, v in self.validator.nicheimage_catalogue[synapse.category]["models"][
-                synapse.model_name
-            ]["inference_params"].items():
+            for k, v in self.validator.nicheimage_catalogue[synapse.model_name][
+                "inference_params"
+            ].items():
                 if k not in synapse.pipeline_params:
                     synapse.pipeline_params[k] = v
-            timeout = (
-                self.validator.nicheimage_catalogue[synapse.category]["models"][
-                    model_name
-                ]["timeout"]
-                * 2
-            )
+            timeout = self.validator.nicheimage_catalogue[model_name]["timeout"] * 2
             metagraph = self.validator.metagraph
-            reward_url = self.validator.nicheimage_catalogue[category]["models"][
-                model_name
-            ]["reward_url"]
+            reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
 
             specific_weights = self.validator.miner_manager.get_model_specific_weights(
-                model_name, category
+                model_name
             )
 
             if miner_uid >= 0:

@@ -8,8 +8,7 @@ class MinerManager:
         self.validator = validator
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
         self.all_uids_info = {
-            uid: {"scores": [], "model_name": "", "category": ""}
-            for uid in self.all_uids
+            uid: {"scores": [], "model_name": ""} for uid in self.all_uids
         }
 
     def get_miner_info(self):
@@ -31,7 +30,7 @@ class MinerManager:
         responses = {
             uid: response
             for uid, response in zip(self.all_uids, responses)
-            if response and "model_name" in response and "category" in response
+            if response and "model_name" in response
         }
         return responses
 
@@ -45,26 +44,20 @@ class MinerManager:
             bt.logging.warning("No active miner available. Skipping setting weights.")
         for uid, info in valid_miners_info.items():
             miner_state = self.all_uids_info.setdefault(
-                uid, {"scores": [], "model_name": "", "category": ""}
+                uid, {"scores": [], "model_name": ""}
             )
             model_name = info.get("model_name", "")
-            category = info.get("category", "")
-            if (
-                miner_state["model_name"] == model_name
-                and miner_state["category"] == category
-            ):
+            if miner_state["model_name"] == model_name:
                 continue
             miner_state["model_name"] = model_name
-            miner_state["category"] = category
             miner_state["scores"] = []
         bt.logging.success("Updated miner identity")
 
-    def get_miner_uids(self, model_name: str, category: str):
+    def get_miner_uids(self, model_name: str):
         available_uids = [
             int(uid)
             for uid in self.all_uids_info.keys()
             if self.all_uids_info[uid]["model_name"] == model_name
-            and self.all_uids_info[uid]["category"] == category
         ]
         return available_uids
 
@@ -73,9 +66,9 @@ class MinerManager:
             self.all_uids_info[uid]["scores"].append(reward)
             self.all_uids_info[uid]["scores"] = self.all_uids_info[uid]["scores"][-10:]
 
-    def get_model_specific_weights(self, model_name, category):
+    def get_model_specific_weights(self, model_name):
         model_specific_weights = torch.zeros(len(self.all_uids))
-        for uid in self.get_miner_uids(model_name, category):
+        for uid in self.get_miner_uids(model_name):
             num_past_to_check = 10
             model_specific_weights[int(uid)] = (
                 sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])

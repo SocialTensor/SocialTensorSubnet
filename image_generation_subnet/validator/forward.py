@@ -113,7 +113,7 @@ def get_miner_info(validator, query_uids: List[int]):
     responses = {
         uid: response
         for uid, response in zip(query_uids, responses)
-        if response and "model_name" in response and "category" in response
+        if response and "model_name" in response
     }
     return responses
 
@@ -123,28 +123,20 @@ def update_active_models(validator):
     1. Query model_name of available uids
     2. Update the available list
     """
-    miner_distribution = {}
     validator.all_uids = [int(uid) for uid in validator.metagraph.uids]
     valid_miners_info = get_miner_info(validator, validator.all_uids)
     if not valid_miners_info:
         bt.logging.warning("No active miner available. Skipping setting weights.")
     for uid, info in valid_miners_info.items():
         miner_state = validator.all_uids_info.setdefault(
-            uid, {"scores": [], "model_name": "", "category": ""}
+            uid, {"scores": [], "model_name": ""}
         )
         model_name = info.get("model_name", "")
-        category = info.get("category", "")
-        miner_distribution.setdefault(f"{category}-{model_name}", 0)
-        miner_distribution[f"{category}-{model_name}"] += 1
-        if (
-            miner_state["model_name"] == model_name
-            and miner_state["category"] == category
-        ):
+        if miner_state["model_name"] == model_name:
             continue
         miner_state["model_name"] = model_name
-        miner_state["category"] = category
         miner_state["scores"] = []
-    bt.logging.success(f"Updated miner distribution: {miner_distribution}")
+    bt.logging.success("Updated miner distribution")
 
 
 def add_time_penalty(rewards, process_times, max_penalty=0.4):

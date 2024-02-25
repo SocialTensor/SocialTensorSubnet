@@ -1,15 +1,7 @@
-from .text_to_image import (
-    StableDiffusionTextToImage,
-    StableDiffusionXLTextToImage,
-)
-from .control_to_image import StableDiffusionControlNetTextToImage
-from .image_to_image import (
-    StableDiffusionXLImageToImage,
-)
+from .niche_stable_diffusion import NicheStableDiffusion
+from .niche_stable_diffusion_xl import NicheStableDiffusionXL
 
 __all__ = [
-    "StableDiffusionTextToImage",
-    "StableDiffusionXLTextToImage",
-    "StableDiffusionControlNetTextToImage",
-    "StableDiffusionXLImageToImage",
+    "NicheStableDiffusion",
+    "NicheStableDiffusionXL",
 ]

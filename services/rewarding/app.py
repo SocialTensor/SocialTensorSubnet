@@ -32,9 +32,6 @@ def get_args():
     )
     parser.add_argument("--disable_secure", action="store_true")
     parser.add_argument(
-        "--category", type=str, default="TextToImage", choices=list(MODEL_CONFIG.keys())
-    )
-    parser.add_argument(
         "--model_name",
         type=str,
         default="RealisticVision",
@@ -51,13 +48,6 @@ def get_args():
     )
 
     args = parser.parse_args()
-    if args.model_name not in MODEL_CONFIG[args.category]:
-        raise ValueError(
-            (
-                f"Model name {args.model_name} not found in category {args.category}"
-                f"Available models are {list(MODEL_CONFIG[args.category].keys())}"
-            )
-        )
     return args
 
 
@@ -147,7 +137,7 @@ if __name__ == "__main__":
     )
     serve.run(
         model_deployment.bind(
-            MODEL_CONFIG[args.category][args.model_name],
+            MODEL_CONFIG[args.model_name],
         ),
         name="model_deployment",
     )

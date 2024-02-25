@@ -3,6 +3,31 @@ import pydantic
 
 
 class NicheImageProtocol(bt.Synapse):
+    prompt: str = pydantic.Field(
+        default="",
+        title="Prompt",
+        description="Prompt for generation",
+    )
+    seed: int = pydantic.Field(
+        default=0,
+        title="Seed",
+        description="Seed for generation",
+    )
+    model_name: str = pydantic.Field(
+        default="RealisticVision",
+        title="",
+        description="Name of the model used for generation",
+    )
+    pipeline_type: str = pydantic.Field(
+        default="txt2img",
+        title="Pipeline Type",
+        description="Type of pipeline used for generation, eg: txt2img, img2img, controlnet_txt2img",
+    )
+    pipeline_params: dict = pydantic.Field(
+        default={},
+        title="Pipeline Params",
+        description="Dictionary of additional parameters for diffusers pipeline",
+    )
     request_dict: dict = pydantic.Field(
         default={},
         title="Dictionary contains request",
@@ -13,10 +38,10 @@ class NicheImageProtocol(bt.Synapse):
         title="Dictionary contains response",
         description="Dict contains arbitary information",
     )
-    pipeline_params: dict = pydantic.Field(
-        default={},
-        title="Pipeline Params",
-        description="Dictionary of additional parameters for diffusers pipeline",
+    image = pydantic.Field(
+        default="",
+        title="Base64 Image",
+        description="Base64 encoded image",
     )
 
     def limit_params(self):
@@ -26,139 +51,11 @@ class NicheImageProtocol(bt.Synapse):
         self.pipeline_params = self.pipeline_params
 
     def deserialize(self) -> dict:
-        return self.response_dict
-
-
-class TextToImage(NicheImageProtocol):
-    prompt: str = pydantic.Field(
-        default="",
-        title="Prompt",
-        description="Requested prompt for text to image generating",
-    )
-    seed: int = pydantic.Field(
-        default=0, title="Seed", description="Seed for deterministic generation"
-    )
-    model_name: str = pydantic.Field(
-        default="",
-        title="Model Name",
-        description="Name of the model used for generation",
-    )
-    category: str = pydantic.Field(
-        default="",
-        title="Category Name",
-        description="Name of the category used for generation",
-    )
-    image: str = pydantic.Field(
-        default="",
-        title="Image",
-        description="Output of text to image model in base64 format",
-    )
-    pipeline_params: dict = pydantic.Field(
-        default={},
-        title="Pipeline Params",
-        description="Dictionary of additional parameters for diffusers pipeline",
-    )
-
-    def deserialize(self) -> dict:
         return {
             "prompt": self.prompt,
             "seed": self.seed,
             "model_name": self.model_name,
-            "category": self.category,
-            "image": self.image,
-            "pipeline_params": self.pipeline_params,
-        }
-
-
-class ImageToImage(NicheImageProtocol):
-    prompt: str = pydantic.Field(
-        default="",
-        title="Prompt",
-        description="Requested prompt for text to image generating",
-    )
-    seed: int = pydantic.Field(
-        default=0, title="Seed", description="Seed for deterministic generation"
-    )
-    model_name: str = pydantic.Field(
-        default="",
-        title="Model Name",
-        description="Name of the model used for generation",
-    )
-    category: str = pydantic.Field(
-        default="",
-        title="Category Name",
-        description="Name of the category used for generation",
-    )
-    conditional_image: str = pydantic.Field(
-        default="",
-        title="Conditional Image",
-        description="Initial image in base64 format",
-    )
-    pipeline_params: dict = pydantic.Field(
-        default={},
-        title="Pipeline Params",
-        description="Dictionary of additional parameters for diffusers pipeline",
-    )
-    image: str = pydantic.Field(
-        default="",
-        title="Image",
-        description="Output of text to image model in base64 format",
-    )
-
-    def deserialize(self) -> dict:
-        return {
-            "prompt": self.prompt,
-            "seed": self.seed,
-            "model_name": self.model_name,
-            "category": self.category,
-            "conditional_image": self.conditional_image,
-            "pipeline_params": self.pipeline_params,
-            "image": self.image,
-        }
-
-
-class ControlNetTextToImage(NicheImageProtocol):
-    prompt: str = pydantic.Field(
-        default="",
-        title="Prompt",
-        description="Requested prompt for text to image generating",
-    )
-    seed: int = pydantic.Field(
-        default=0, title="Seed", description="Seed for deterministic generation"
-    )
-    model_name: str = pydantic.Field(
-        default="",
-        title="Model Name",
-        description="Name of the model used for generation",
-    )
-    category: str = pydantic.Field(
-        default="",
-        title="Category Name",
-        description="Name of the category used for generation",
-    )
-    conditional_image: str = pydantic.Field(
-        default="",
-        title="Controlnet Image",
-        description="Controlnet image in base64 format",
-    )
-    pipeline_params: dict = pydantic.Field(
-        default={},
-        title="Pipeline Params",
-        description="Dictionary of additional parameters for diffusers pipeline",
-    )
-    image: str = pydantic.Field(
-        default="",
-        title="Image",
-        description="Output of text to image model in base64 format",
-    )
-
-    def deserialize(self) -> dict:
-        return {
-            "prompt": self.prompt,
-            "seed": self.seed,
-            "model_name": self.model_name,
-            "category": self.category,
-            "conditional_image": self.conditional_image,
+            "pipeline_type": self.pipeline_type,
             "pipeline_params": self.pipeline_params,
             "image": self.image,
         }

@@ -9,7 +9,6 @@ def set_info(self):
     miner_info = {}
     response = get_model_name(self)
     miner_info["model_name"] = response["model_name"]
-    miner_info["category"] = response["category"]
     return miner_info
 
 
