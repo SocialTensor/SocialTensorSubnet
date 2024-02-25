@@ -14,7 +14,7 @@ class NicheImageProtocol(bt.Synapse):
         description="Seed for generation",
     )
     model_name: str = pydantic.Field(
-        default="RealisticVision",
+        default="",
         title="",
         description="Name of the model used for generation",
     )
