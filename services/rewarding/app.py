@@ -55,6 +55,7 @@ class Prompt(BaseModel):
     prompt: str
     seed: int
     image: str
+    pipeline_type: str
     pipeline_params: dict = {}
     conditional_image: str = ""
 
