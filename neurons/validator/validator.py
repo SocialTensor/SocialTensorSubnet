@@ -33,7 +33,7 @@ class Validator(BaseValidatorNeuron):
         }
         self.nicheimage_catalogue = {
             "RealisticVision": {
-                "supporting_pipelines": MODEL_CONFIGS["RealisticVision"][
+                "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                     "supporting_pipelines"
                 ],
                 "model_incentive_weight": 0.30,
@@ -45,7 +45,7 @@ class Validator(BaseValidatorNeuron):
                 "timeout": 4,
             },
             "RealitiesEdgeXL": {
-                "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"][
+                "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
                     "supporting_pipelines"
                 ],
                 "model_incentive_weight": 0.20,
@@ -59,7 +59,7 @@ class Validator(BaseValidatorNeuron):
                 "timeout": 8,
             },
             "AnimeV3": {
-                "supporting_pipelines": MODEL_CONFIGS["AnimeV3"][
+                "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                     "supporting_pipelines"
                 ],
                 "model_incentive_weight": 0.34,
@@ -75,7 +75,7 @@ class Validator(BaseValidatorNeuron):
             },
             "DreamShaper": {
                 "model_incentive_weight": 0.06,
-                "supporting_pipelines": MODEL_CONFIGS["DreamShaper"][
+                "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
                     "supporting_pipelines"
                 ],
                 "reward_url": self.config.reward_url.DreamShaper,
