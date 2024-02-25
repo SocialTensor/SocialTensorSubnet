@@ -4,10 +4,7 @@ import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
 from image_generation_subnet.protocol import (
-    TextToImage,
     NicheImageProtocol,
-    ImageToImage,
-    ControlNetTextToImage,
 )
 
 T = TypeVar("T", bound=bt.Synapse)
@@ -19,20 +16,14 @@ class Miner(BaseMinerNeuron):
         self.validator_logs = {}
         self.miner_info = image_generation_subnet.miner.set_info(self)
         self.axon.attach(
-            forward_fn=self.forward_info,
-            blacklist_fn=self.blacklist_info,
-        ).attach(
-            forward_fn=self.forward_text_to_image,
-            blacklist_fn=self.blacklist_text_to_image,
-        ).attach(
-            forward_fn=self.forward_controlnet_text_to_image,
-            blacklist_fn=self.blacklist_controlnet_text_to_image,
-        ).attach(
-            forward_fn=self.forward_image_to_image,
-            blacklist_fn=self.blacklist_image_to_image,
+            forward_fn=self.forward,
+            blacklist_fn=self.blacklist,
+            priority_fn=self.priority,
         )
 
     async def forward(self, synapse: bt.Synapse) -> T:
+        if synapse.response_dict:
+            return await self.forward_info(synapse)
         bt.logging.info(f"synapse prompt: {synapse.prompt}")
         synapse = await image_generation_subnet.miner.generate(self, synapse)
         return synapse
@@ -41,17 +32,6 @@ class Miner(BaseMinerNeuron):
         synapse.response_dict = self.miner_info
         bt.logging.info(f"Response dict: {self.miner_info}")
         return synapse
-
-    async def forward_text_to_image(self, synapse: TextToImage) -> TextToImage:
-        return await self.forward(synapse)
-
-    async def forward_controlnet_text_to_image(
-        self, synapse: ControlNetTextToImage
-    ) -> ControlNetTextToImage:
-        return await self.forward(synapse)
-
-    async def forward_image_to_image(self, synapse: ImageToImage) -> ImageToImage:
-        return await self.forward(synapse)
 
     async def blacklist(self, synapse: bt.Synapse) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
@@ -81,20 +61,6 @@ class Miner(BaseMinerNeuron):
 
         return False, "All passed!"
 
-    async def blacklist_info(self, synapse: NicheImageProtocol) -> Tuple[bool, str]:
-        return await self.blacklist(synapse)
-
-    async def blacklist_text_to_image(self, synapse: TextToImage) -> Tuple[bool, str]:
-        return await self.blacklist(synapse)
-
-    async def blacklist_controlnet_text_to_image(
-        self, synapse: ControlNetTextToImage
-    ) -> Tuple[bool, str]:
-        return await self.blacklist(synapse)
-
-    async def blacklist_image_to_image(self, synapse: ImageToImage) -> Tuple[bool, str]:
-        return await self.blacklist(synapse)
-
     async def priority(self, synapse: NicheImageProtocol) -> float:
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
@@ -106,17 +72,6 @@ class Miner(BaseMinerNeuron):
             f"Prioritizing {synapse.dendrite.hotkey} with value: ", prirority
         )
         return prirority
-
-    async def priority_text_to_image(self, synapse: TextToImage) -> float:
-        return await self.priority(synapse)
-
-    async def priority_controlnet_text_to_image(
-        self, synapse: ControlNetTextToImage
-    ) -> float:
-        return await self.priority(synapse)
-
-    async def priority_image_to_image(self, synapse: ImageToImage) -> float:
-        return await self.priority(synapse)
 
 
 # This is the main function, which runs the miner.
