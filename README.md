@@ -12,6 +12,7 @@
 3. [Setup for validator](#validator)
 
 <div id='introduction'/>
+  
 ## Introduction
 
 Welcome to the NicheImage - A decentralized network of image models powered by the Bittensor protocol.
