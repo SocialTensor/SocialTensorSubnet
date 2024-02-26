@@ -1,66 +1,53 @@
-<div align="center">
+## NicheImage - Decentralized Image Generation Network README
 
-# NicheImage - Image Generating Subnet <!-- omit in toc -->
-
----
-
-</div>
-
-## Table of Contents
+### Table of Contents
 1. [Introduction](#introduction)
-2. [Setup for miner](#miner)
-3. [Setup for validator](#validator)
+2. [Setup Instructions for Miners](#setup-for-miners)
+3. [Setup Instructions for Validators](#setup-for-validators)
 
 <div id='introduction'/>
-  
-## Introduction
 
-Welcome to the NicheImage - A decentralized network of image models powered by the Bittensor protocol.
+### Introduction
 
-This README provides an overview of the project's structure and example usage for both validators and miners.
+NicheImage is a decentralized network that utilizes the Bittensor protocol to enable distributed image generation. This document serves as a guide for setting up and participating in the network, targeting both validators and miners. It includes essential information on project setup, operation, and contribution.
 
-## What's news
-- **27/2/2024** Release DreamShaper with Txt2Img, Img2Img and Controlnet features.
+#### Latest Updates
+- **27/2/2024**: Introduction of DreamShaper featuring Txt2Img, Img2Img, and Controlnet capabilities.
 
-### NicheImage Studio ✨ - https://nicheimage.streamlit.app
+#### NicheImage Studio - [Visit Here](https://nicheimage.streamlit.app)
 ![image](https://github.com/NicheTensor/NicheImage/assets/92072154/a02e299b-308d-40dd-90a2-5cc4789b896d)
 
-### Bittensor Resources
-- [Discord](https://discord.gg/bittensor)
-- [Network Information](https://taostats.io/)
-- [Bittensor Homepage](https://bittensor.com/)
+#### Additional Resources
+- [Join Our Discord](https://discord.gg/bittensor)
+- [Network Statistics](https://taostats.io/)
+- [Learn More About Bittensor](https://bittensor.com/)
 
-### Overview
+#### System Architecture Overview
 ![nicheimage-v2 drawio (1)](https://github.com/NicheTensor/NicheImage/assets/92072154/6fede8e0-cf08-4da1-927f-17c512225961)
 
-Above diagram is overview of how NicheImage Subnet does.
-Let us explain more!
-
-**Forward Pass**
+### How the Subnet Operates
+**Forward Pass Workflow:**
 ```
-For model_type in model_types:
-  Validator gets synthentic requests for model type
-  Validator sends these requests to miners running model_type
-  Validator sends miners' request and response to Rewarding API, which uses **reproducing and hash matching mechanism to rewarding**
-  Validator multiplies miners' score with `incentive_distribution` of model_type
-Validator normalize scores
-Validator sets weights on the chain
+1. Validators receive synthetic requests for various model types.
+2. These requests are forwarded to miners specializing in the requested models.
+3. Responses from miners, along with request details, are sent to the Rewarding API.
+   The API employs a "reproducing and hash matching" mechanism for miner rewards.
+4. Miner scores are adjusted based on the incentive distribution for their model type.
+5. Validators normalize these scores and update the blockchain with new weights.
 ```
 
-**Validator Proxy**
-Validator can buy miner usage through our Proxy Client by creating a proxy
+**Validator Proxy:**
+- Validators can utilize a Proxy Client to access miner services, allowing for a seamless integration within the network.
 
-<div id='miner'/>
-
-## Setup for miner
-**Before becoming a miner**
-- This subnet requires miner GPU to run Image Generating Model, it can be RTX 3090, RTX 4090, A100, A40,... The more stronger GPU, the more Incentive you get
-- You have a wallet/hotkey registered to subnet 23
-- Your machine has public ports
-- Installed `python 3.10 or above`, `GPU` drivers
+<div id='setup-for-miners'/>
+  
+### Setup Instructions for Miners
+**Pre-requisites:**
+- A powerful GPU (e.g., RTX 3090, RTX 4090, A100, A40) is required for image generation tasks.
+- Ensure you have a registered wallet/hotkey for subnet 23, accessible public ports, and Python 3.10+ with GPU drivers installed.
 - These tutorials use pm2 to manage processes, this is optional but you can [learn to install](https://www.npmjs.com/package/pm2)
 
-**Let's setup a miner**
+**Setup step by step**
 1. Clone and install requirements
 ```
 git clone https://github.com/NicheTensor/NicheImage
@@ -68,10 +55,10 @@ cd NicheImage
 pip install -e .
 ```
 2. Select a model type
- - RealisticVision: min 12GB VRAM, Stable Diffusion Architecture
- - DreamShaper: min 12GB VRAM, Stable Diffusion Architecture
- - AnimeV3: min 24GB VRAM, SDXL Architecture
- - RealitiesEdgeXL: min 24GB VRAM, SDXL Architecture 
+ - `RealisticVision`: min 12GB VRAM, Stable Diffusion Architecture
+ - `DreamShaper`: min 12GB VRAM, Stable Diffusion Architecture
+ - `AnimeV3`: min 24GB VRAM, SDXL Architecture
+ - `RealitiesEdgeXL`: min 24GB VRAM, SDXL Architecture 
 3. Self host a generation endpoint for `seleted_model_type` at step 2
 ```
 pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name <selected_model_type> --num_replicas <num_replicas> --num_gpus <num_gpus_per_replica>
@@ -104,10 +91,11 @@ pm2 start python --name "miner" \
 --info_endpoint http//:127.0.0.1:10006/info \
 ```
 
-<div id='validator'/>
+<div id='setup-for-validators'/>
 
-## Setup for Validator
-**Requirements** 
+### Setup Instructions for Validators
+**Requirements:**
+
 A validator only needs a cpu server to validate by using our free to use APIs for checking image generation. This is the default setting and requires no configuration.
 
 However, it is possible to run your own image checking APIs if you prefer. This does require a GPU with min 20 GB of ram. You can see how to do [here](./services/README.md)
@@ -115,7 +103,7 @@ However, it is possible to run your own image checking APIs if you prefer. This 
 If validators opt in to share their request capacity they will get paid for each image they generate. Opt in is done by specifying --proxy.port
 If passed, a proxy server will start that allows us to query through their validator, and the validator will get paid weekly for the images they provide.
 
-**Installation**
+**Installation:**
 
 1. Clone and install requirements
 ```
