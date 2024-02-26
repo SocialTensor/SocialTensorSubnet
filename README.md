@@ -110,7 +110,7 @@ pm2 start python --name "miner" \
 **Requirements** 
 A validator only needs a cpu server to validate by using our free to use APIs for checking image generation. This is the default setting and requires no configuration.
 
-However, it is possible to run your own image checking APIs if you prefer. This does require a GPU with min 20 GB of ram. You can see how to do this by the end of this section
+However, it is possible to run your own image checking APIs if you prefer. This does require a GPU with min 20 GB of ram. You can see how to do [here](./services/README.md)
 
 If validators opt in to share their request capacity they will get paid for each image they generate. Opt in is done by specifying --proxy.port
 If passed, a proxy server will start that allows us to query through their validator, and the validator will get paid weekly for the images they provide.
@@ -134,48 +134,3 @@ pm2 start python --name "validator_nicheimage" \
 --proxy.port <other_public_port> # Optional, pass only if you want allow queries through your validator and get paid
 ```
 
-**Optional** Validator gets challenge prompt and image to make synthentic request from our endpoint as default, but you can setup your own server
-1. Start prompt generating endpoint
-```
-pm2 start python --name "challenge_prompt" -- -m services.challenge_generating.app --port 11001 --disable_secure
-```
-2. Start image generating endpoint
-```
-pm2 start python --name "challenge_image" -- -m services.challenge_generating.app --port 11002 --disable_secure
-```
-**Optional** Validators gets reward from our endpoint as default, which uses reproducing and hash matching mechanism, but you can setup your own server
-
-**Eg.**
-- `AnimeV3`
-```
-pm2 start python --name "reward_AnimeV3" -- -m services.rewarding.app --port 12001 --model_name AnimeV3 --disable_secure
-```
-- `RealititesEdgeXL`
-```
-pm2 start python --name "reward_REXL" -- -m services.rewarding.app --port 12002 --model_name RealitiesEdgeXL --disable_secure
-```
-- `RealisticVision`
-```
-pm2 start python --name "reward_RV" -- -m services.rewarding.app --port 12003 --model_name RealisticVision --disable_secure
-```
-- `DreamShaper`
-```
-pm2 start python --name "reward_DreamShaper" -- -m services.rewarding.app --port 12004 --model_name DreamShaper --disable_secure
-```
-**Run validator with your own endpoints**
-_replace localhost with another ip if you don't host locally_
-```
-pm2 start python --name "validator_nicheimage" \
--- -m neurons.validator.validator \
---netuid <netuid> \
---wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> \
---subtensor.network <network> \
---axon.port <your_public_port> \
---proxy.port <other_public_port> \ # Optional, pass only if you want allow queries through your validator and get paid
---challenge.prompt http://localhost:11001 \ 
---challenge.image http://localhost:11002 \
---reward_url.AnimeV3 http://localhost:12001 \
---reward_url.RealitiesEdgeXL http://localhost:12002 \
---reward_url.RealisticVision http://localhost:12003 \
---reward_url.DreamShaper http://localhost:12004 \
-```
