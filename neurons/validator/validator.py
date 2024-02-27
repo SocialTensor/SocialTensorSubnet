@@ -48,7 +48,7 @@ class Validator(BaseValidatorNeuron):
                 "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
                     "supporting_pipelines"
                 ],
-                "model_incentive_weight": 0.20,
+                "model_incentive_weight": 0.30,
                 "reward_url": self.config.reward_url.RealitiesEdgeXL,
                 "inference_params": {
                     "num_inference_steps": 7,
@@ -90,15 +90,17 @@ class Validator(BaseValidatorNeuron):
             },
         }
         self.max_validate_batch = 5
-        if self.config.proxy.port:
-            try:
-                self.validator_proxy = ValidatorProxy(self)
-                bt.logging.info("Validator proxy started succesfully")
-            except Exception:
+        try:
+            self.validator_proxy = ValidatorProxy(self)
+            bt.logging.info("Validator proxy started succesfully")
+        except Exception:
+            if self.config.proxy.port:
                 bt.logging.warning(
                     "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
                     + traceback.format_exc()
                 )
+            else:
+                bt.logging.warning("Share validator info to owner failed")
         self.miner_manager.update_miners_identity()
 
     def forward(self):
