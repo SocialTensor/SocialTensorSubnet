@@ -1,30 +1,28 @@
 import requests
-from image_generation_subnet.protocol import NicheImageProtocol
-import httpx
+from typing import List
+import bittensor as bt
 
 
 def set_info(self):
     # Set information of miner
     # Currently only model name is set
     miner_info = {}
-    response = get_model_name(self)
-    miner_info["model_name"] = response["model_name"]
+    model_name = get_model_name(self)
+    miner_info["model_name"] = model_name
     return miner_info
 
 
-async def generate(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
-    data = synapse.deserialize()
+def generate(self, prompt: str, seed: int, additional_params: dict) -> List[str]:
+    data = {"prompt": prompt, "seed": seed, "additional_params": additional_params}
 
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json",
     }
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            self.config.generate_endpoint, headers=headers, json=data, timeout=60
-        )
-    synapse = synapse.copy(update=response.json())
-    return synapse
+
+    response = requests.post(self.config.generate_endpoint, headers=headers, json=data)
+    image = response.json()["image"]
+    return image
 
 
 def get_model_name(self):
@@ -34,5 +32,5 @@ def get_model_name(self):
         "Content-Type": "application/json",
     }
     response = requests.get(self.config.info_endpoint, headers=headers)
-    response = response.json()
-    return response
+    model_name = response.json()["model_name"]
+    return model_name
