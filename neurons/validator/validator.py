@@ -19,7 +19,7 @@ class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
 
-        self.miner_manager = MinerManager(self)
+        
 
         bt.logging.info("load_state()")
         self.load_state()
@@ -90,6 +90,7 @@ class Validator(BaseValidatorNeuron):
             },
         }
         self.max_validate_batch = 5
+        self.miner_manager = MinerManager(self)
         try:
             self.validator_proxy = ValidatorProxy(self)
             bt.logging.info("Validator proxy started succesfully")
