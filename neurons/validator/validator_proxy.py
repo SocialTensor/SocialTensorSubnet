@@ -1,7 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
 from concurrent.futures import ThreadPoolExecutor
-import requests
-from image_generation_subnet.protocol import ImageGenerating
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
@@ -12,7 +10,12 @@ import os
 import random
 import asyncio
 from image_generation_subnet.validator.proxy import ProxyCounter
+from image_generation_subnet.protocol import NicheImageProtocol
 import traceback
+import git
+import httpx
+
+SHA = git.Repo(search_parent_directories=True).head.object.hexsha
 
 
 class ValidatorProxy:
@@ -38,15 +41,21 @@ class ValidatorProxy:
         self.start_server()
 
     def get_credentials(self):
-        response = requests.post(
-            f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
-            json={
-                "postfix": f":{self.validator.config.proxy.port}/validator_proxy",
-                "uid": self.validator.uid,
-                "all_uid_info": self.validator.all_uids_info,
-            },
-            timeout=30,
-        )
+        with httpx.Client() as client:
+            response = client.post(
+                f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
+                json={
+                    "postfix": (
+                        f":{self.validator.config.proxy.port}/validator_proxy"
+                        if self.validator.config.proxy.port
+                        else ""
+                    ),
+                    "uid": self.validator.uid,
+                    "all_uid_info": self.validator.miner_manager.all_uids_info,
+                    "sha": SHA,
+                },
+                timeout=30,
+            )
         if response.status_code != 200:
             raise Exception("Error getting credentials from market api")
         response = response.json()
@@ -81,21 +90,23 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def random_check(self, uid, synapse, response, checking_url):
+    def organic_reward(self, uid, synapse, response, url):
+        if not len(response.image):
+            bt.logging.info(f"Empty image for miner {uid}")
+            self.validator.all_uids_info[uid]["scores"].append(0)
+            return False
         if random.random() < self.validator.config.proxy.checking_probability:
-            bt.logging.info(f"Random check for miner {uid}")
+            bt.logging.info(f"Rewarding an organic request for miner {uid}")
             rewards = image_generation_subnet.validator.get_reward(
-                checking_url,
-                responses=[response],
-                synapse=synapse,
+                url, synapse, [response], [uid]
             )
             if rewards is None:
                 return False
-            self.validator.all_uids_info[str(uid)]["scores"].append(rewards[0])
-            bt.logging.info(f"Scored responses: {rewards}")
+            self.validator.miner_manager.update_scores([uid], rewards)
+            bt.logging.info(f"Organic rewards: {rewards}")
             return rewards[0] > 0
         else:
-            bt.logging.info("Not doing random check")
+            bt.logging.info("Not doing organic reward")
             return True
 
     async def forward(self, data: dict = {}):
@@ -110,103 +121,71 @@ class ValidatorProxy:
             bt.logging.info("Received a request!")
             if "seed" not in payload:
                 payload["seed"] = random.randint(0, 1e9)
-
-            synapse = ImageGenerating(**payload)
+            model_name = payload["model_name"]
+            synapse = NicheImageProtocol(**payload)
+            synapse.limit_params()
 
             # Override default pipeline params
-            for k, v in self.validator.supporting_models[synapse.model_name][
+            for k, v in self.validator.nicheimage_catalogue[synapse.model_name][
                 "inference_params"
             ].items():
                 if k not in synapse.pipeline_params:
                     synapse.pipeline_params[k] = v
-
-            # Apply prompt template
-            prompt_template = self.validator.supporting_models[synapse.model_name][
-                "inference_params"
-            ].get("prompt_template", "%s")
-            synapse.prompt = prompt_template % synapse.prompt
-
-            # Limit inference steps
-            synapse.pipeline_params["num_inference_steps"] = min(
-                50, synapse.pipeline_params["num_inference_steps"]
-            )
-            model_name = synapse.model_name
-            supporting_models = self.validator.supporting_models
-            scores = self.validator.scores
+            timeout = self.validator.nicheimage_catalogue[model_name]["timeout"] * 2
             metagraph = self.validator.metagraph
+            reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
+
+            specific_weights = self.validator.miner_manager.get_model_specific_weights(
+                model_name
+            )
+
             if miner_uid >= 0:
+                if specific_weights[miner_uid] == 0:
+                    raise Exception("Selected miner score is 0")
                 available_uids = [miner_uid]
-                miner_indexes = [0]
             else:
                 available_uids = [
-                    int(uid)
-                    for uid in self.validator.all_uids_info.keys()
-                    if self.validator.all_uids_info[uid]["model_name"] == model_name
-                ]
-
-                scores = [
-                    self.validator.all_uids_info[str(uid)]["scores"]
-                    for uid in available_uids
-                ]
-
-                scores = [sum(s) / max(1, len(s)) for s in scores]
-                bt.logging.info(f"Available uids: {available_uids}")
-
-                good_uids_indexes = [
                     i
-                    for i in range(len(available_uids))
-                    if scores[i] > self.validator.config.proxy.miner_score_threshold
+                    for i in range(len(specific_weights))
+                    if specific_weights[i]
+                    > self.validator.config.proxy.miner_score_threshold
                 ]
 
-                if len(good_uids_indexes) == 0:
-                    good_uids_indexes = [
-                        i for i in range(len(available_uids)) if scores[i] > 0
-                    ]
-                if len(good_uids_indexes) == 0:
+                if not available_uids:
                     raise Exception("No miners meet the score threshold")
-
-                available_uids = [available_uids[index] for index in good_uids_indexes]
-                scores = [scores[index] for index in good_uids_indexes]
-
-                miner_indexes = list(range(len(available_uids)))
-            random.shuffle(miner_indexes)
             is_valid_response = False
-            for miner_uid_index in miner_indexes:
-                bt.logging.info(f"Selected miner index: {miner_uid_index}")
-                miner_uid = available_uids[miner_uid_index]
-                bt.logging.info(f"Selected miner uid: {miner_uid}")
+            random.shuffle(available_uids)
+            for uid in available_uids[:5]:
+                bt.logging.info(f"Selected miner uid: {uid}")
                 bt.logging.info(
-                    f"Forwarding request to miner {miner_uid} with score {scores[miner_uid_index]}"
+                    f"Forwarding request to miner {uid} with score {specific_weights[uid]}"
                 )
-                axon = metagraph.axons[miner_uid]
+                axon = metagraph.axons[uid]
                 bt.logging.info(f"Sending request to axon: {axon}")
                 task = asyncio.create_task(
                     self.dendrite.forward(
                         [axon],
                         synapse,
                         deserialize=False,
-                        timeout=self.validator.supporting_models[model_name]["timeout"],
+                        timeout=timeout,
                     )
                 )
                 await asyncio.gather(task)
                 response = task.result()[0]
-                bt.logging.info(f"Received responses")
-                if not len(response.image):
-                    bt.logging.info("No image in response")
-                    continue
-                else:
-                    bt.logging.info("Image in response")
-
-                checking_url = supporting_models[model_name]["checking_url"]
-                if self.random_check(
+                bt.logging.info("Received responses")
+                if self.organic_reward(
                     miner_uid,
                     synapse,
                     response,
-                    checking_url,
+                    reward_url,
                 ):
                     is_valid_response = True
                     bt.logging.info("Checked OK")
                     break
+                else:
+                    bt.logging.info("Checked not OK, trying another miner")
+                    continue
+
             if not is_valid_response:
                 raise Exception("No valid response")
             try:
@@ -218,11 +197,8 @@ class ValidatorProxy:
                     traceback.format_exc(),
                     flush=True,
                 )
-            return response.deserialize()
+            return response.deserialize().get("image", "")
         except Exception as e:
-            print(
-                "Exception occured in proxy forward", traceback.format_exc(), flush=True
-            )
             raise HTTPException(status_code=400, detail=str(e))
 
     async def get_self(self):

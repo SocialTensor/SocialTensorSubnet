@@ -1,0 +1,34 @@
+RealisticVision:
+  target: generation_models.NicheStableDiffusion
+  params:
+    checkpoint_file: "checkpoints/RealisticVision.safetensors"
+    download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
+    scheduler: "dpm++2m_karras"
+    supporting_pipelines:
+      - "txt2img"
+AnimeV3:
+  target: generation_models.NicheStableDiffusionXL
+  params:
+    checkpoint_file: "checkpoints/AnimeV3.safetensors"
+    download_url: "https://civitai.com/api/download/models/173961"
+    scheduler: "dpm++2m_karras"
+    supporting_pipelines:
+      - "txt2img"
+RealitiesEdgeXL:
+  target: generation_models.NicheStableDiffusionXL
+  params:
+    checkpoint_file: "checkpoints/RealitiesEdgeXL.safetensors"
+    download_url: "https://civitai.com/api/download/models/294995"
+    scheduler: "dpm++2m_karras"
+    supporting_pipelines:
+      - "txt2img"
+DreamShaper:
+  target: generation_models.NicheStableDiffusion
+  params:
+    checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
+    download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"
+    scheduler: "dpm++2m_karras"
+    supporting_pipelines:
+      - "txt2img"
+      - "img2img"
+      - "controlnet_txt2img"

@@ -9,7 +9,8 @@ class ProxyCounter:
         if os.path.exists(save_path):
             try:
                 self.proxy_logs = json.load(open(save_path))
-            except:
+            except Exception as e:
+                print(f"Error loading proxy logs: {e}")
                 self.proxy_logs = {}
         else:
             self.proxy_logs = {}

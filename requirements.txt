@@ -1,10 +1,9 @@
-bittensor==6.5.0
-diffusers==0.25.0
-transformers==4.35.2
+bittensor==6.8.1
+diffusers==0.26.3
+transformers==4.38.1
 cryptography==41.0.3
 ImageHash==4.3.1
 loguru==0.7.0
-numpy==1.26.3
 Pillow==10.2.0
 pydantic==1.10.13
 PyYAML==6.0.1
@@ -13,3 +12,9 @@ setuptools==68.0.0
 slowapi==0.1.8
 tqdm==4.65.0
 omegaconf==2.3.0
+gitpython==3.1.40
+httpx==0.26.0
+ray==2.9.2
+ray[serve]
+accelerate==0.27.2
+controlnet_aux==0.0.7
