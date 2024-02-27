@@ -170,32 +170,32 @@ def add_args(cls, parser):
             "--proxy.checking_probability",
             type=float,
             help="Probability of checking if a miner is valid",
-            default=0.01,
+            default=0.1,
         )
 
         parser.add_argument(
             "--reward_url.RealisticVision",
             type=str,
-            default="http://nicheimage.nichetensor.com/reward/text_to_image/RealisticVision",
+            default="http://nicheimage.nichetensor.com/reward/RealisticVision",
         )
 
         parser.add_argument(
-            "--reward_url.DreamShaperXL",
+            "--reward_url.RealitiesEdgeXL",
             type=str,
-            default="http://nicheimage.nichetensor.com/reward/text_to_image/DreamShaperXL",
+            default="http://nicheimage.nichetensor.com/reward/RealitiesEdgeXL",
         )
 
         parser.add_argument(
             "--reward_url.AnimeV3",
             type=str,
-            default="http://nicheimage.nichetensor.com/reward/text_to_image/AnimeV3",
+            default="http://nicheimage.nichetensor.com/reward/AnimeV3",
         )
 
         parser.add_argument(
             "--reward_url.DreamShaper",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com/reward/controlnet_text_to_image/DreamShaper",
+            default="http://nicheimage.nichetensor.com/reward/DreamShaper",
         )
         # TODO: add more reward endpoints for categories
 
