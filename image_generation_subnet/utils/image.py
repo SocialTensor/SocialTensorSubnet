@@ -1,7 +1,7 @@
 import io
 import base64
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 
 def serialize(image: Image, format: str = "JPEG") -> str:

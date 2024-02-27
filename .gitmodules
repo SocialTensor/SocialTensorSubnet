@@ -1,0 +1,6 @@
+[submodule "prompt_gen_api"]
+	path = prompt_gen_api
+	url = https://github.com/toilaluan/bt_prompt_gen.git
+[submodule "reward_api"]
+	path = reward_api
+	url = https://github.com/toilaluan/sd_verifier.git
