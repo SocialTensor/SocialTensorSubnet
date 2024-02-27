@@ -1,4 +1,4 @@
-from dependency_modules.rewarding.utils import base64_to_pil_image, pil_image_to_base64
+from generation_models.utils import base64_to_pil_image
 import imagehash
 from PIL import Image
 from typing import List
@@ -6,14 +6,14 @@ from typing import List
 
 def get_black_hash(H, W) -> str:
     image = Image.new("RGB", (W, H), color="black")
-    return str(imagehash.average_hash(image, hash_size=6))
+    return str(imagehash.average_hash(image, hash_size=8))
 
 
 def matching_image(miner_image: Image.Image, validator_image: Image.Image) -> bool:
-    miner_hash = imagehash.average_hash(miner_image, hash_size=6)
-    validator_hash = imagehash.average_hash(validator_image, hash_size=6)
+    miner_hash = imagehash.average_hash(miner_image, hash_size=8)
+    validator_hash = imagehash.average_hash(validator_image, hash_size=8)
     print("Hamming Distance:", miner_hash - validator_hash, flush=True)
-    return (miner_hash - validator_hash) <= 3
+    return (miner_hash - validator_hash) <= 6
 
 
 def nsfw_filter(validator_image: Image.Image, miner_image: Image.Image) -> bool:
@@ -34,7 +34,7 @@ def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
     rewards = []
     for miner_image in batched_miner_images:
         miner_image = base64_to_pil_image(miner_image)
-        validator_image = base64_to_pil_image(pil_image_to_base64(validator_image))
+        validator_image = base64_to_pil_image(validator_image)
         if miner_image is None:
             reward = False
         else:

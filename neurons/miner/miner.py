@@ -1,8 +1,13 @@
 import time
-import typing
+from typing import Tuple, TypeVar
 import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
+from image_generation_subnet.protocol import (
+    NicheImageProtocol,
+)
+
+T = TypeVar("T", bound=bt.Synapse)
 
 
 class Miner(BaseMinerNeuron):
@@ -11,27 +16,21 @@ class Miner(BaseMinerNeuron):
         self.validator_logs = {}
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
-    async def forward(
-        self, synapse: image_generation_subnet.protocol.ImageGenerating
-    ) -> image_generation_subnet.protocol.ImageGenerating:
-        
-        bt.logging.info(f"synapse {synapse}")
-
-        if synapse.prompt:
-            image = image_generation_subnet.miner.generate(
-                self, synapse.prompt, synapse.seed, synapse.pipeline_params
-            )
-            synapse.image = image
-
+    async def forward(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
         if synapse.request_dict:
-            synapse.response_dict = self.miner_info
-            bt.logging.info(f"Response dict: {self.miner_info}")
+            return await self.forward_info(synapse)
+        bt.logging.info(
+            f"synapse prompt: {synapse.prompt}, pipeline_type: {synapse.pipeline_type}"
+        )
+        synapse = await image_generation_subnet.miner.generate(self, synapse)
         return synapse
 
-    async def blacklist(
-        self, synapse: image_generation_subnet.protocol.ImageGenerating
-    ) -> typing.Tuple[bool, str]:
-        
+    async def forward_info(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
+        synapse.response_dict = self.miner_info
+        bt.logging.info(f"Response dict: {self.miner_info}")
+        return synapse
+
+    async def blacklist(self, synapse: NicheImageProtocol) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
 
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
@@ -59,9 +58,7 @@ class Miner(BaseMinerNeuron):
 
         return False, "All passed!"
 
-    async def priority(
-        self, synapse: image_generation_subnet.protocol.ImageGenerating
-    ) -> float:
+    async def priority(self, synapse: NicheImageProtocol) -> float:
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
         )  # Get the caller index.

@@ -20,11 +20,9 @@
 import re
 import os
 import codecs
-import pathlib
 from os import path
 from io import open
 from setuptools import setup, find_packages
-from pkg_resources import parse_requirements
 
 
 def read_requirements(path):
@@ -63,12 +61,12 @@ with codecs.open(
     version_string = version_match.group(1)
 
 setup(
-    name="image_generation_subnet",
+    name="nicheimage",
     version=version_string,
-    description="image_generation_subnet",
+    description="nicheimage_subnet for image generation",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/ZenAI-Vietnam/image-generation-subnet",
+    url="https://github.com/NicheTensor/NicheImage",
     author="bittensor.com",
     packages=find_packages(),
     include_package_data=True,

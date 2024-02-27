@@ -17,7 +17,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-import torch
 import argparse
 import bittensor as bt
 from loguru import logger
@@ -157,7 +156,7 @@ def add_args(cls, parser):
             "--proxy.proxy_client_url",
             type=str,
             help="The url initialize credentials for proxy.",
-            default="http://proxy_client_nicheimage.nichetensor.com:10003",
+            default="http://nicheimage.nichetensor.com/proxy_client",
         )
 
         parser.add_argument(
@@ -175,39 +174,46 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--realistic_vision.check_url",
+            "--reward_url.RealisticVision",
             type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://check_realistic_vision_nicheimage.nichetensor.com:15011/verify",
+            default="http://nicheimage.nichetensor.com/reward/RealisticVision",
         )
 
         parser.add_argument(
-            "--sdxl_turbo.check_url",
+            "--reward_url.RealitiesEdgeXL",
             type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://sdxl_turbo_nicheimage.nichetensor.com:15012/verify",
+            default="http://nicheimage.nichetensor.com/reward/RealitiesEdgeXL",
         )
 
         parser.add_argument(
-            "--anime_v3.check_url",
+            "--reward_url.AnimeV3",
             type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://check_anime_v3_nicheimage.nichetensor.com:15013/verify",
+            default="http://nicheimage.nichetensor.com/reward/AnimeV3",
         )
 
         parser.add_argument(
-            "--realities_edge_xl.check_url",
+            "--reward_url.DreamShaper",
             type=str,
             help="The endpoint to query to see if the image hash is correct.",
-            default="http://check_realities_edge_xl_nicheimage.nichetensor.com:15014/verify",
+            default="http://nicheimage.nichetensor.com/reward/DreamShaper",
         )
+        # TODO: add more reward endpoints for categories
 
         parser.add_argument(
-            "--prompt_generating_endpoint",
+            "--challenge.prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://generate_prompt_nicheimage.nichetensor.com:15010/prompt_generate",
+            default="http://nicheimage.nichetensor.com/challenge/prompt",
         )
+
+        parser.add_argument(
+            "--challenge.image",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="http://nicheimage.nichetensor.com/challenge/image",
+        )
+        # TODO: add more challenge endpoints for categories
+
     else:
         parser.add_argument(
             "--blacklist.force_validator_permit",
