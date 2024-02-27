@@ -22,7 +22,6 @@ class Validator(BaseValidatorNeuron):
         
 
         bt.logging.info("load_state()")
-        self.load_state()
         self.challenge_urls = {
             "txt2img": [self.config.challenge.prompt],
             "img2img": [self.config.challenge.prompt, self.config.challenge.image],
@@ -91,6 +90,7 @@ class Validator(BaseValidatorNeuron):
         }
         self.max_validate_batch = 5
         self.miner_manager = MinerManager(self)
+        self.load_state()
         try:
             self.validator_proxy = ValidatorProxy(self)
             bt.logging.info("Validator proxy started succesfully")
