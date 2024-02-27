@@ -6,14 +6,14 @@ from typing import List
 
 def get_black_hash(H, W) -> str:
     image = Image.new("RGB", (W, H), color="black")
-    return str(imagehash.average_hash(image, hash_size=6))
+    return str(imagehash.average_hash(image, hash_size=8))
 
 
 def matching_image(miner_image: Image.Image, validator_image: Image.Image) -> bool:
-    miner_hash = imagehash.average_hash(miner_image, hash_size=6)
-    validator_hash = imagehash.average_hash(validator_image, hash_size=6)
+    miner_hash = imagehash.average_hash(miner_image, hash_size=8)
+    validator_hash = imagehash.average_hash(validator_image, hash_size=8)
     print("Hamming Distance:", miner_hash - validator_hash, flush=True)
-    return (miner_hash - validator_hash) <= 3
+    return (miner_hash - validator_hash) <= 6
 
 
 def nsfw_filter(validator_image: Image.Image, miner_image: Image.Image) -> bool:
@@ -40,7 +40,7 @@ def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
         else:
             nsfw_check = nsfw_filter(validator_image, miner_image)
             if nsfw_check:
-                reward = -10 if nsfw_check == 2 else 0
+                reward = -5 if nsfw_check == 2 else 0
             else:
                 reward = matching_image(miner_image, validator_image)
         rewards.append(reward)
