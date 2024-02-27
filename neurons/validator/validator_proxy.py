@@ -38,7 +38,8 @@ class ValidatorProxy:
         self.proxy_counter = ProxyCounter(
             os.path.join(self.validator.config.neuron.full_path, "proxy_counter.json")
         )
-        self.start_server()
+        if self.validator.config.proxy.port:
+            self.start_server()
 
     def get_credentials(self):
         with httpx.Client() as client:
