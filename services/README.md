@@ -2,11 +2,11 @@
 **Optional** Validator gets challenge prompt and image to make synthentic request from our endpoint as default, but you can setup your own server
 1. Start prompt generating endpoint
 ```
-pm2 start python --name "challenge_prompt" -- -m services.challenge_generating.app --port 11001 --disable_secure
+pm2 start python --name "challenge_prompt" -- -m services.challenge_generating.prompt_generating.app --port 11001 --disable_secure
 ```
 2. Start image generating endpoint
 ```
-pm2 start python --name "challenge_image" -- -m services.challenge_generating.app --port 11002 --disable_secure
+pm2 start python --name "challenge_image" -- -m services.challenge_generating.image_generating.app --port 11002 --disable_secure
 ```
 **Optional** Validators gets reward from our endpoint as default, which uses reproducing and hash matching mechanism, but you can setup your own server
 
