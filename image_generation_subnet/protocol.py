@@ -2,7 +2,7 @@ import bittensor as bt
 import pydantic
 
 
-class NicheImageProtocol(bt.Synapse):
+class ImageGenerating(bt.Synapse):
     prompt: str = pydantic.Field(
         default="",
         title="Prompt",

@@ -1,5 +1,5 @@
 import requests
-from image_generation_subnet.protocol import NicheImageProtocol
+from image_generation_subnet.protocol import ImageGenerating
 import httpx
 
 
@@ -12,7 +12,7 @@ def set_info(self):
     return miner_info
 
 
-async def generate(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
+async def generate(self, synapse: ImageGenerating) -> ImageGenerating:
     data = synapse.deserialize()
 
     headers = {

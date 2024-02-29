@@ -2,7 +2,7 @@ import time
 import bittensor as bt
 import random
 import torch
-from image_generation_subnet.protocol import NicheImageProtocol
+from image_generation_subnet.protocol import ImageGenerating
 from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
 from image_generation_subnet.validator import MinerManager
@@ -172,7 +172,7 @@ class Validator(BaseValidatorNeuron):
         ]
         num_batch = len(batched_uids)
         synapses = [
-            NicheImageProtocol(pipeline_type=pipeline_type) for _ in range(num_batch)
+            ImageGenerating(pipeline_type=pipeline_type) for _ in range(num_batch)
         ]
         for synapse in synapses:
             synapse.pipeline_params.update(

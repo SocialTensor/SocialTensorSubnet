@@ -1,6 +1,6 @@
 import requests
 import bittensor as bt
-from image_generation_subnet.protocol import NicheImageProtocol
+from image_generation_subnet.protocol import ImageGenerating
 from typing import List
 from math import pow
 from functools import wraps
@@ -43,8 +43,8 @@ def skip(**kwargs):
 
 
 def get_challenge(
-    url: str, synapses: List[NicheImageProtocol]
-) -> List[NicheImageProtocol]:
+    url: str, synapses: List[ImageGenerating]
+) -> List[ImageGenerating]:
     datas = [synapse.deserialize() for synapse in synapses]
     challenges = []
     for data in datas:
@@ -66,8 +66,8 @@ def get_challenge(
 
 def get_reward(
     url: str,
-    base_synapse: NicheImageProtocol,
-    synapses: List[NicheImageProtocol],
+    base_synapse: ImageGenerating,
+    synapses: List[ImageGenerating],
     uids: List[int],
 ) -> List[float]:
     valid_uids = [uid for uid, response in zip(uids, synapses) if response.is_success]
@@ -101,7 +101,7 @@ def get_reward(
 def get_miner_info(validator, query_uids: List[int]):
     uid_to_axon = dict(zip(validator.all_uids, validator.metagraph.axons))
     query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
-    synapse = NicheImageProtocol()
+    synapse = ImageGenerating()
     synapse.request_dict = {"get_miner_info": True}
     bt.logging.info("Requesting miner info")
     responses = validator.dendrite.query(
