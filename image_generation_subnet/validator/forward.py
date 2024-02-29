@@ -97,48 +97,6 @@ def get_reward(
 
     return total_uids, total_rewards
 
-
-def get_miner_info(validator, query_uids: List[int]):
-    uid_to_axon = dict(zip(validator.all_uids, validator.metagraph.axons))
-    query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
-    synapse = ImageGenerating()
-    synapse.request_dict = {"get_miner_info": True}
-    bt.logging.info("Requesting miner info")
-    responses = validator.dendrite.query(
-        query_axons,
-        synapse,
-        deserialize=True,
-        timeout=10,
-    )
-    responses = {
-        uid: response
-        for uid, response in zip(query_uids, responses)
-        if response and "model_name" in response
-    }
-    return responses
-
-
-def update_active_models(validator):
-    """
-    1. Query model_name of available uids
-    2. Update the available list
-    """
-    validator.all_uids = [int(uid) for uid in validator.metagraph.uids]
-    valid_miners_info = get_miner_info(validator, validator.all_uids)
-    if not valid_miners_info:
-        bt.logging.warning("No active miner available. Skipping setting weights.")
-    for uid, info in valid_miners_info.items():
-        miner_state = validator.all_uids_info.setdefault(
-            uid, {"scores": [], "model_name": ""}
-        )
-        model_name = info.get("model_name", "")
-        if miner_state["model_name"] == model_name:
-            continue
-        miner_state["model_name"] = model_name
-        miner_state["scores"] = []
-    bt.logging.success("Updated miner distribution")
-
-
 def add_time_penalty(rewards, process_times, max_penalty=0.4):
     """
     Add time penalty to rewards, based on process time

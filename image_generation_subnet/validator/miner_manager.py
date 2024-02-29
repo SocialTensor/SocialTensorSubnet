@@ -30,7 +30,6 @@ class MinerManager:
         responses = {
             uid: response.response_dict
             for uid, response in zip(self.all_uids, responses)
-            if response.response_dict and "model_name" in response.response_dict
         }
         return responses
 
