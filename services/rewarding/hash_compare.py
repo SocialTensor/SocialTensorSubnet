@@ -32,12 +32,18 @@ def nsfw_filter(validator_image: Image.Image, miner_image: Image.Image) -> bool:
 
 def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
     rewards = []
+    validator_image = base64_to_pil_image(validator_image)
     for miner_image in batched_miner_images:
-        miner_image = base64_to_pil_image(miner_image)
-        validator_image = base64_to_pil_image(validator_image)
-        if miner_image is None:
+        if not miner_image:
             reward = False
         else:
+            try:
+                miner_image = base64_to_pil_image(miner_image)
+            except Exception:
+                print(f"Corrupted miner image", flush=True)
+                reward = False
+                rewards.append(reward)
+                continue
             nsfw_check = nsfw_filter(validator_image, miner_image)
             if nsfw_check:
                 reward = -5 if nsfw_check == 2 else 0

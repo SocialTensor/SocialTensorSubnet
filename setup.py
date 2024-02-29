@@ -61,7 +61,7 @@ with codecs.open(
     version_string = version_match.group(1)
 
 setup(
-    name="nicheimage",
+    name="image_generation_subnet",
     version=version_string,
     description="nicheimage_subnet for image generation",
     long_description=long_description,

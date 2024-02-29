@@ -10,7 +10,7 @@ import os
 import random
 import asyncio
 from image_generation_subnet.validator.proxy import ProxyCounter
-from image_generation_subnet.protocol import NicheImageProtocol
+from image_generation_subnet.protocol import ImageGenerating
 import traceback
 import git
 import httpx
@@ -74,9 +74,18 @@ class ValidatorProxy:
         return verify_credentials
 
     def start_server(self):
+        async def run_server():
+            config = uvicorn.Config(
+                self.app,
+                host="0.0.0.0",
+                port=self.validator.config.proxy.port,
+                log_level="info",
+            )
+            server = uvicorn.Server(config)
+            await server.serve()
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.executor.submit(
-            uvicorn.run, self.app, host="0.0.0.0", port=self.validator.config.proxy.port
+            lambda: asyncio.run(run_server())
         )
 
     def authenticate_token(self, public_key_bytes):
@@ -123,7 +132,7 @@ class ValidatorProxy:
             if "seed" not in payload:
                 payload["seed"] = random.randint(0, 1e9)
             model_name = payload["model_name"]
-            synapse = NicheImageProtocol(**payload)
+            synapse = ImageGenerating(**payload)
             synapse.limit_params()
 
             # Override default pipeline params

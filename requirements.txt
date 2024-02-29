@@ -1,6 +1,7 @@
 bittensor==6.8.1
-diffusers==0.26.3
-transformers==4.38.1
+diffusers==0.25.0
+transformers==4.35.2
+accelerate==0.27.2
 cryptography==41.0.3
 ImageHash==4.3.1
 loguru==0.7.0
@@ -16,5 +17,4 @@ gitpython==3.1.40
 httpx==0.26.0
 ray==2.9.2
 ray[serve]
-accelerate==0.27.2
 controlnet_aux==0.0.7

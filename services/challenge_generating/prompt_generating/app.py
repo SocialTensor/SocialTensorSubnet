@@ -48,6 +48,7 @@ def get_args():
 class PromptGenerator:
     def __init__(self):
         generator = pipeline(
+            'text-generation',
             model="Gustavosta/MagicPrompt-Stable-Diffusion", device="cuda"
         )
         self.generator = generator
@@ -55,9 +56,10 @@ class PromptGenerator:
     async def __call__(self, data: dict):
         set_seed(data["seed"])
         prompt = self.generator(
-            data["prompt"],
+            data["prompt"] if data["prompt"] else "a picture of",
             max_length=data["max_length"],
         )[0]["generated_text"]
+        prompt = prompt.strip()
         print("Prompt Generated:", prompt, flush=True)
         return prompt
 
@@ -90,7 +92,7 @@ class ChallengeImage:
         prompt = await self.model_handle.remote(data)
         return {"prompt": prompt}
 
-    @limiter.limit("60/minute")
+    @limiter.limit("120/minute")
     async def filter_allowed_ips(self, request: Request, call_next):
         if self.args.disable_secure:
             response = await call_next(request)

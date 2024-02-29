@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 from transformers import pipeline
 from PIL import Image
-
+import torch
+import os
 
 class BaseModel(ABC):
     def __init__(self, *args, **kwargs):

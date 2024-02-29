@@ -1,10 +1,10 @@
 import requests
 import bittensor as bt
-from image_generation_subnet.protocol import NicheImageProtocol
+from image_generation_subnet.protocol import ImageGenerating
 from typing import List
 from math import pow
 from functools import wraps
-
+from tqdm import tqdm
 
 def retry(**kwargs):
     module = kwargs.get("module", "unknown")
@@ -43,31 +43,30 @@ def skip(**kwargs):
 
 
 def get_challenge(
-    url: str, synapses: List[NicheImageProtocol]
-) -> List[NicheImageProtocol]:
-    datas = [synapse.deserialize() for synapse in synapses]
-    challenges = []
-    for data in datas:
+    url: str, synapses: List[ImageGenerating]
+) -> List[ImageGenerating]:
+    for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
+        if not synapse:
+            continue
         try:
+            data = synapse.deserialize()
             response = requests.post(url, json=data)
             if response.status_code != 200:
-                raise Exception(f"Error in get_challenge: {response.json()}")
+                raise
             challenge = response.json()
-        except Exception as e:
-            bt.logging.error(f"Error in get_challenge: {e}")
+        except Exception:
             challenge = None
-        challenges.append(challenge)
-    synapses = [
-        synapse.copy(update=challenge)
-        for synapse, challenge in zip(synapses, challenges)
-    ]
+        if challenge:
+            synapses[i] = synapse.copy(update=challenge)
+        else:
+            synapses[i] = None
     return synapses
 
 
 def get_reward(
     url: str,
-    base_synapse: NicheImageProtocol,
-    synapses: List[NicheImageProtocol],
+    base_synapse: ImageGenerating,
+    synapses: List[ImageGenerating],
     uids: List[int],
 ) -> List[float]:
     valid_uids = [uid for uid, response in zip(uids, synapses) if response.is_success]
@@ -91,53 +90,12 @@ def get_reward(
         valid_rewards = add_time_penalty(valid_rewards, process_times)
         valid_rewards = [round(num, 3) for num in valid_rewards]
     else:
+        bt.logging.info("0 valid responses in a batch")
         valid_rewards = []
 
     total_rewards = valid_rewards + [0] * len(invalid_uids)
 
     return total_uids, total_rewards
-
-
-def get_miner_info(validator, query_uids: List[int]):
-    uid_to_axon = dict(zip(validator.all_uids, validator.metagraph.axons))
-    query_axons = [uid_to_axon[int(uid)] for uid in query_uids]
-    synapse = NicheImageProtocol()
-    synapse.request_dict = {"get_miner_info": True}
-    bt.logging.info("Requesting miner info")
-    responses = validator.dendrite.query(
-        query_axons,
-        synapse,
-        deserialize=True,
-        timeout=10,
-    )
-    responses = {
-        uid: response
-        for uid, response in zip(query_uids, responses)
-        if response and "model_name" in response
-    }
-    return responses
-
-
-def update_active_models(validator):
-    """
-    1. Query model_name of available uids
-    2. Update the available list
-    """
-    validator.all_uids = [int(uid) for uid in validator.metagraph.uids]
-    valid_miners_info = get_miner_info(validator, validator.all_uids)
-    if not valid_miners_info:
-        bt.logging.warning("No active miner available. Skipping setting weights.")
-    for uid, info in valid_miners_info.items():
-        miner_state = validator.all_uids_info.setdefault(
-            uid, {"scores": [], "model_name": ""}
-        )
-        model_name = info.get("model_name", "")
-        if miner_state["model_name"] == model_name:
-            continue
-        miner_state["model_name"] = model_name
-        miner_state["scores"] = []
-    bt.logging.success("Updated miner distribution")
-
 
 def add_time_penalty(rewards, process_times, max_penalty=0.4):
     """

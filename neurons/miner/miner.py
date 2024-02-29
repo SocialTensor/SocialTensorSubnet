@@ -4,7 +4,7 @@ import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
 from image_generation_subnet.protocol import (
-    NicheImageProtocol,
+    ImageGenerating,
 )
 
 T = TypeVar("T", bound=bt.Synapse)
@@ -16,7 +16,7 @@ class Miner(BaseMinerNeuron):
         self.validator_logs = {}
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
-    async def forward(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
+    async def forward(self, synapse: ImageGenerating) -> ImageGenerating:
         if synapse.request_dict:
             return await self.forward_info(synapse)
         bt.logging.info(
@@ -25,12 +25,12 @@ class Miner(BaseMinerNeuron):
         synapse = await image_generation_subnet.miner.generate(self, synapse)
         return synapse
 
-    async def forward_info(self, synapse: NicheImageProtocol) -> NicheImageProtocol:
+    async def forward_info(self, synapse: ImageGenerating) -> ImageGenerating:
         synapse.response_dict = self.miner_info
         bt.logging.info(f"Response dict: {self.miner_info}")
         return synapse
 
-    async def blacklist(self, synapse: NicheImageProtocol) -> Tuple[bool, str]:
+    async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
 
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
@@ -58,7 +58,7 @@ class Miner(BaseMinerNeuron):
 
         return False, "All passed!"
 
-    async def priority(self, synapse: NicheImageProtocol) -> float:
+    async def priority(self, synapse: ImageGenerating) -> float:
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
         )  # Get the caller index.
