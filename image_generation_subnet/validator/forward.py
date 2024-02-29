@@ -4,7 +4,7 @@ from image_generation_subnet.protocol import ImageGenerating
 from typing import List
 from math import pow
 from functools import wraps
-
+from tqdm import tqdm
 
 def retry(**kwargs):
     module = kwargs.get("module", "unknown")
@@ -45,7 +45,7 @@ def skip(**kwargs):
 def get_challenge(
     url: str, synapses: List[ImageGenerating]
 ) -> List[ImageGenerating]:
-    for synapse in synapses:
+    for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
         if not synapse:
             continue
         try:
@@ -58,9 +58,9 @@ def get_challenge(
             bt.logging.error(f"Error in get_challenge: {e}")
             challenge = None
         if challenge:
-            synapse = synapse.copy(update=challenge)
+            synapses[i] = synapse.copy(update=challenge)
         else:
-            synapse = None
+            synapses[i] = None
     return synapses
 
 

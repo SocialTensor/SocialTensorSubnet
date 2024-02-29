@@ -9,6 +9,7 @@ from image_generation_subnet.validator import MinerManager
 import image_generation_subnet as ig_subnet
 import traceback
 import yaml
+from tqdm import tqdm
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
