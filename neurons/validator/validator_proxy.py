@@ -74,9 +74,18 @@ class ValidatorProxy:
         return verify_credentials
 
     def start_server(self):
+        async def run_server():
+            config = uvicorn.Config(
+                self.app,
+                host="0.0.0.0",
+                port=self.validator.config.proxy.port,
+                log_level="info",
+            )
+            server = uvicorn.Server(config)
+            await server.serve()
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.executor.submit(
-            uvicorn.run, self.app, host="0.0.0.0", port=self.validator.config.proxy.port
+            lambda: asyncio.run(run_server())
         )
 
     def authenticate_token(self, public_key_bytes):

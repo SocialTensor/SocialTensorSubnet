@@ -45,10 +45,11 @@ def skip(**kwargs):
 def get_challenge(
     url: str, synapses: List[ImageGenerating]
 ) -> List[ImageGenerating]:
-    datas = [synapse.deserialize() for synapse in synapses]
-    challenges = []
-    for data in datas:
+    for synapse in synapses:
+        if not synapse:
+            continue
         try:
+            data = synapse.deserialize()
             response = requests.post(url, json=data)
             if response.status_code != 200:
                 raise Exception(f"Error in get_challenge: {response.json()}")
@@ -56,11 +57,10 @@ def get_challenge(
         except Exception as e:
             bt.logging.error(f"Error in get_challenge: {e}")
             challenge = None
-        challenges.append(challenge)
-    synapses = [
-        synapse.copy(update=challenge)
-        for synapse, challenge in zip(synapses, challenges)
-    ]
+        if challenge:
+            synapse = synapse.copy(update=challenge)
+        else:
+            synapse = None
     return synapses
 
 

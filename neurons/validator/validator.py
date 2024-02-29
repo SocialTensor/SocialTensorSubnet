@@ -138,6 +138,8 @@ class Validator(BaseValidatorNeuron):
             )
 
             for synapse, uids in zip(synapses, batched_uids):
+                if not synapse:
+                    continue
                 try:
                     base_synapse = synapse.copy()
                     responses = self.dendrite.query(

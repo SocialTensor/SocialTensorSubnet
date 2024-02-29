@@ -90,7 +90,7 @@ class ChallengeImage:
         prompt = await self.model_handle.remote(data)
         return {"prompt": prompt}
 
-    @limiter.limit("60/minute")
+    @limiter.limit("120/minute")
     async def filter_allowed_ips(self, request: Request, call_next):
         if self.args.disable_secure:
             response = await call_next(request)
