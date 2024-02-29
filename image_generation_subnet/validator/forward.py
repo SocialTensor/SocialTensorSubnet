@@ -52,10 +52,9 @@ def get_challenge(
             data = synapse.deserialize()
             response = requests.post(url, json=data)
             if response.status_code != 200:
-                raise Exception(f"Error in get_challenge: {response.json()}")
+                raise
             challenge = response.json()
-        except Exception as e:
-            bt.logging.error(f"Error in get_challenge: {e}")
+        except Exception:
             challenge = None
         if challenge:
             synapses[i] = synapse.copy(update=challenge)
@@ -91,6 +90,7 @@ def get_reward(
         valid_rewards = add_time_penalty(valid_rewards, process_times)
         valid_rewards = [round(num, 3) for num in valid_rewards]
     else:
+        bt.logging.info("0 valid responses in a batch")
         valid_rewards = []
 
     total_rewards = valid_rewards + [0] * len(invalid_uids)
