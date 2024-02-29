@@ -51,6 +51,12 @@ class MinerManager:
             miner_state["model_name"] = model_name
             miner_state["scores"] = []
         bt.logging.success("Updated miner identity")
+        model_distribution = {}
+        for uid, info in self.all_uids_info.items():
+            model_distribution[info["model_name"]] = model_distribution.get(
+                info["model_name"], 0
+            ) + 1
+        bt.logging.info(f"Model distribution: {model_distribution}")
 
     def get_miner_uids(self, model_name: str):
         available_uids = [
