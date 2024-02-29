@@ -4,10 +4,6 @@ from PIL import Image
 import torch
 import os
 
-os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"
-torch.backends.cudnn.benchmark = False
-torch.use_deterministic_algorithms(True)
-
 class BaseModel(ABC):
     def __init__(self, *args, **kwargs):
         self.inference_function = self.load_model(*args, **kwargs)
