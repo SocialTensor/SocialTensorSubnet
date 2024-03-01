@@ -14,7 +14,7 @@ from services.rays.image_generating import ModelDeployment
 from ray import serve
 from ray.serve.handle import DeploymentHandle
 from services.rewarding.hash_compare import infer_hash
-from discord_webhook import DiscordWebhook
+from discord_webhook import AsyncDiscordWebhook
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -90,7 +90,7 @@ class RewardApp:
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         self.allowed_ips = []
         if args.webhook_url:
-            self.webhook = DiscordWebhook(url=args.webhook_url, username=args.model_name)
+            self.webhook = AsyncDiscordWebhook(url=args.webhook_url, username=args.model_name)
         else:
             self.webhook = None
 
