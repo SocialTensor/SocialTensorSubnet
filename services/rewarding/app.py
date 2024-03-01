@@ -14,6 +14,7 @@ from services.rays.image_generating import ModelDeployment
 from ray import serve
 from ray.serve.handle import DeploymentHandle
 from services.rewarding.hash_compare import infer_hash
+from discord_webhook import DiscordWebhook
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -45,6 +46,16 @@ def get_args():
         "--num_replicas",
         type=int,
         default=1,
+    )
+    parser.add_argument(
+        "--webhook_url",
+        type=str,
+        default="",
+    )
+    parser.add_argument(
+        "--probability_for_notice",
+        type=float,
+        default=0.2,
     )
 
     args = parser.parse_args()
@@ -78,6 +89,10 @@ class RewardApp:
         self.app.state.limiter = limiter
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         self.allowed_ips = []
+        if args.webhook_url:
+            self.webhook = DiscordWebhook(url=args.webhook_url, username=args.model_name)
+        else:
+            self.webhook = None
 
         if not self.args.disable_secure:
             self.allowed_ips_thread = threading.Thread(
@@ -92,7 +107,7 @@ class RewardApp:
         miner_data = reward_request.miner_data
         validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
         miner_images = [d.image for d in miner_data]
-        rewards = infer_hash(validator_image, miner_images)
+        rewards = infer_hash(validator_image, miner_images, self.webhook, self.args.probability_for_notice)
         rewards = [float(reward) for reward in rewards]
         return {
             "rewards": rewards,
