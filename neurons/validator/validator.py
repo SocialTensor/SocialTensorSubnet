@@ -146,6 +146,7 @@ class Validator(BaseValidatorNeuron):
                         axons=[self.metagraph.axons[int(uid)] for uid in uids],
                         synapse=synapse,
                         deserialize=False,
+                        timeout=self.nicheimage_catalogue[model_name]["timeout"],
                     )
 
                     bt.logging.info("Received responses, calculating rewards")
@@ -160,6 +161,7 @@ class Validator(BaseValidatorNeuron):
                     bt.logging.error(
                         f"Error while processing forward pass for {model_name}: {e}"
                     )
+                    bt.logging.error(traceback.print_exc())
                     continue
 
         self.update_scores_on_chain()
