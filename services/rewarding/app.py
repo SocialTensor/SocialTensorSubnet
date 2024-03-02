@@ -114,7 +114,7 @@ class RewardApp:
         miner_images = [d.image for d in miner_data]
         rewards = infer_hash(validator_image, miner_images)
         rewards = [float(reward) for reward in rewards]
-        content = f"{str(rewards)}\n{str(base_data.to_dict())}" 
+        content = f"{str(rewards)}\n{str(dict(base_data))}" 
         if self.webhook and self.args.notice_prob < random.random():
             try:
                 miner_images = [base64_to_pil_image(image) for image in miner_images]
