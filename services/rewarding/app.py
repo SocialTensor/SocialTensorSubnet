@@ -115,11 +115,12 @@ class RewardApp:
         rewards = infer_hash(validator_image, miner_images)
         rewards = [float(reward) for reward in rewards]
         content = f"{str(rewards)}\n{str(dict(base_data))}" 
-        if self.webhook and self.args.notice_prob < random.random():
+        if self.webhook and random.random() < self.args.notice_prob:
             try:
                 miner_images = [base64_to_pil_image(image) for image in miner_images]
                 all_images = [validator_image] + miner_images
                 asyncio.create_task(notice_discord(all_images, self.webhook, content))
+                print("Notice discord")
             except Exception as e:
                 print(f"Exception in notice_discord" + str(e), flush=True)
         return {
