@@ -118,7 +118,7 @@ class RewardApp:
         if self.webhook and random.random() < self.args.notice_prob:
             try:
                 miner_images = [base64_to_pil_image(image) for image in miner_images]
-                all_images = [validator_image] + miner_images
+                all_images = [base64_to_pil_image(validator_image)] + miner_images
                 asyncio.create_task(notice_discord(all_images, self.webhook, content))
                 print("Notice discord")
             except Exception as e:
