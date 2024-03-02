@@ -31,10 +31,12 @@ def make_image_grid(image_list, grid_size, image_size):
         grid_img.paste(img, box)
         
     return grid_img
-async def notice_discord(validator_image, miner_image, webhook):
-    notice_image = make_image_grid([validator_image, miner_image], (1, 2), (256, 256))
+async def notice_discord(images, webhook, content=""):
+    n_image = len(images)
+    notice_image = make_image_grid(images, (1, n_image), (256, 256))
     notice_io = BytesIO()
     notice_image.save(notice_io, format="JPEG")
     notice_io.seek(0)
+    webhook.content = content
     webhook.add_file(file=notice_io, filename="notice.jpg")
     await webhook.execute()

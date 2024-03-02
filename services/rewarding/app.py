@@ -15,6 +15,11 @@ from ray import serve
 from ray.serve.handle import DeploymentHandle
 from services.rewarding.hash_compare import infer_hash
 from discord_webhook import AsyncDiscordWebhook
+from services.rewarding.notice import notice_discord
+import random
+import asyncio
+from image_generation_subnet.utils import base64_to_pil_image
+from PIL import Image
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -53,7 +58,7 @@ def get_args():
         default="",
     )
     parser.add_argument(
-        "--probability_for_notice",
+        "--notice_prob",
         type=float,
         default=0.2,
     )
@@ -107,8 +112,16 @@ class RewardApp:
         miner_data = reward_request.miner_data
         validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
         miner_images = [d.image for d in miner_data]
-        rewards = infer_hash(validator_image, miner_images, self.webhook, self.args.probability_for_notice)
+        rewards = infer_hash(validator_image, miner_images)
         rewards = [float(reward) for reward in rewards]
+        content = f"{str(rewards)}\n{str(base_data.to_dict())}" 
+        if self.webhook and self.args.notice_prob < random.random():
+            try:
+                miner_images = [base64_to_pil_image(image) for image in miner_images]
+                all_images = [validator_image] + miner_images
+                asyncio.create_task(notice_discord(all_images, self.webhook, content))
+            except Exception as e:
+                print(f"Exception in notice_discord" + str(e), flush=True)
         return {
             "rewards": rewards,
         }

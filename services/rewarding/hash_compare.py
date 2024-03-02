@@ -4,7 +4,6 @@ from PIL import Image, ImageDraw
 from typing import List
 import random
 import asyncio
-from services.rewarding.notice import notice_discord
 from io import BytesIO
 
 def get_black_hash(H, W) -> str:
@@ -33,7 +32,7 @@ def nsfw_filter(validator_image: Image.Image, miner_image: Image.Image) -> bool:
     return 0
 
 
-def infer_hash(validator_image: Image.Image, batched_miner_images: List[str], webhook = None, probability = 0.2):
+def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
     rewards = []
     validator_image = base64_to_pil_image(validator_image)
     for miner_image in batched_miner_images:
@@ -52,8 +51,8 @@ def infer_hash(validator_image: Image.Image, batched_miner_images: List[str], we
                 reward = -5 if nsfw_check == 2 else 0
             else:
                 reward = matching_image(miner_image, validator_image)
-            if reward <= 0 and webhook and random.random() < probability:
-                asyncio.create_task(notice_discord(validator_image, miner_image, webhook))
+            # if reward <= 0 and webhook and random.random() < probability:
+            #     asyncio.create_task(notice_discord(validator_image, miner_image, webhook))
         rewards.append(reward)
     print(rewards, flush=True)
     return rewards
