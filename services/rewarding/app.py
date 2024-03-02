@@ -18,7 +18,7 @@ from discord_webhook import AsyncDiscordWebhook
 from services.rewarding.notice import notice_discord
 import random
 import asyncio
-from image_generation_subnet.utils import base64_to_pil_image
+from generation_models.utils import base64_to_pil_image
 from PIL import Image
 
 MODEL_CONFIG = yaml.load(
