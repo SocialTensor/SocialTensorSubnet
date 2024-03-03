@@ -31,9 +31,11 @@ class CosineSimilarityReward(nn.Module):
         validator_vec = self.model(self.transforms(validator_image).unsqueeze(0).cuda())
         image_vec = self.model(self.transforms(miner_image).unsqueeze(0).cuda())
         cosine_similarity = F.cosine_similarity(validator_vec, image_vec)
-        return cosine_similarity.item()
+        return float(cosine_similarity.item() > self.threshold)
 
-    def get_reward(self, validator_image: Image.Image, batched_miner_images: List[str]):
+    def get_reward(
+        self, validator_image: Image.Image, batched_miner_images: List[str]
+    ) -> List[float]:
         rewards = []
         if not isinstance(validator_image, Image.Image):
             validator_image = base64_to_pil_image(validator_image)

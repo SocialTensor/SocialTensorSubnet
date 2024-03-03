@@ -124,9 +124,9 @@ class RewardApp:
                 miner_images = [base64_to_pil_image(image) for image in miner_images]
                 all_images = [base64_to_pil_image(validator_image)] + miner_images
                 asyncio.create_task(notice_discord(all_images, self.webhook, content))
-                print("Notice discord")
+                print("Noticed discord")
             except Exception as e:
-                print(f"Exception in notice_discord" + str(e), flush=True)
+                print(f"Exception while noticing discord" + str(e), flush=True)
         return {
             "rewards": rewards,
         }
