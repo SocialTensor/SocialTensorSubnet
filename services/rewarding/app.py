@@ -117,6 +117,7 @@ class RewardApp:
         miner_images = [d.image for d in miner_data]
         rewards = self.rewarder.get_reward(validator_image, miner_images)
         rewards = [float(reward) for reward in rewards]
+        print(rewards, flush=True)
         content = f"{str(rewards)}\n{str(dict(base_data))}"
         if self.webhook and random.random() < self.args.notice_prob:
             try:
