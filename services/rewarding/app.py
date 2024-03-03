@@ -13,7 +13,7 @@ import yaml
 from services.rays.image_generating import ModelDeployment
 from ray import serve
 from ray.serve.handle import DeploymentHandle
-from services.rewarding.hash_compare import infer_hash
+from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
 from discord_webhook import AsyncDiscordWebhook
 from services.rewarding.notice import notice_discord
 import random
@@ -88,6 +88,7 @@ class RewardApp:
     def __init__(self, model_handle: DeploymentHandle, args):
         self.model_handle = model_handle
         self.args = args
+        self.rewarder = CosineSimilarityReward()
         self.app = FastAPI()
         self.app.add_api_route("/", self.__call__, methods=["POST"])
         self.app.middleware("http")(self.filter_allowed_ips)
@@ -95,7 +96,9 @@ class RewardApp:
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         self.allowed_ips = []
         if args.webhook_url:
-            self.webhook = AsyncDiscordWebhook(url=args.webhook_url, username=args.model_name)
+            self.webhook = AsyncDiscordWebhook(
+                url=args.webhook_url, username=args.model_name
+            )
         else:
             self.webhook = None
 
@@ -112,9 +115,9 @@ class RewardApp:
         miner_data = reward_request.miner_data
         validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
         miner_images = [d.image for d in miner_data]
-        rewards = infer_hash(validator_image, miner_images)
+        rewards = self.rewarder.get_reward(validator_image, miner_images)
         rewards = [float(reward) for reward in rewards]
-        content = f"{str(rewards)}\n{str(dict(base_data))}" 
+        content = f"{str(rewards)}\n{str(dict(base_data))}"
         if self.webhook and random.random() < self.args.notice_prob:
             try:
                 miner_images = [base64_to_pil_image(image) for image in miner_images]
