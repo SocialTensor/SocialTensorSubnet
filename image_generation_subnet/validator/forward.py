@@ -85,7 +85,7 @@ def get_reward(
             raise Exception(f"Error in get_reward: {response.json()}")
         valid_rewards = response.json()["rewards"]
         valid_rewards = [float(reward) for reward in valid_rewards]
-        process_times = [response.dendrite.process_time for response in synapses]
+        process_times = [synapse.dendrite.process_time for synapse in valid_synapses]
 
         valid_rewards = add_time_penalty(valid_rewards, process_times)
         valid_rewards = [round(num, 3) for num in valid_rewards]

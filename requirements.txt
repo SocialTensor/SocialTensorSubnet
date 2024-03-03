@@ -18,3 +18,4 @@ httpx==0.26.0
 ray==2.9.2
 ray[serve]
 controlnet_aux==0.0.7
+discord-webhook
