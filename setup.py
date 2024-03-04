@@ -92,3 +92,6 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
 )
+
+# Uninstall "uvloop" due to incompatibility with "bittensor-loop which use asyncio"
+os.system("pip uninstall -y uvloop")
