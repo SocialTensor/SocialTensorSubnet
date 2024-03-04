@@ -9,9 +9,14 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from typing import Optional
+import re
 from ray import serve
 from ray.serve.handle import DeploymentHandle
 from transformers import pipeline, set_seed
+import random
+
+with open("services/challenge_generating/prompt_generating/idea.txt", "r") as file:
+    ideas = file.readlines()
 
 
 class Prompt(BaseModel, extra=Extra.allow):
@@ -48,19 +53,41 @@ def get_args():
 class PromptGenerator:
     def __init__(self):
         generator = pipeline(
-            'text-generation',
-            model="Gustavosta/MagicPrompt-Stable-Diffusion", device="cuda"
+            "text-generation",
+            model="Gustavosta/MagicPrompt-Stable-Diffusion",
+            device="cuda",
+            tokenizer="gpt2",
         )
         self.generator = generator
 
     async def __call__(self, data: dict):
         set_seed(data["seed"])
-        prompt = self.generator(
-            data["prompt"] if data["prompt"] else "a picture of",
-            max_length=data["max_length"],
-        )[0]["generated_text"]
+        if not data["prompt"]:
+            starting_text = "" if random.random() < 0.5 else "image of"
+        else:
+            starting_text = data["prompt"]
+        prompt = self.generate(starting_text)
+        prompt = prompt.replace("image of", "")
         prompt = prompt.strip()
         print("Prompt Generated:", prompt, flush=True)
+        return prompt
+
+    def generate(self, starting_text):
+        if starting_text == "":
+            starting_text: str = (
+                ideas[random.randrange(0, len(ideas))]
+                .replace("\n", "")
+                .lower()
+                .capitalize()
+            )
+            starting_text: str = re.sub(r"[,:\-–.!;?_]", "", starting_text)
+
+        response = self.generator(
+            starting_text,
+            max_length=(len(starting_text) + random.randint(60, 90)),
+            num_return_sequences=1,
+        )
+        prompt = response[0]["generated_text"].strip()
         return prompt
 
 

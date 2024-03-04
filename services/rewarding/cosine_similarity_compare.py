@@ -12,7 +12,7 @@ class CosineSimilarityReward(nn.Module):
     def __init__(
         self,
         model_name="vit_base_patch16_clip_384.laion2b_ft_in12k_in1k",
-        threshold=0.8,
+        threshold=0.6,
     ):
         super(CosineSimilarityReward, self).__init__()
         self.threshold = threshold
@@ -27,11 +27,13 @@ class CosineSimilarityReward(nn.Module):
         return model, transforms
 
     @torch.inference_mode()
-    def forward(self, validator_image: Image.Image, miner_image: Image.Image) -> float:
+    def forward(self, validator_image: Image.Image, miner_image: Image.Image, binary=True) -> float:
         validator_vec = self.model(self.transforms(validator_image).unsqueeze(0).cuda())
         image_vec = self.model(self.transforms(miner_image).unsqueeze(0).cuda())
         cosine_similarity = F.cosine_similarity(validator_vec, image_vec)
-        return float(cosine_similarity.item() > self.threshold)
+        if binary:
+            return float(cosine_similarity.item() > self.threshold)
+        return float(cosine_similarity.item())
 
     def get_reward(
         self, validator_image: Image.Image, batched_miner_images: List[str]
