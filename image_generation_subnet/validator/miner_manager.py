@@ -53,9 +53,9 @@ class MinerManager:
         bt.logging.success("Updated miner identity")
         model_distribution = {}
         for uid, info in self.all_uids_info.items():
-            model_distribution[info["model_name"]] = model_distribution.get(
-                info["model_name"], 0
-            ) + 1
+            model_distribution[info["model_name"]] = (
+                model_distribution.get(info["model_name"], 0) + 1
+            )
         bt.logging.info(f"Model distribution: {model_distribution}")
 
     def get_miner_uids(self, model_name: str):
@@ -71,7 +71,7 @@ class MinerManager:
             self.all_uids_info[uid]["scores"].append(reward)
             self.all_uids_info[uid]["scores"] = self.all_uids_info[uid]["scores"][-10:]
 
-    def get_model_specific_weights(self, model_name):
+    def get_model_specific_weights(self, model_name, normalize=True):
         model_specific_weights = torch.zeros(len(self.all_uids))
         for uid in self.get_miner_uids(model_name):
             num_past_to_check = 10
@@ -80,8 +80,9 @@ class MinerManager:
                 / num_past_to_check
             )
         model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
-        tensor_sum = torch.sum(model_specific_weights)
-        # Normalizing the tensor
-        if tensor_sum > 0:
-            model_specific_weights = model_specific_weights / tensor_sum
+        if normalize:
+            tensor_sum = torch.sum(model_specific_weights)
+            # Normalizing the tensor
+            if tensor_sum > 0:
+                model_specific_weights = model_specific_weights / tensor_sum
         return model_specific_weights

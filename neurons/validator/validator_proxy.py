@@ -137,7 +137,7 @@ class ValidatorProxy:
             reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
 
             specific_weights = self.validator.miner_manager.get_model_specific_weights(
-                model_name
+                model_name, normalize=False
             )
 
             if miner_uid >= 0:
@@ -153,7 +153,16 @@ class ValidatorProxy:
                 ]
 
                 if not available_uids:
-                    raise Exception("No miners meet the score threshold")
+                    bt.logging.warning(
+                        "No miners meet the score threshold, selecting all non-zero miners"
+                    )
+                    available_uids = [
+                        i
+                        for i in range(len(specific_weights))
+                        if specific_weights[i] > 0
+                    ]
+                    if not available_uids:
+                        raise Exception("No miners available")
             is_valid_response = False
             random.shuffle(available_uids)
             for uid in available_uids[:5]:
