@@ -156,7 +156,7 @@ def add_args(cls, parser):
             "--proxy.proxy_client_url",
             type=str,
             help="The url initialize credentials for proxy.",
-            default="http://nicheimage.nichetensor.com/proxy_client",
+            default="http://proxy_client_nicheimage.nichetensor.com:10003",
         )
 
         parser.add_argument(
