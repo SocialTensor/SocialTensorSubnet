@@ -29,6 +29,21 @@ class Validator(BaseValidatorNeuron):
             ],
         }
         self.nicheimage_catalogue = {
+            "DreamShaper": {
+                "model_incentive_weight": 0.06,
+                "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
+                    "supporting_pipelines"
+                ],
+                "reward_url": self.config.reward_url.DreamShaper,
+                "inference_params": {
+                    "num_inference_steps": 30,
+                    "width": 512,
+                    "height": 768,
+                    "guidance_scale": 7,
+                    "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+                },
+                "timeout": 12,
+            },
             "RealisticVision": {
                 "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                     "supporting_pipelines"
@@ -66,21 +81,6 @@ class Validator(BaseValidatorNeuron):
                     "width": 1024,
                     "height": 1024,
                     "guidance_scale": 7.0,
-                    "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
-                },
-                "timeout": 12,
-            },
-            "DreamShaper": {
-                "model_incentive_weight": 0.06,
-                "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
-                    "supporting_pipelines"
-                ],
-                "reward_url": self.config.reward_url.DreamShaper,
-                "inference_params": {
-                    "num_inference_steps": 30,
-                    "width": 512,
-                    "height": 768,
-                    "guidance_scale": 7,
                     "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                 },
                 "timeout": 12,
