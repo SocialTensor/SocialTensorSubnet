@@ -6,6 +6,7 @@ from generation_models.utils import (
 from typing import Dict, Any
 import os
 
+
 class ModelDeployment:
     def __init__(self, model_config):
         os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":16:8"

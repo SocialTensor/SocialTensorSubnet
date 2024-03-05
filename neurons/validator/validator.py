@@ -19,8 +19,6 @@ class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
 
-        
-
         bt.logging.info("load_state()")
         self.challenge_urls = {
             "txt2img": [self.config.challenge.prompt],

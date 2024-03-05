@@ -6,6 +6,7 @@ from math import pow
 from functools import wraps
 from tqdm import tqdm
 
+
 def retry(**kwargs):
     module = kwargs.get("module", "unknown")
 
@@ -42,9 +43,7 @@ def skip(**kwargs):
     return decorator
 
 
-def get_challenge(
-    url: str, synapses: List[ImageGenerating]
-) -> List[ImageGenerating]:
+def get_challenge(url: str, synapses: List[ImageGenerating]) -> List[ImageGenerating]:
     for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
         if not synapse:
             continue
@@ -96,6 +95,7 @@ def get_reward(
     total_rewards = valid_rewards + [0] * len(invalid_uids)
 
     return total_uids, total_rewards
+
 
 def add_time_penalty(rewards, process_times, max_penalty=0.4):
     """

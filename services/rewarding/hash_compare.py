@@ -1,10 +1,8 @@
 from generation_models.utils import base64_to_pil_image
 import imagehash
-from PIL import Image, ImageDraw
+from PIL import Image
 from typing import List
-import random
-import asyncio
-from io import BytesIO
+
 
 def get_black_hash(H, W) -> str:
     image = Image.new("RGB", (W, H), color="black")
@@ -42,7 +40,7 @@ def infer_hash(validator_image: Image.Image, batched_miner_images: List[str]):
             try:
                 miner_image = base64_to_pil_image(miner_image)
             except Exception:
-                print(f"Corrupted miner image", flush=True)
+                print("Corrupted miner image", flush=True)
                 reward = False
                 rewards.append(reward)
                 continue

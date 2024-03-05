@@ -27,7 +27,9 @@ class CosineSimilarityReward(nn.Module):
         return model, transforms
 
     @torch.inference_mode()
-    def forward(self, validator_image: Image.Image, miner_image: Image.Image, binary=True) -> float:
+    def forward(
+        self, validator_image: Image.Image, miner_image: Image.Image, binary=True
+    ) -> float:
         validator_vec = self.model(self.transforms(validator_image).unsqueeze(0).cuda())
         image_vec = self.model(self.transforms(miner_image).unsqueeze(0).cuda())
         cosine_similarity = F.cosine_similarity(validator_vec, image_vec)
@@ -49,7 +51,7 @@ class CosineSimilarityReward(nn.Module):
                     if not isinstance(miner_image, Image.Image):
                         miner_image = base64_to_pil_image(miner_image)
                 except Exception:
-                    print(f"Corrupted miner image", flush=True)
+                    print("Corrupted miner image", flush=True)
                     reward = False
                     rewards.append(reward)
                     continue

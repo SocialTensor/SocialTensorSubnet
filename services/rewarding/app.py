@@ -19,7 +19,6 @@ from services.rewarding.notice import notice_discord
 import random
 import asyncio
 from generation_models.utils import base64_to_pil_image
-from PIL import Image
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -126,7 +125,7 @@ class RewardApp:
                 asyncio.create_task(notice_discord(all_images, self.webhook, content))
                 print("Noticed discord")
             except Exception as e:
-                print(f"Exception while noticing discord" + str(e), flush=True)
+                print("Exception while noticing discord" + str(e), flush=True)
         return {
             "rewards": rewards,
         }

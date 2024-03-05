@@ -5,7 +5,7 @@ from .utils import (
     download_checkpoint,
     base64_to_pil_image,
     resize_for_condition_image,
-    set_scheduler
+    set_scheduler,
 )
 import os
 import torch
@@ -24,7 +24,9 @@ class NicheStableDiffusionXL(BaseModel):
         )
         txt2img_pipe.to("cuda")
         scheduler_name = kwargs.get("scheduler", "euler_a")
-        txt2img_pipe.scheduler = set_scheduler(scheduler_name, txt2img_pipe.scheduler.config)
+        txt2img_pipe.scheduler = set_scheduler(
+            scheduler_name, txt2img_pipe.scheduler.config
+        )
 
         txt2img_pipe.to("cuda")
 

@@ -1,8 +1,6 @@
-from PIL import Image, ImageDraw
-from typing import List
-import random
+from PIL import Image
 from io import BytesIO
-import asyncio
+
 
 def make_image_grid(image_list, grid_size, image_size):
     """
@@ -15,22 +13,24 @@ def make_image_grid(image_list, grid_size, image_size):
     """
     rows, cols = grid_size
     width, height = image_size
-    grid_img = Image.new('RGB', (cols * width, rows * height))
-    
+    grid_img = Image.new("RGB", (cols * width, rows * height))
+
     for index, img in enumerate(image_list):
         # Calculate the position of the current image in the grid
         row = index // cols
         col = index % cols
         box = (col * width, row * height, (col + 1) * width, (row + 1) * height)
-        
+
         # Resize image if it does not match the specified size
         if img.size != image_size:
             img = img.resize(image_size)
-        
+
         # Paste the current image into the grid
         grid_img.paste(img, box)
-        
+
     return grid_img
+
+
 async def notice_discord(images, webhook, content=""):
     n_image = len(images)
     notice_image = make_image_grid(images, (1, n_image), (256, 256))
