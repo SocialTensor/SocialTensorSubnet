@@ -94,4 +94,5 @@ setup(
 )
 
 # Uninstall "uvloop" due to incompatibility with "bittensor-loop which use asyncio"
+os.system("pip3 uninstall -y uvloop")
 os.system("pip uninstall -y uvloop")
