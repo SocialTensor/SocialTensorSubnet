@@ -1,6 +1,5 @@
 import requests
 from image_generation_subnet.protocol import ImageGenerating
-import httpx
 
 
 def set_info(self):
@@ -13,6 +12,8 @@ def set_info(self):
 
 
 async def generate(self, synapse: ImageGenerating) -> ImageGenerating:
+    import httpx
+
     data = synapse.deserialize()
 
     headers = {
