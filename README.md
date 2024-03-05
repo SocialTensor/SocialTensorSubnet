@@ -12,7 +12,29 @@
 NicheImage is a decentralized network that utilizes the Bittensor protocol to enable distributed image generation. This document serves as a guide for setting up and participating in the network, targeting both validators and miners. It includes essential information on project setup, operation, and contribution.
 
 #### Latest Updates
-- **27/2/2024**: Introduction of DreamShaper featuring Txt2Img, Img2Img, and Controlnet capabilities.
+- **5/3/2024**: 
+   - Highlights
+      - Introduction of DreamShaper featuring Txt2Img, Img2Img, and Controlnet capabilities.
+      - Update incentive distribution
+         - RealisticVision: 30%
+         - DreamShaper: 6%
+         - AnimeV3: 34%
+         - RealitiesEdgeXL: 30%
+      - Integrate Ray to allow multi replicas for each miner to optimize GPU usage.
+      - Refractor the codebase
+      - Better Safety Checker
+   - Actions
+      - Miners are required to update to use lastest codebase and Ray to optimize GPU usage.
+         - It should be done by doing update and restart pm2 processes, or follow detailed instruction bellow.
+      - Validators are required to update to have DreamShaper and new incentive distribution as well as new reward endpoint.
+         - It should be done by doing update and restart pm2 processes, or follow detailed instruction bellow.
+
+#### To Do
+- [x] Add SOTA models for image generation
+- [x] Integrate Ray to allow multi replicas for each miner to optimize GPU usage.
+- [x] Add Img2Img and Controlnet capabilities to DreamShaper
+- [ ] Add Img2Img and Controlnet capabilities to other models
+- [ ] Add **Mid Journey**
 
 #### NicheImage Studio - [Visit Here](https://nicheimage.streamlit.app)
 ![image](https://github.com/NicheTensor/NicheImage/assets/92072154/a02e299b-308d-40dd-90a2-5cc4789b896d)
