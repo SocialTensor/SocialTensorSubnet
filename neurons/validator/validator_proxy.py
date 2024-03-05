@@ -12,10 +12,7 @@ import asyncio
 from image_generation_subnet.validator.proxy import ProxyCounter
 from image_generation_subnet.protocol import ImageGenerating
 import traceback
-import git
-import httpx
-
-SHA = git.Repo(search_parent_directories=True).head.object.hexsha
+import requests
 
 
 class ValidatorProxy:
@@ -42,21 +39,20 @@ class ValidatorProxy:
             self.start_server()
 
     def get_credentials(self):
-        with httpx.Client() as client:
-            response = client.post(
-                f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
-                json={
-                    "postfix": (
-                        f":{self.validator.config.proxy.port}/validator_proxy"
-                        if self.validator.config.proxy.port
-                        else ""
-                    ),
-                    "uid": self.validator.uid,
-                    "all_uid_info": self.validator.miner_manager.all_uids_info,
-                    "sha": SHA,
-                },
-                timeout=30,
-            )
+        response = requests.post(
+            f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
+            json={
+                "postfix": (
+                    f":{self.validator.config.proxy.port}/validator_proxy"
+                    if self.validator.config.proxy.port
+                    else ""
+                ),
+                "uid": self.validator.uid,
+                "all_uid_info": self.validator.miner_manager.all_uids_info,
+                "SHA": "WED6MAR",
+            },
+            timeout=30,
+        )
         if response.status_code != 200:
             raise Exception("Error getting credentials from market api")
         response = response.json()
