@@ -11,6 +11,7 @@
 
 NicheImage is a decentralized network that utilizes the Bittensor protocol to enable distributed image generation. This document serves as a guide for setting up and participating in the network, targeting both validators and miners. It includes essential information on project setup, operation, and contribution.
 
+**For more information, please click [here](image_generation_subnet/NicheImage.md)**
 #### Latest Updates
 - **5/3/2024**: 
    - Highlights
