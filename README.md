@@ -110,8 +110,8 @@ pm2 start python --name "miner" \
 --wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> \
 --subtensor.network <network> \
 --axon.port <your_public_port> \
---generate_endpoint http//:127.0.0.1:10006/generate \
---info_endpoint http//:127.0.0.1:10006/info \
+--generate_endpoint http://127.0.0.1:10006/generate \
+--info_endpoint http://127.0.0.1:10006/info \
 ```
 
 <div id='setup-for-validators'/>

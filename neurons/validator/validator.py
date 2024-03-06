@@ -54,7 +54,7 @@ class Validator(BaseValidatorNeuron):
                     "num_inference_steps": 30,
                     "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                 },
-                "timeout": 4,
+                "timeout": 12,
             },
             "RealitiesEdgeXL": {
                 "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
@@ -68,7 +68,7 @@ class Validator(BaseValidatorNeuron):
                     "height": 1024,
                     "guidance_scale": 5.5,
                 },
-                "timeout": 8,
+                "timeout": 12,
             },
             "AnimeV3": {
                 "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
