@@ -27,8 +27,22 @@ class Validator(BaseValidatorNeuron):
                 self.config.challenge.prompt,
                 self.config.challenge.image,
             ],
+            "gojourney": [
+                self.config.challenge.prompt,
+                ig_subnet.validator.get_promptGoJouney,
+            ],
         }
+        # TODO: Balancing Incentive Weights
         self.nicheimage_catalogue = {
+            "GoJourney": {
+                "model_incentive_weight": 0.0,
+                "supporting_pipelines": MODEL_CONFIGS["GoJourney"]["params"][
+                    "supporting_pipelines"
+                ],
+                "reward_url": ig_subnet.validator.get_reward_GoJourney,
+                "timeout": 12,
+                "inference_params": {},
+            },
             "DreamShaper": {
                 "model_incentive_weight": 0.06,
                 "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
@@ -148,9 +162,12 @@ class Validator(BaseValidatorNeuron):
                     )
 
                     bt.logging.info("Received responses, calculating rewards")
-                    uids, rewards = ig_subnet.validator.get_reward(
-                        reward_url, base_synapse, responses, uids
-                    )
+                    if callable(reward_url):
+                        uids, rewards = ig_subnet.validator.get_reward(
+                            reward_url, base_synapse, responses, uids
+                        )
+                    else:
+                        uids, rewards = reward_url(base_synapse, responses, uids)
 
                     bt.logging.info(f"Scored responses: {rewards}")
 
@@ -182,7 +199,11 @@ class Validator(BaseValidatorNeuron):
             )
             synapse.seed = random.randint(0, 1e9)
         for challenge_url in self.challenge_urls[pipeline_type]:
-            synapses = ig_subnet.validator.get_challenge(challenge_url, synapses)
+            if callable(challenge_url):
+                synapses = challenge_url(synapses)
+            else:
+                assert isinstance(challenge_url, str)
+                synapses = ig_subnet.validator.get_challenge(challenge_url, synapses)
         return synapses, batched_uids
 
     def update_scores_on_chain(self):
