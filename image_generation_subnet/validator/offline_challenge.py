@@ -16,4 +16,4 @@ def get_promptGoJouney(synapses: list[ImageGenerating]) -> list[ImageGenerating]
     ]
     for synapse in synapses:
         synapse.prompt = f"{synapse.prompt} --ar {random.choice(ars)} --v 6"
-    return synapse
+    return synapses
