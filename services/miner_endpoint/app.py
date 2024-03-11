@@ -47,7 +47,11 @@ class MinerEndpoint:
     async def generate(self, prompt: Prompt):
         prompt_data = prompt.dict()
         output = await self.model_handle.generate.remote(prompt_data=prompt_data)
-        return {"image": output}
+        if isinstance(output, dict):
+            return {"response_dict": output}
+        if isinstance(output, str):
+            return {"image": output}
+        raise ValueError("Unsupported output type")
 
     async def info(self):
         return {

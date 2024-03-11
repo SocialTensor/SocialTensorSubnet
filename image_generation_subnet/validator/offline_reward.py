@@ -1,5 +1,6 @@
 from image_generation_subnet.protocol import ImageGenerating
 import requests
+import bittensor as bt
 
 
 def fetch_GoJourney(task_id):
@@ -25,7 +26,8 @@ def get_reward_GoJourney(
     prompt = base_synapse.prompt
     for synapse in synapses:
         try:
-            synapse_response: dict = synapse.image
+            synapse_response: dict = synapse.response_dict
+            bt.logging.info(synapse_response)
             task_id = synapse_response["task_id"]
             task_request = synapse_response["task_request"]
             task_response = fetch_GoJourney(task_id)
