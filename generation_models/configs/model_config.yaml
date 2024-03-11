@@ -32,3 +32,7 @@ DreamShaper:
       - "txt2img"
       - "img2img"
       - "controlnet_txt2img"
+GoJourney:
+  target: generation_models.NicheGoJourney
+  params:
+    supporting_pipelines: "gojourney"
