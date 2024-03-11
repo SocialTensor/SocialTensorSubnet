@@ -35,4 +35,5 @@ DreamShaper:
 GoJourney:
   target: generation_models.NicheGoJourney
   params:
-    supporting_pipelines: "gojourney"
+    supporting_pipelines: 
+      - "gojourney"
