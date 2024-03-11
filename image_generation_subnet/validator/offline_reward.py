@@ -31,6 +31,7 @@ def get_reward_GoJourney(
             task_id = synapse_response["task_id"]
             task_request = synapse_response["task_request"]
             task_response = fetch_GoJourney(task_id)
+            bt.logging.info(task_response)
             task_status = task_response["status"]
             if task_status == "failed" or task_request["prompt"] != prompt:
                 reward = 0
@@ -38,6 +39,7 @@ def get_reward_GoJourney(
                 process_mode = task_request["process_mode"]
                 reward = reward_distribution[process_mode]
             rewards.append(reward)
-        except Exception:
+        except Exception as e:
+            bt.logging.warning(f"Error in get_reward_GoJourney: {e}")
             rewards.append(0)
     return uids, rewards
