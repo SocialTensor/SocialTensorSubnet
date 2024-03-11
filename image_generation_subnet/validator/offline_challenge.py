@@ -25,7 +25,7 @@ def get_promptGoJouney(synapses: list[ImageGenerating]) -> list[ImageGenerating]
 def check_a_prompt(prompt: str) -> str:
     endpoint = "https://api.midjourneyapi.xyz/mj/v2/validation"
     data = {"prompt": prompt}
-    response = requests.post(endpoint, json=data, timeout=5)
+    response = requests.post(endpoint, json=data, timeout=10)
     response = response.json()
     return response["Prompt"]
 
@@ -40,9 +40,8 @@ def get_offline_prompt():
 def check_batch_prompt(synapses: list[ImageGenerating]) -> list[ImageGenerating]:
     for synapse in synapses:
         if not check_a_prompt(synapse.prompt):
-            if not check_a_prompt(synapse.prompt):
-                synapse.prompt = get_offline_prompt()
-                bt.logging.warning(
-                    f"Prompt {synapse.prompt} is not valid, use offline prompt: {synapse.prompt}"
-                )
+            synapse.prompt = get_offline_prompt()
+            bt.logging.warning(
+                f"Prompt {synapse.prompt} is not valid, use offline prompt: {synapse.prompt}"
+            )
     return synapses
