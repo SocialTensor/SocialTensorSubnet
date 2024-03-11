@@ -29,15 +29,16 @@ def get_reward_GoJourney(
             synapse_response: dict = synapse.response_dict
             bt.logging.info(synapse_response)
             task_id = synapse_response["task_id"]
-            task_request = synapse_response["meta"]["task_request"]
             task_response = fetch_GoJourney(task_id)
+            task_request = task_response["meta"]["task_request"]
             task_status = task_response["status"]
+            bt.logging.info(f"Synapse base: {base_synapse}")
             bt.logging.info(f"Task status: {task_status}")
             bt.logging.info(f"Task request: {task_request}")
             bt.logging.info(f"Task response: {task_response}")
             if (
                 task_status == "failed"
-                or task_request["meta"]["task_request"]["prompt"] != prompt
+                or task_response["task_request"]["prompt"] != prompt
             ):
                 bt.logging.info("Task failed or prompt mismatch")
                 reward = 0
