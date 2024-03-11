@@ -7,6 +7,9 @@ assert API_KEY, "GOJOURNEY_API_KEY is not set"
 
 
 class NicheGoJourney(BaseModel):
+    def __init__(self, *args, **kwargs):
+        self.inference_function = self.load_model(*args, **kwargs)
+
     def load_model(self, *args, **kwargs):
         imagine_inference_function = self.load_imagine(*args, **kwargs)
         return imagine_inference_function
