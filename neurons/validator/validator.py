@@ -163,11 +163,11 @@ class Validator(BaseValidatorNeuron):
 
                     bt.logging.info("Received responses, calculating rewards")
                     if callable(reward_url):
+                        uids, rewards = reward_url(base_synapse, responses, uids)
+                    else:
                         uids, rewards = ig_subnet.validator.get_reward(
                             reward_url, base_synapse, responses, uids
                         )
-                    else:
-                        uids, rewards = reward_url(base_synapse, responses, uids)
 
                     bt.logging.info(f"Scored responses: {rewards}")
 
