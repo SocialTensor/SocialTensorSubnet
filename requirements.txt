@@ -1,8 +1,8 @@
-bittensor==6.8.2
+bittensor==6.9.2
 diffusers==0.25.0
 transformers==4.35.2
 accelerate==0.27.2
-cryptography==41.0.3
+cryptography==42.0.0
 ImageHash==4.3.1
 loguru==0.7.0
 Pillow==10.2.0

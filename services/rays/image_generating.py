@@ -5,6 +5,7 @@ from generation_models.utils import (
 )
 from typing import Dict, Any
 import os
+from PIL import Image
 
 
 class ModelDeployment:
@@ -17,8 +18,13 @@ class ModelDeployment:
     async def generate(self, prompt_data: Dict[str, Any]):
         prompt_data = dict(prompt_data)
         generator = torch.manual_seed(prompt_data["seed"])
-        image = self.pipe(
+        output = self.pipe(
             generator=generator, **prompt_data, **prompt_data.get("pipeline_params", {})
         )
-        base_64_image = pil_image_to_base64(image)
-        return base_64_image
+        if isinstance(output, Image.Image):
+            base_64_image = pil_image_to_base64(output)
+            return base_64_image
+        elif isinstance(output, dict):
+            return output
+        else:
+            raise ValueError("Unsupported output type")

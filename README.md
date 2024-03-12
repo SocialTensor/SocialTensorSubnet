@@ -63,9 +63,14 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 - Validators can utilize a Proxy Client to access miner services, allowing for a seamless integration within the network.
 
 <div id='setup-for-miners'/>
-  
+
 ### Setup Instructions for Miners
-**Pre-requisites:**
+**Pre-requisites for GoJourney Model:**
+- Only CPU needed
+- Setup API KEY for [GoJourney](https://www.goapi.ai/midjourney-api)
+- Ensure you have a registered wallet/hotkey for subnet 23, accessible public ports
+
+**Pre-requisites for Stable Diffusion Model:**
 - A powerful GPU (e.g., RTX 3090, RTX 4090, A100, A40) is required for image generation tasks.
 - Ensure you have a registered wallet/hotkey for subnet 23, accessible public ports, and Python 3.10+ with GPU drivers installed.
 - These tutorials use pm2 to manage processes, this is optional but you can [learn to install](https://www.npmjs.com/package/pm2)
@@ -82,11 +87,20 @@ pip install -e .
  - `DreamShaper`: min 12GB VRAM, Stable Diffusion Architecture
  - `AnimeV3`: min 24GB VRAM, SDXL Architecture
  - `RealitiesEdgeXL`: min 24GB VRAM, SDXL Architecture 
+ - `GoJourney`: CPU only, MidJourney API based
 3. Self host a generation endpoint for `seleted_model_type` at step 2
+- Stable Diffusion Model
 ```
 pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name <selected_model_type> --num_replicas <num_replicas> --num_gpus <num_gpus_per_replica>
 ```
 This script uses [Ray](ray.io) allow you to run multi replicas based on your GPU hardware. This will be benefit because validators will penalize for time to response or be timed out will receive 0 reward.
+
+- GoJourney Model
+```
+GOJOURNEY_API_KEY=xxx PROCESS_MODE=yyy pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name GoJourney
+```
+   - Get `GOJOURNEY_API_KEY` from [GoJourney](https://www.goapi.ai/midjourney-api)
+   - `PROCESS_MODE` can be `relax`, `fast`, `turbo`. `relax` is slowest but only get 0.1 score each request, `turbo` is fastest, get 1.0 score each request. `fast` is in between, get 0.5 score each request
 
 **Eg.**
 - If you have 1 GPU RTX 4090 and selected AnimeV3

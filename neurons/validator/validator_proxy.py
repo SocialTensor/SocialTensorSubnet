@@ -88,18 +88,24 @@ class ValidatorProxy:
             )
 
     def organic_reward(self, uid, synapse, response, url):
-        if not len(response.image):
+        if not len(response.image) and isinstance(url, str):
             bt.logging.info(f"Empty image for miner {uid}")
-            self.validator.all_uids_info[uid]["scores"].append(0)
+            self.validator.miner_manager.all_uids_info[uid]["scores"].append(0)
             return False
-        if random.random() < self.validator.config.proxy.checking_probability:
+        if (
+            random.random() < self.validator.config.proxy.checking_probability
+            or callable(url)
+        ):
             bt.logging.info(f"Rewarding an organic request for miner {uid}")
-            rewards = image_generation_subnet.validator.get_reward(
-                url, synapse, [response], [uid]
-            )
+            if callable(url):
+                uids, rewards = url(synapse, [response], [uid])
+            else:
+                uids, rewards = image_generation_subnet.validator.get_reward(
+                    url, synapse, [response], [uid]
+                )
             if rewards is None:
                 return False
-            self.validator.miner_manager.update_scores([uid], rewards)
+            self.validator.miner_manager.update_scores(uids, rewards)
             bt.logging.info(f"Organic rewards: {rewards}")
             return rewards[0] > 0
         else:
@@ -180,7 +186,7 @@ class ValidatorProxy:
                 response = task.result()[0]
                 bt.logging.info("Received responses")
                 if self.organic_reward(
-                    miner_uid,
+                    uid,
                     synapse,
                     response,
                     reward_url,
@@ -203,7 +209,11 @@ class ValidatorProxy:
                     traceback.format_exc(),
                     flush=True,
                 )
-            return response.deserialize().get("image", "")
+            response = response.deserialize()
+            if response.get("image", ""):
+                return response["image"]
+            else:
+                return response["response_dict"]
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
