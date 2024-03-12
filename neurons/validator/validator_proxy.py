@@ -92,7 +92,10 @@ class ValidatorProxy:
             bt.logging.info(f"Empty image for miner {uid}")
             self.validator.miner_manager.all_uids_info[uid]["scores"].append(0)
             return False
-        if random.random() < self.validator.config.proxy.checking_probability:
+        if (
+            random.random() < self.validator.config.proxy.checking_probability
+            or callable(url)
+        ):
             bt.logging.info(f"Rewarding an organic request for miner {uid}")
             if callable(url):
                 rewards = url(synapse, response, [uid])
