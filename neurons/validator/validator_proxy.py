@@ -186,7 +186,7 @@ class ValidatorProxy:
                 response = task.result()[0]
                 bt.logging.info("Received responses")
                 if self.organic_reward(
-                    miner_uid,
+                    uid,
                     synapse,
                     response,
                     reward_url,
