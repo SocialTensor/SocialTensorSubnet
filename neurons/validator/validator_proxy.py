@@ -98,7 +98,7 @@ class ValidatorProxy:
         ):
             bt.logging.info(f"Rewarding an organic request for miner {uid}")
             if callable(url):
-                rewards = url(synapse, response, [uid])
+                rewards = url(synapse, [response], [uid])
             else:
                 rewards = image_generation_subnet.validator.get_reward(
                     url, synapse, [response], [uid]
