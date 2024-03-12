@@ -98,14 +98,14 @@ class ValidatorProxy:
         ):
             bt.logging.info(f"Rewarding an organic request for miner {uid}")
             if callable(url):
-                rewards = url(synapse, [response], [uid])
+                uids, rewards = url(synapse, [response], [uid])
             else:
-                rewards = image_generation_subnet.validator.get_reward(
+                uids, rewards = image_generation_subnet.validator.get_reward(
                     url, synapse, [response], [uid]
                 )
             if rewards is None:
                 return False
-            self.validator.miner_manager.update_scores([uid], rewards)
+            self.validator.miner_manager.update_scores(uids, rewards)
             bt.logging.info(f"Organic rewards: {rewards}")
             return rewards[0] > 0
         else:
