@@ -39,6 +39,8 @@ def get_offline_prompt():
 
 def check_batch_prompt(synapses: list[ImageGenerating]) -> list[ImageGenerating]:
     for synapse in synapses:
+        if not synapse:
+            continue
         if check_a_prompt(synapse.prompt):
             synapse.prompt = get_offline_prompt()
             bt.logging.warning(
