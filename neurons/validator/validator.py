@@ -35,7 +35,7 @@ class Validator(BaseValidatorNeuron):
         # TODO: Balancing Incentive Weights
         self.nicheimage_catalogue = {
             "GoJourney": {
-                "model_incentive_weight": 0.0,
+                "model_incentive_weight": 0.04,
                 "supporting_pipelines": MODEL_CONFIGS["GoJourney"]["params"][
                     "supporting_pipelines"
                 ],
@@ -62,7 +62,7 @@ class Validator(BaseValidatorNeuron):
                 "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                     "supporting_pipelines"
                 ],
-                "model_incentive_weight": 0.30,
+                "model_incentive_weight": 0.26,
                 "reward_url": self.config.reward_url.RealisticVision,
                 "inference_params": {
                     "num_inference_steps": 30,
