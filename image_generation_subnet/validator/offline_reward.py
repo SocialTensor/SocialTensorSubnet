@@ -39,7 +39,10 @@ def get_reward_GoJourney(
             if task_status == "failed":
                 bt.logging.info("Task failed")
                 reward = 0
-            elif task_request["prompt"].split("--")[0] != prompt.split("--")[0]:
+            elif (
+                task_request["prompt"].split("--")[0].strip()
+                != prompt.split("--")[0].strip()
+            ):
                 bt.logging.info(
                     f"Prompt mismatch: {task_request['prompt']} != {prompt}"
                 )
