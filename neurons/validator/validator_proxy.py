@@ -206,7 +206,11 @@ class ValidatorProxy:
                     traceback.format_exc(),
                     flush=True,
                 )
-            return response.deserialize().get("image", "")
+            response = response.deserialize()
+            if response.get("image", ""):
+                return response["image"]
+            else:
+                return response["response_dict"]
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
