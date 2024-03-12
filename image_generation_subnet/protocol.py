@@ -64,4 +64,5 @@ class ImageGenerating(bt.Synapse):
             "pipeline_params": self.pipeline_params,
             "conditional_image": self.conditional_image,
             "image": self.image,
+            "response_dict": self.response_dict,
         }
