@@ -56,11 +56,9 @@ class MinerManager:
             model_distribution[info["model_name"]] = (
                 model_distribution.get(info["model_name"], 0) + 1
             )
-        # Remove all key type is str, keep only int
-        model_distribution = {
-            key: value
-            for key, value in model_distribution.items()
-            if isinstance(key, int)
+        # Remove all key type is str, keep only int from all_uids_info
+        self.all_uids_info = {
+            int(k): v for k, v in self.all_uids_info.items() if isinstance(k, int)
         }
         bt.logging.info(f"Model distribution: {model_distribution}")
 
