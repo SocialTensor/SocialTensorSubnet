@@ -132,27 +132,27 @@ class Validator(BaseValidatorNeuron):
         self.miner_manager.update_miners_identity()
 
         for model_name in self.nicheimage_catalogue.keys():
-            pipeline_type = random.choice(
-                self.nicheimage_catalogue[model_name]["supporting_pipelines"]
-            )
-            reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
-            available_uids = self.miner_manager.get_miner_uids(model_name)
-            if not available_uids:
-                bt.logging.warning(
-                    f"No active miner available for specified model {model_name}. Skipping setting weights."
+            try:
+                pipeline_type = random.choice(
+                    self.nicheimage_catalogue[model_name]["supporting_pipelines"]
                 )
-                continue
-
-            bt.logging.info(f"Available uids for {model_name}: {available_uids}")
-
-            synapses, batched_uids = self.prepare_challenge(
-                available_uids, model_name, pipeline_type
-            )
-
-            for synapse, uids in zip(synapses, batched_uids):
-                if not synapse:
+                reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
+                available_uids = self.miner_manager.get_miner_uids(model_name)
+                if not available_uids:
+                    bt.logging.warning(
+                        f"No active miner available for specified model {model_name}. Skipping setting weights."
+                    )
                     continue
-                try:
+
+                bt.logging.info(f"Available uids for {model_name}: {available_uids}")
+
+                synapses, batched_uids = self.prepare_challenge(
+                    available_uids, model_name, pipeline_type
+                )
+
+                for synapse, uids in zip(synapses, batched_uids):
+                    if not synapse:
+                        continue
                     base_synapse = synapse.copy()
                     responses = self.dendrite.query(
                         axons=[self.metagraph.axons[int(uid)] for uid in uids],
@@ -172,12 +172,12 @@ class Validator(BaseValidatorNeuron):
                     bt.logging.info(f"Scored responses: {rewards}")
 
                     self.miner_manager.update_scores(uids, rewards)
-                except Exception as e:
-                    bt.logging.error(
-                        f"Error while processing forward pass for {model_name}: {e}"
-                    )
-                    bt.logging.error(traceback.print_exc())
-                    continue
+            except Exception as e:
+                bt.logging.error(
+                    f"Error while processing forward pass for {model_name}: {e}"
+                )
+                bt.logging.error(traceback.print_exc())
+                continue
 
         self.update_scores_on_chain()
         self.save_state()
