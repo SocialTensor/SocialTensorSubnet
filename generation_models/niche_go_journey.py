@@ -3,6 +3,7 @@ import os
 import httpx
 
 API_KEY = os.getenv("GOJOURNEY_API_KEY")
+PROCESS_MODE = os.getenv("PROCESS_MODE", "relax")
 assert API_KEY, "GOJOURNEY_API_KEY is not set"
 
 
@@ -25,7 +26,9 @@ class NicheGoJourney(BaseModel):
         def inference_function(*args, **kwargs):
             data = {
                 "prompt": kwargs["prompt"],
-                "process_mode": kwargs["pipeline_params"].get("process_mode", "relax"),
+                "process_mode": kwargs["pipeline_params"].get(
+                    "process_mode", PROCESS_MODE
+                ),
             }
             with httpx.Client() as client:
                 imagine_response = client.post(
