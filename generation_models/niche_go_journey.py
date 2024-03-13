@@ -4,11 +4,12 @@ import httpx
 
 API_KEY = os.getenv("GOJOURNEY_API_KEY")
 PROCESS_MODE = os.getenv("PROCESS_MODE", "relax")
-assert API_KEY, "GOJOURNEY_API_KEY is not set"
+
 
 
 class NicheGoJourney(BaseModel):
     def __init__(self, *args, **kwargs):
+        assert API_KEY, "GOJOURNEY_API_KEY is not set"
         self.inference_function = self.load_model(*args, **kwargs)
 
     def load_model(self, *args, **kwargs):
