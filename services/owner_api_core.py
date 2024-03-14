@@ -1,4 +1,5 @@
-from fastapi import Request, Response
+from fastapi import Response
+from starlette.requests import Request
 import bittensor as bt
 import time
 from slowapi import Limiter

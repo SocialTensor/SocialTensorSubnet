@@ -10,6 +10,7 @@ import yaml
 from services.rays.image_generating import ModelDeployment
 from ray import serve
 from ray.serve.handle import DeploymentHandle
+from functools import partial
 from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
 from discord_webhook import AsyncDiscordWebhook
 from services.rewarding.notice import notice_discord
@@ -85,8 +86,7 @@ class RewardApp:
         self.rewarder = CosineSimilarityReward()
         self.app = FastAPI()
         self.app.add_api_route("/", self.__call__, methods=["POST"])
-        self.filter_allowed_ips = filter_allowed_ips
-        self.app.middleware("http")(self.filter_allowed_ips)
+        self.app.middleware("http")(partial(filter_allowed_ips, self))
         self.app.state.limiter = limiter
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         self.allowed_ips = []
@@ -100,7 +100,12 @@ class RewardApp:
         if not self.args.disable_secure:
             self.allowed_ips_thread = threading.Thread(
                 target=define_allowed_ips,
-                args=(self.args.chain_endpoint, self.args.netuid, self.args.min_stake),
+                args=(
+                    self,
+                    self.args.chain_endpoint,
+                    self.args.netuid,
+                    self.args.min_stake,
+                ),
             )
             self.allowed_ips_thread.daemon = True
             self.allowed_ips_thread.start()

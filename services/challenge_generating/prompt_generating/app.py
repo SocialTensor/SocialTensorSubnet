@@ -11,6 +11,7 @@ from ray import serve
 from ray.serve.handle import DeploymentHandle
 from transformers import pipeline, set_seed
 import random
+from functools import partial
 from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limiter
 
 with open("services/challenge_generating/prompt_generating/idea.txt", "r") as file:
@@ -95,13 +96,18 @@ class ChallengeImage:
         self.model_handle = model_handle
         self.app = FastAPI()
         self.app.add_api_route("/", self.__call__, methods=["POST"])
-        self.app.middleware("http")(filter_allowed_ips)
+        self.app.middleware("http")(partial(filter_allowed_ips, self))
         self.app.state.limiter = limiter
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         if not self.args.disable_secure:
             self.allowed_ips_thread = threading.Thread(
                 target=define_allowed_ips,
-                args=(self.args.chain_endpoint, self.args.netuid, self.args.min_stake),
+                args=(
+                    self,
+                    self.args.chain_endpoint,
+                    self.args.netuid,
+                    self.args.min_stake,
+                ),
             )
             self.allowed_ips_thread.daemon = True
             self.allowed_ips_thread.start()
