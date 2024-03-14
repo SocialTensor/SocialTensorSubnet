@@ -85,7 +85,8 @@ class RewardApp:
         self.rewarder = CosineSimilarityReward()
         self.app = FastAPI()
         self.app.add_api_route("/", self.__call__, methods=["POST"])
-        self.app.middleware("http")(filter_allowed_ips)
+        self.filter_allowed_ips = filter_allowed_ips
+        self.app.middleware("http")(self.filter_allowed_ips)
         self.app.state.limiter = limiter
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         self.allowed_ips = []
