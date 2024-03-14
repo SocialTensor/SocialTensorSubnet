@@ -140,7 +140,7 @@ class RewardApp:
         if (
             (forwarded_for not in self.allowed_ips)
             and (request.client.host != "127.0.0.1")
-            and not self.allowed_ips
+            and self.allowed_ips
         ):
             print("Blocking an unallowed ip:", forwarded_for, flush=True)
             return Response(
