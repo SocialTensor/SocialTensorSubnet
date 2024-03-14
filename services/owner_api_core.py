@@ -36,17 +36,20 @@ async def filter_allowed_ips(self, request: Request, call_next):
 
 def define_allowed_ips(self, url, netuid, min_stake):
     while True:
-        state = {}
-        all_allowed_ips = []
-        subtensor = bt.subtensor(url)
-        metagraph = subtensor.metagraph(netuid)
-        for uid in range(len(metagraph.total_stake)):
-            if metagraph.total_stake[uid] > min_stake:
-                all_allowed_ips.append(metagraph.axons[uid].ip)
-                state[uid] = {
-                    "stake": metagraph.total_stake[uid],
-                    "ip": metagraph.axons[uid].ip,
-                }
-        self.allowed_ips = all_allowed_ips
-        print("Updated allowed ips:", self.state, flush=True)
+        try:
+            state = {}
+            all_allowed_ips = []
+            subtensor = bt.subtensor(url)
+            metagraph = subtensor.metagraph(netuid)
+            for uid in range(len(metagraph.total_stake)):
+                if metagraph.total_stake[uid] > min_stake:
+                    all_allowed_ips.append(metagraph.axons[uid].ip)
+                    state[uid] = {
+                        "stake": metagraph.total_stake[uid],
+                        "ip": metagraph.axons[uid].ip,
+                    }
+            self.allowed_ips = all_allowed_ips
+            print("Updated allowed ips:", state, flush=True)
+        except Exception as e:
+            print("Exception while updating allowed ips", str(e), flush=True)
         time.sleep(60)
