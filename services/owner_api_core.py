@@ -3,6 +3,7 @@ from starlette.requests import Request
 import bittensor as bt
 import time
 from slowapi import Limiter
+from pprint import pprint
 
 
 def get_forwarded_for(request: Request):
@@ -45,11 +46,12 @@ def define_allowed_ips(self, url, netuid, min_stake):
                 if metagraph.total_stake[uid] > min_stake:
                     all_allowed_ips.append(metagraph.axons[uid].ip)
                     state[uid] = {
-                        "stake": metagraph.total_stake[uid],
+                        "stake": metagraph.total_stake[uid].item(),
                         "ip": metagraph.axons[uid].ip,
                     }
             self.allowed_ips = all_allowed_ips
-            print("Updated allowed ips:", state, flush=True)
+            print("Updated allowed ips", flush=True)
+            pprint(state)
         except Exception as e:
             print("Exception while updating allowed ips", str(e), flush=True)
         time.sleep(60)
