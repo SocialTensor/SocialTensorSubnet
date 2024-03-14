@@ -50,6 +50,10 @@ def define_allowed_ips(self, url, netuid, min_stake):
                         "ip": metagraph.axons[uid].ip,
                     }
             self.allowed_ips = all_allowed_ips
+            # sort by stake
+            state = dict(
+                sorted(state.items(), key=lambda item: item[1]["stake"], reverse=True)
+            )
             print("Updated allowed ips", flush=True)
             pprint(state)
         except Exception as e:
