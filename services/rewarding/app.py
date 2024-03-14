@@ -135,15 +135,19 @@ class RewardApp:
         if self.args.disable_secure:
             response = await call_next(request)
             return response
-        if (request.client.host not in self.allowed_ips) and (
-            request.client.host != "127.0.0.1"
+        forwarded_for = request.headers.get("x-forwarded-for")
+        print("Forwarded for:", forwarded_for, flush=True)
+        if (
+            (forwarded_for not in self.allowed_ips)
+            and (request.client.host != "127.0.0.1")
+            and not self.allowed_ips
         ):
-            print("Blocking an unallowed ip:", request.client.host, flush=True)
+            print("Blocking an unallowed ip:", forwarded_for, flush=True)
             return Response(
                 content="You do not have permission to access this resource",
                 status_code=403,
             )
-        print("Allow an ip:", request.client.host, flush=True)
+        print("Allow an ip:", forwarded_for, flush=True)
         response = await call_next(request)
         return response
 
