@@ -97,7 +97,7 @@ This script uses [Ray](ray.io) allow you to run multi replicas based on your GPU
 
 - GoJourney Model
 ```
-GOJOURNEY_API_KEY=xxx PROCESS_MODE=yyy pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name GoJourney
+GOJOURNEY_API_KEY=xxx PROCESS_MODE=yyy pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name GoJourney --num_gpus 0
 ```
    - Get `GOJOURNEY_API_KEY` from [GoJourney](https://www.goapi.ai/midjourney-api)
    - `PROCESS_MODE` can be `relax`, `fast`, `turbo`. `relax` is slowest but only get 0.1 score each request, `turbo` is fastest, get 1.0 score each request. `fast` is in between, get 0.5 score each request
