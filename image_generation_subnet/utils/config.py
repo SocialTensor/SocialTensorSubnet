@@ -197,6 +197,13 @@ def add_args(cls, parser):
             help="The endpoint to query to see if the image hash is correct.",
             default="http://nicheimage.nichetensor.com/reward/DreamShaper",
         )
+
+        parser.add_argument(
+            "--reward_url.Gemma7b",
+            type=str,
+            help="The endpoint to get the reward for Gemma7b.",
+            default="http://nicheimage.nichetensor.com/reward/Gemma7b",
+        )
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(
@@ -211,6 +218,12 @@ def add_args(cls, parser):
             type=str,
             help="The endpoint to send generate requests to.",
             default="http://nicheimage.nichetensor.com/challenge/image",
+        )
+        parser.add_argument(
+            "--challenge.llm_prompt",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="http://nicheimage.nichetensor.com/challenge/llm_prompt",
         )
         # TODO: add more challenge endpoints for categories
 

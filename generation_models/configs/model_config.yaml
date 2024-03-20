@@ -37,3 +37,8 @@ GoJourney:
   params:
     supporting_pipelines: 
       - "gojourney"
+Gemma7b:
+  target: ""
+  params:
+    supporting_pipelines: 
+      - "text_generation"

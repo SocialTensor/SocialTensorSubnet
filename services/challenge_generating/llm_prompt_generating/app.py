@@ -47,8 +47,11 @@ class LLMPromptGenerating:
         }
         response = httpx.post(f"{self.args.vllm_url}/v1/completions", json=data)
         response.raise_for_status()
-        response = response.json()
-        return response["choices"][0]["text"].strip()
+        response: dict = response.json()
+        response: str = response["choices"][0]["text"].strip()
+        return {
+            "prompt_input": response,
+        }
 
     def get_question_prompt(self):
         chat = [

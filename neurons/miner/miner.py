@@ -3,9 +3,7 @@ from typing import Tuple, TypeVar
 import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
-from image_generation_subnet.protocol import (
-    ImageGenerating,
-)
+from image_generation_subnet.protocol import ImageGenerating, TextGenerating
 
 T = TypeVar("T", bound=bt.Synapse)
 
@@ -13,10 +11,17 @@ T = TypeVar("T", bound=bt.Synapse)
 class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
+        self.axon.attach(
+            forward_fn=self.forward_image,
+            blacklist_fn=self.blacklist_image,
+        ).attach(
+            forward_fn=self.forward_text,
+            blacklist_fn=self.blacklist_text,
+        )
         self.validator_logs = {}
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
-    async def forward(self, synapse: ImageGenerating) -> ImageGenerating:
+    async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
         if synapse.request_dict:
             return await self.forward_info(synapse)
         bt.logging.info(
@@ -30,7 +35,14 @@ class Miner(BaseMinerNeuron):
         bt.logging.info(f"Response dict: {self.miner_info}")
         return synapse
 
-    async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
+    async def forward_text(self, synapse: TextGenerating) -> TextGenerating:
+        if synapse.request_dict:
+            return await self.forward_info(synapse)
+        bt.logging.info(f"synapse prompt: {synapse.prompt_input}")
+        synapse = await image_generation_subnet.miner.generate(self, synapse)
+        return synapse
+
+    async def blacklist(self, synapse: bt.Synapse) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
 
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
@@ -57,6 +69,12 @@ class Miner(BaseMinerNeuron):
             return True, "Limit exceeded"
 
         return False, "All passed!"
+
+    async def blacklist_image(self, synapse: ImageGenerating) -> Tuple[bool, str]:
+        return await self.blacklist(synapse)
+
+    async def blacklist_text(self, synapse: TextGenerating) -> Tuple[bool, str]:
+        return await self.blacklist(synapse)
 
     async def priority(self, synapse: ImageGenerating) -> float:
         caller_uid = self.metagraph.hotkeys.index(

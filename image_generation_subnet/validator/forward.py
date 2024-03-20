@@ -43,7 +43,7 @@ def skip(**kwargs):
     return decorator
 
 
-def get_challenge(url: str, synapses: List[ImageGenerating]) -> List[ImageGenerating]:
+def get_challenge(url: str, synapses: List[bt.Synapse]) -> List[bt.Synapse]:
     for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
         if not synapse:
             continue
@@ -56,7 +56,7 @@ def get_challenge(url: str, synapses: List[ImageGenerating]) -> List[ImageGenera
         except Exception:
             challenge = None
         if challenge:
-            synapses[i] = synapse.copy(update=challenge)
+            synapses[i] = synapse.model_copy(update=challenge)
         else:
             synapses[i] = None
     return synapses
@@ -76,7 +76,7 @@ def get_reward(
     valid_synapses = [synapse for synapse in synapses if synapse.is_success]
     if valid_uids:
         data = {
-            "miner_data": [synapse.deserialize() for synapse in valid_synapses],
+            "miner_data": [synapse.deserialize_input() for synapse in valid_synapses],
             "base_data": base_synapse.deserialize(),
         }
         response = requests.post(url, json=data)

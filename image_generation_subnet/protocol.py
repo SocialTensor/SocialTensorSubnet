@@ -56,6 +56,12 @@ class ImageGenerating(bt.Synapse):
                 self.pipeline_params[k] = min(50, v)
         self.pipeline_params = self.pipeline_params
 
+    def miner_update(self, update: dict):
+        return self.model_copy(update=update)
+
+    def deserialize_input(self) -> dict:
+        return self.deserialize()
+
     def deserialize(self) -> dict:
         return {
             "prompt": self.prompt,
@@ -69,12 +75,28 @@ class ImageGenerating(bt.Synapse):
         }
 
 
-class PromptingProtocol(bt.Synapse):
+class TextGenerating(bt.Synapse):
     # Required request input, filled by sending dendrite caller.
-    prompt_input: dict
-
+    prompt_input: str
     # Optional request output, filled by recieving axon.
+    seed: int
+    request_dict: dict
+    model_name: str
     prompt_output: typing.Optional[dict] = None
+    pipeline_params: dict = {}
+
+    def miner_update(self, update: dict):
+        self.prompt_output = update
+
+    def deserialize_input(self) -> dict:
+        deserialized_input = {
+            "model": self.model_name,
+            "prompt": [
+                self.prompt_input,
+            ],
+        }
+        deserialized_input.update(self.pipeline_params)
+        return deserialized_input
 
     def deserialize(self) -> dict:
         """
@@ -86,4 +108,8 @@ class PromptingProtocol(bt.Synapse):
         - dict: The deserialized response, which in this case is the value of prompt_output.
         """
 
-        return self.prompt_output
+        return {
+            "prompt_output": self.prompt_output,
+            "prompt_input": self.prompt_input,
+            "model_name": self.model_name,
+        }
