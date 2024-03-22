@@ -114,6 +114,7 @@ class Validator(BaseValidatorNeuron):
                 "timeout": 32,
                 "synapse_type": ig_subnet.protocol.TextGenerating,
                 "reward_url": self.config.reward_url.Gemma7b,
+                "inference_params": {},
             },
         }
         self.max_validate_batch = 5
