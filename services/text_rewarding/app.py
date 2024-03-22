@@ -87,7 +87,11 @@ class RewardApp:
             return response.json()
 
     def prepare_testcase(self, base_data, miner_data):
-        text_offset = miner_data["choices"][0]["logprobs"]["text_offset"]
+        print(base_data, flush=True)
+        print(miner_data, flush=True)
+        text_offset = miner_data["prompt_output"]["choices"][0]["logprobs"][
+            "text_offset"
+        ]
         n_tokens = len(text_offset)
         offset_idxs = [0] + [random.randint(1, n_tokens - 1) for _ in range(2)]
         base_prompt = base_data["prompt"][0]

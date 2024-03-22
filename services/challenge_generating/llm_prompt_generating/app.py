@@ -67,6 +67,10 @@ class LLMPromptGenerating:
         response: str = response["choices"][0]["text"].strip()
         return {
             "prompt_input": response,
+            "pipeline_params": {
+                "max_tokens": 1024,
+                "logprobs": 100,
+            },
         }
 
     def get_question_prompt(self):
