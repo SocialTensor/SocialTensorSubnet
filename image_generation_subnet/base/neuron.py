@@ -19,7 +19,7 @@ import copy
 
 import bittensor as bt
 
-from abc import ABC, abstractmethod
+from abc import ABC
 
 # Sync calls set weights and also resyncs the metagraph.
 from image_generation_subnet.utils.config import check_config, add_args, config
@@ -95,14 +95,6 @@ class BaseNeuron(ABC):
             f"Running neuron on subnet: {self.config.netuid} with uid {self.uid} using network: {self.subtensor.chain_endpoint}"
         )
         self.step = 0
-
-    @abstractmethod
-    async def forward(self, synapse: bt.Synapse) -> bt.Synapse:
-        ...
-
-    @abstractmethod
-    def run(self):
-        ...
 
     def sync(self):
         """
