@@ -13,7 +13,7 @@ def set_info(self):
 
 
 async def generate(self, synapse: bt.Synapse) -> bt.Synapse:
-    data = synapse.deserialize()
+    data = synapse.deserialize_input()
     async with httpx.AsyncClient() as client:
         response = await client.post(
             self.config.generate_endpoint, json=data, timeout=synapse.timeout

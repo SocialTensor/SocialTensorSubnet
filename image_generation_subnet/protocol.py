@@ -1,6 +1,11 @@
 import bittensor as bt
 import pydantic
 import typing
+import yaml
+
+MODEL_CONFIG = yaml.load(
+    open("generation_models/configs/model_config.yaml"), yaml.FullLoader
+)
 
 
 class ImageGenerating(bt.Synapse):
@@ -90,7 +95,7 @@ class TextGenerating(bt.Synapse):
 
     def deserialize_input(self) -> dict:
         deserialized_input = {
-            "model": self.model_name,
+            "model": MODEL_CONFIG[self.model_name].get("repo_id", self.model_name),
             "prompt": [
                 self.prompt_input,
             ],
