@@ -18,7 +18,9 @@ async def generate(self, synapse: bt.Synapse) -> bt.Synapse:
         response = await client.post(
             self.config.generate_endpoint, json=data, timeout=synapse.timeout
         )
-    synapse = synapse.miner_update(update=response.json())
+    if response.status_code != 200:
+        raise Exception(f"Error in generate: {response.json()}")
+    synapse = synapse.copy(update=response.json())
     return synapse
 
 
