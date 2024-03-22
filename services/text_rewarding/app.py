@@ -88,21 +88,22 @@ class RewardApp:
 
     def prepare_testcase(self, base_data, miner_data):
         print(base_data, flush=True)
-        print(miner_data, flush=True)
         text_offset = miner_data["prompt_output"]["choices"][0]["logprobs"][
             "text_offset"
         ]
         n_tokens = len(text_offset)
-        offset_idxs = [0] + [random.randint(1, n_tokens - 1) for _ in range(2)]
+        offset_idxs = [0] + [random.randint(1, n_tokens - 1) for _ in range(2)] + [-2]
         base_prompt = base_data["prompt"][0]
         same_keys = []
         n_logprobs = base_data["logprobs"]
         for offset_idx in offset_idxs:
             offset = text_offset[offset_idx]
-            miner_top_logprobs = miner_data["choices"][0]["logprobs"]["top_logprobs"][
-                offset_idx
-            ]
-            prompt_to_check = base_prompt + miner_data["choices"][0]["text"][:offset]
+            miner_top_logprobs = miner_data["prompt_output"]["choices"][0]["logprobs"][
+                "top_logprobs"
+            ][offset_idx]
+            prompt_to_check = (
+                base_prompt + miner_data["prompt_output"]["choices"][0]["text"][:offset]
+            )
             _base_data = base_data.copy()
             _base_data["prompt"] = [prompt_to_check]
             _base_data["max_tokens"] = 1
@@ -135,7 +136,7 @@ class RewardApp:
                 print(e)
                 traceback.print_exc()
                 rewards.append(False)
-        return rewards
+        return {"rewards": rewards}
 
 
 if __name__ == "__main__":
