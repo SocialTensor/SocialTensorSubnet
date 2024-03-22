@@ -1,9 +1,6 @@
 import argparse
 from fastapi import FastAPI
 import uvicorn
-from services.challenge_generating.llm_prompt_generating.random_text_seed import (
-    get_random_seeds,
-)
 from transformers import AutoTokenizer
 import httpx
 import yaml
@@ -51,37 +48,21 @@ class LLMPromptGenerating:
             MODEL_CONFIG[args.model_name]["repo_id"]
         )
         self.args = args
-        self.app.add_api_route("/", self.generate, methods=["POST"])
+        self.app.add_api_route("/generate", self.generate, methods=["POST"])
+        self.app.add_api_route("/info", self.info, methods=["GET"])
 
-    async def generate(self):
-        prompt = self.get_question_prompt()
-        data = {
-            "model": MODEL_CONFIG[self.args.model_name]["repo_id"],
-            "prompt": [prompt],
-            "max_tokens": 512,
-        }
-        print(data, flush=True)
+    async def generate(self, data: dict):
         response = httpx.post(f"{self.args.vllm_url}/v1/completions", json=data)
         response.raise_for_status()
         response: dict = response.json()
-        response: str = response["choices"][0]["text"].strip()
         return {
-            "prompt_input": response,
+            "prompt_output": response,
         }
 
-    def get_question_prompt(self):
-        chat = [
-            {
-                "role": "user",
-                "content": f"Your task is to write a question that will be used to evaluate how intelligent different AI models are. The question should be fairly complex and it can be about anything as long as it somehow relates to these topics: {get_random_seeds()}",
-            },
-        ]
-
-        prompt = self.tokenizer.apply_chat_template(
-            chat, tokenize=False, add_generation_prompt=True
-        )
-        prompt = prompt + "Question:"
-        return prompt
+    async def info(self):
+        return {
+            "model_name": args.model_name,
+        }
 
 
 if __name__ == "__main__":

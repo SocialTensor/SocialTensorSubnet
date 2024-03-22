@@ -56,7 +56,7 @@ def get_challenge(url: str, synapses: List[bt.Synapse]) -> List[bt.Synapse]:
         except Exception:
             challenge = None
         if challenge:
-            synapses[i] = synapse.model_copy(update=challenge)
+            synapses[i] = synapse.copy(update=challenge)
         else:
             synapses[i] = None
     return synapses

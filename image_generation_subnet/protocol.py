@@ -57,7 +57,7 @@ class ImageGenerating(bt.Synapse):
         self.pipeline_params = self.pipeline_params
 
     def miner_update(self, update: dict):
-        return self.model_copy(update=update)
+        return self.copy(update=update)
 
     def deserialize_input(self) -> dict:
         return self.deserialize()
@@ -77,12 +77,12 @@ class ImageGenerating(bt.Synapse):
 
 class TextGenerating(bt.Synapse):
     # Required request input, filled by sending dendrite caller.
-    prompt_input: str
+    prompt_input: str = ""
     # Optional request output, filled by recieving axon.
-    seed: int
-    request_dict: dict
-    model_name: str
-    prompt_output: typing.Optional[dict] = None
+    seed: int = 0
+    request_dict: dict = {}
+    model_name: str = ""
+    prompt_output: typing.Optional[dict] = {}
     pipeline_params: dict = {}
 
     def miner_update(self, update: dict):
