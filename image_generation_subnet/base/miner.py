@@ -47,6 +47,13 @@ class BaseMinerNeuron(BaseNeuron):
         self.axon = bt.axon(wallet=self.wallet, port=self.config.axon.port)
 
         # Attach determiners which functions are called when servicing a request.
+        self.axon.attach(
+            forward_fn=self.forward_image,
+            blacklist_fn=self.blacklist_image,
+        ).attach(
+            forward_fn=self.forward_text,
+            blacklist_fn=self.blacklist_text,
+        )
         bt.logging.info("Attaching forward function to miner axon.")
         bt.logging.info(f"Axon created: {self.axon}")
 

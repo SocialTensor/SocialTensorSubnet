@@ -40,9 +40,9 @@ def get_args():
         default=0.5,
     )
     parser.add_argument(
-        "--vllm_endpoint",
+        "--vllm_url",
         type=str,
-        default="http://localhost:8000/v1/completions",
+        default="http://localhost:8000",
     )
 
     args = parser.parse_args()
@@ -80,7 +80,7 @@ class RewardApp:
     def call_vllm(self, base_data):
         with httpx.Client() as client:
             response = client.post(
-                self.args.vllm_endpoint,
+                f"{self.args.vllm_url}/v1/completions",
                 json=base_data,
                 timeout=base_data.get("timeout", 32),
             )

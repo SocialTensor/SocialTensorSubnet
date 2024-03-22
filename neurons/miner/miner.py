@@ -11,13 +11,6 @@ T = TypeVar("T", bound=bt.Synapse)
 class Miner(BaseMinerNeuron):
     def __init__(self, config=None):
         super(Miner, self).__init__(config=config)
-        self.axon.attach(
-            forward_fn=self.forward_image,
-            blacklist_fn=self.blacklist_image,
-        ).attach(
-            forward_fn=self.forward_text,
-            blacklist_fn=self.blacklist_text,
-        )
         self.validator_logs = {}
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
