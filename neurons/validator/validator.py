@@ -187,6 +187,7 @@ class Validator(BaseValidatorNeuron):
             threads.append(thread)
             thread.start()
             del self.flattened_uids[:forward_batch_size]
+            bt.logging.info(f"Sleeping {sleep_per_batch} seconds before next batch")
             time.sleep(sleep_per_batch)
         for thread in threads:
             thread.join()
@@ -207,6 +208,7 @@ class Validator(BaseValidatorNeuron):
                 synapses, batched_uids = self.prepare_challenge(
                     uids, model_name, pipeline_type
                 )
+                print(f"Forwarding {len(uids)} uids for {model_name}")
                 for synapse, uids in zip(synapses, batched_uids):
                     if not synapse:
                         continue
