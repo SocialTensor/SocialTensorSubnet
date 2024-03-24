@@ -147,7 +147,7 @@ class Validator(BaseValidatorNeuron):
         #         for model_name in model_names
         #     ]
         # )
-        loop_base_time = self.config.validator.loop_base_time  # default is 600 seconds
+        loop_base_time = self.config.loop_base_time  # default is 600 seconds
         forward_batch_size = len(self.flattened_uids) // num_concurrent_forward
         sleep_per_batch = loop_base_time / num_concurrent_forward
         tasks = []

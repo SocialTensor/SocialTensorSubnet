@@ -152,6 +152,13 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--loop_base_time",
+            type=int,
+            help="The base time for the loop to run in seconds.",
+            default=600,
+        )
+
+        parser.add_argument(
             "--proxy.port",
             type=int,
             help="The port to run the proxy on.",
