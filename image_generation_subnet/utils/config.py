@@ -244,20 +244,21 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--total_volumne",
+            "--miner.total_volumne",
             type=int,
             help="The total volume of requests to be served per 10 minutes",
+            default=360,
         )
 
         parser.add_argument(
-            "--size_preference_factor",
+            "--miner.size_preference_factor",
             type=float,
             help="The size preference factor for the volume per validator",
             default=1.03,
         )
 
         parser.add_argument(
-            "--min_stake",
+            "--miner.min_stake",
             type=int,
             help="The minimum stake for a validator to be considered",
             default=10000,
