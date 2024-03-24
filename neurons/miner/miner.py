@@ -39,6 +39,15 @@ class Miner(BaseMinerNeuron):
             for uid, stake in enumerate(metagraph.total_stake.tolist())
             if stake > min_stake
         ]
+        if not valid_stakes:
+            bt.logging.warning(
+                (
+                    f"No validators with stake greater than {min_stake} found. "
+                    "Assigning equal volume to all validators."
+                    f"Total volume: {total_volume}"
+                    f"Metagraph stake: {metagraph.total_stake.tolist()}"
+                )
+            )
         valid_stakes = torch.tensor(valid_stakes)
         prefered_valid_stakes = valid_stakes * size_preference_factor
         normalized_prefered_valid_stakes = (
