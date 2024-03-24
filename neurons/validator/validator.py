@@ -9,7 +9,7 @@ from image_generation_subnet.validator import MinerManager
 import image_generation_subnet as ig_subnet
 import traceback
 import yaml
-import asyncio
+import threading
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -158,7 +158,7 @@ class Validator(BaseValidatorNeuron):
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         forward_batch_size = len(self.flattened_uids) // num_concurrent_forward
         sleep_per_batch = loop_base_time / num_concurrent_forward
-        tasks = []
+        threads = []
         bt.logging.info(
             (
                 f"Forwarding {len(self.flattened_uids)} uids\n"
@@ -177,22 +177,23 @@ class Validator(BaseValidatorNeuron):
                 )
                 for model_name in batch_model_names
             ]
-            task = asyncio.create_task(
-                self.async_query_and_reward(
-                    batch_uids, batch_model_names, pipeline_types
-                )
-            )
-            tasks.append(task)
-            del self.flattened_uids[:forward_batch_size]
-            time.sleep(sleep_per_batch)
 
+            del self.flattened_uids[:forward_batch_size]
+            thread = threading.Thread(
+                target=self.async_query_and_reward,
+                args=(batch_uids, batch_model_names, pipeline_types),
+            )
+            threads.append(thread)
+            thread.start()
+            time.sleep(sleep_per_batch)
+        for thread in threads:
+            thread.join()
         self.update_scores_on_chain()
         self.save_state()
 
-    async def async_query_and_reward(
+    def async_query_and_reward(
         self, uids: list[int], model_names: list[str], pipeline_types: list[str]
     ):
-        await asyncio.sleep(0.01)
         batch_by_model_pipeline = {}
         for uid, model_name, pipeline_type in zip(uids, model_names, pipeline_types):
             batch_by_model_pipeline.setdefault((model_name, pipeline_type), []).append(
