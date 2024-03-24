@@ -161,11 +161,11 @@ class Validator(BaseValidatorNeuron):
         tasks = []
         bt.logging.info(
             (
-                f"Forwarding {len(self.flattened_uids)} uids"
-                f"Use {num_concurrent_forward} concurrent forward passes"
-                f"Each forward pass will forward {forward_batch_size} uids"
-                f"Sleeping {sleep_per_batch} seconds per batch to ensure the loop time is around {loop_base_time} seconds"
-                f"Total loop time should be around {maximum_loop_time} seconds"
+                f"Forwarding {len(self.flattened_uids)} uids\n"
+                f"Use {num_concurrent_forward} concurrent forward passes\n"
+                f"Each forward pass will forward {forward_batch_size} uids\n"
+                f"Sleeping {sleep_per_batch} seconds per batch to ensure the loop time is around {loop_base_time} seconds\n"
+                f"Total loop time should be around {maximum_loop_time} seconds\n"
             )
         )
         while self.flattened_uids:
@@ -192,6 +192,7 @@ class Validator(BaseValidatorNeuron):
     async def async_query_and_reward(
         self, uids: list[int], model_names: list[str], pipeline_types: list[str]
     ):
+        await asyncio.sleep(0.01)
         batch_by_model_pipeline = {}
         for uid, model_name, pipeline_type in zip(uids, model_names, pipeline_types):
             batch_by_model_pipeline.setdefault((model_name, pipeline_type), []).append(
