@@ -276,6 +276,12 @@ def add_args(cls, parser):
             help="The minimum stake for a validator to be considered",
             default=10000,
         )
+        parser.add_argument(
+            "--miner.limit_interval",
+            type=int,
+            help="The interval to limit the number of requests",
+            default=600,
+        )
 
 
 def config(cls):

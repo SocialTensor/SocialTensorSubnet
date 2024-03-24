@@ -98,6 +98,7 @@ class Miner(BaseMinerNeuron):
             uid=validator_uid,
             stake=stake,
             volume_per_validator=self.volume_per_validator,
+            interval=self.config.miner.limit_interval,
         ):
             bt.logging.trace(
                 f"Blacklisting {validator_uid}-validator for exceeding the limit"

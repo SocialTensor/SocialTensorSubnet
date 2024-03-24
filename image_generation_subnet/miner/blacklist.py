@@ -6,7 +6,9 @@ def check_min_stake(stake: float, validator_uid: int, min_stake: float):
     return stake < min_stake
 
 
-def check_limit(self, uid: str, stake: int, volume_per_validator: dict, interval: int):
+def check_limit(
+    self, uid: str, stake: int, volume_per_validator: dict, interval: int = 600
+):
     bt.logging.info(self.validator_logs)
 
     if uid not in self.validator_logs:
