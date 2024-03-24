@@ -22,6 +22,7 @@ class Miner(BaseMinerNeuron):
             self.config.miner.min_stake,
         )
         self.miner_info = image_generation_subnet.miner.set_info(self)
+        bt.logging.info(f"Miner info: {self.miner_info}")
 
     def get_volume_per_validator(
         self,

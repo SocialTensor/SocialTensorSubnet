@@ -131,22 +131,30 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("Updating available models & uids")
         num_concurrent_forward = self.config.num_concurrent_forward
         self.miner_manager.update_miners_identity()
-        uids = self.miner_manager.all_uids
+        _uids = self.miner_manager.all_uids
         rate_limit_per_uid = [
-            self.miner_manager.all_uids_info[uid]["rate_limit"] for uid in uids
+            self.miner_manager.all_uids_info[uid]["rate_limit"] for uid in _uids
         ]
-        for uid, rate_limit in zip(uids, rate_limit_per_uid):
+        for uid, rate_limit in zip(_uids, rate_limit_per_uid):
             self.flattened_uids += [uid] * rate_limit
         random.shuffle(self.flattened_uids)
-        model_names = [
-            self.miner_manager.all_uids_info[uid]["model_name"] for uid in uids
+        _model_names = [
+            self.miner_manager.all_uids_info[uid]["model_name"] for uid in _uids
         ]
-        # maximum_loop_time = sum(
-        #     [
-        #         self.nicheimage_catalogue[model_name]["timeout"]
-        #         for model_name in model_names
-        #     ]
-        # )
+        model_names = []
+        uids = []
+
+        for uid, model_name in zip(_uids, _model_names):
+            if model_name in self.nicheimage_catalogue:
+                model_names.append(model_name)
+                uids.append(uid)
+
+        maximum_loop_time = sum(
+            [
+                self.nicheimage_catalogue[model_name]["timeout"]
+                for model_name in model_names
+            ]
+        )
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         forward_batch_size = len(self.flattened_uids) // num_concurrent_forward
         sleep_per_batch = loop_base_time / num_concurrent_forward
@@ -157,6 +165,7 @@ class Validator(BaseValidatorNeuron):
                 f"Use {num_concurrent_forward} concurrent forward passes"
                 f"Each forward pass will forward {forward_batch_size} uids"
                 f"Sleeping {sleep_per_batch} seconds per batch to ensure the loop time is around {loop_base_time} seconds"
+                f"Total loop time should be around {maximum_loop_time} seconds"
             )
         )
         while self.flattened_uids:
