@@ -43,13 +43,30 @@ class MinerManager:
             bt.logging.warning("No active miner available. Skipping setting weights.")
         for uid, info in valid_miners_info.items():
             miner_state = self.all_uids_info.setdefault(
-                uid, {"scores": [], "model_name": ""}
+                uid,
+                {
+                    "scores": [],
+                    "model_name": "",
+                    "rate_limit": 0,
+                    "total_volume": 0,
+                    "min_stake": 0,
+                },
             )
             model_name = info.get("model_name", "")
+            miner_state["rate_limit"] = info.get("volume_per_validator", {}).get(
+                int(self.validator.uid), 10
+            )
+            miner_state["total_volume"] = info.get("total_volume", 200)
+            miner_state["min_stake"] = info.get("min_stake", 0)
+            miner_state["reward_scale"] = min(
+                max(miner_state["total_volume"] ** 0.5 / 10, 1), 0
+            )
+
             if miner_state["model_name"] == model_name:
                 continue
             miner_state["model_name"] = model_name
             miner_state["scores"] = []
+
         bt.logging.success("Updated miner identity")
         model_distribution = {}
         for uid, info in self.all_uids_info.items():

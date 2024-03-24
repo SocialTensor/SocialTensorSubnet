@@ -9,6 +9,7 @@ from image_generation_subnet.validator import MinerManager
 import image_generation_subnet as ig_subnet
 import traceback
 import yaml
+import asyncio
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -115,41 +116,84 @@ class Validator(BaseValidatorNeuron):
             else:
                 bt.logging.warning("Share validator info to owner failed")
         self.miner_manager.update_miners_identity()
+        self.flattened_uids = []
 
     def forward(self):
         """
         Validator forward pass. Consists of:
         - Querying all miners to get their model_name
-        - Looping through all models
-        - Generating the challenge: prompt and image[optional]
-        - Batching miners and sending the challenge
-        - Getting the responses
-        - Rewarding the miners
-        - Updating the scores
+        - Forwarding requests to miners
+        - Calculating rewards based on responses
+        - Updating scores based on rewards
+        - Saving the state
         """
 
         bt.logging.info("Updating available models & uids")
+        num_concurrent_forward = self.config.validator.num_concurrent_forward
         self.miner_manager.update_miners_identity()
-
-        for model_name in self.nicheimage_catalogue.keys():
-            try:
-                pipeline_type = random.choice(
+        uids = self.miner_manager.all_uids
+        rate_limit_per_uid = [
+            self.miner_manager.all_uids_info[uid]["rate_limit"] for uid in uids
+        ]
+        for uid, rate_limit in zip(uids, rate_limit_per_uid):
+            self.flattened_uids += [uid] * rate_limit
+        random.shuffle(self.flattened_uids)
+        model_names = [
+            self.miner_manager.all_uids_info[uid]["model_name"] for uid in uids
+        ]
+        # maximum_loop_time = sum(
+        #     [
+        #         self.nicheimage_catalogue[model_name]["timeout"]
+        #         for model_name in model_names
+        #     ]
+        # )
+        loop_base_time = self.config.validator.loop_base_time  # default is 600 seconds
+        forward_batch_size = len(self.flattened_uids) // num_concurrent_forward
+        sleep_per_batch = loop_base_time / num_concurrent_forward
+        tasks = []
+        bt.logging.info(
+            (
+                f"Forwarding {len(self.flattened_uids)} uids"
+                f"Use {num_concurrent_forward} concurrent forward passes"
+                f"Each forward pass will forward {forward_batch_size} uids"
+                f"Sleeping {sleep_per_batch} seconds per batch to ensure the loop time is around {loop_base_time} seconds"
+            )
+        )
+        while self.flattened_uids:
+            batch_uids = self.flattened_uids[:forward_batch_size]
+            batch_model_names = model_names[:forward_batch_size]
+            pipeline_types = [
+                random.choice(
                     self.nicheimage_catalogue[model_name]["supporting_pipelines"]
                 )
-                reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
-                available_uids = self.miner_manager.get_miner_uids(model_name)
-                if not available_uids:
-                    bt.logging.warning(
-                        f"No active miner available for specified model {model_name}. Skipping setting weights."
-                    )
-                    continue
-
-                bt.logging.info(f"Available uids for {model_name}: {available_uids}")
-
-                synapses, batched_uids = self.prepare_challenge(
-                    available_uids, model_name, pipeline_type
+                for model_name in batch_model_names
+            ]
+            task = asyncio.create_task(
+                self.async_query_and_reward(
+                    batch_uids, batch_model_names, pipeline_types
                 )
+            )
+            tasks.append(task)
+            del self.flattened_uids[:forward_batch_size]
+            time.sleep(sleep_per_batch)
 
+        self.update_scores_on_chain()
+        self.save_state()
+
+    async def async_query_and_reward(
+        self, uids: list[int], model_names: list[str], pipeline_types: list[str]
+    ):
+        batch_by_model_pipeline = {}
+        for uid, model_name, pipeline_type in zip(uids, model_names, pipeline_types):
+            batch_by_model_pipeline.setdefault((model_name, pipeline_type), []).append(
+                uid
+            )
+        for (model_name, pipeline_type), uids in batch_by_model_pipeline.items():
+            try:
+                reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
+                synapses, batched_uids = self.prepare_challenge(
+                    uids, model_name, pipeline_type
+                )
                 for synapse, uids in zip(synapses, batched_uids):
                     if not synapse:
                         continue
@@ -179,9 +223,6 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.error(traceback.print_exc())
                 continue
 
-        self.update_scores_on_chain()
-        self.save_state()
-
     def prepare_challenge(self, available_uids, model_name, pipeline_type):
         batch_size = random.randint(1, 5)
         random.shuffle(available_uids)
@@ -191,7 +232,8 @@ class Validator(BaseValidatorNeuron):
         ]
         num_batch = len(batched_uids)
         synapses = [
-            ImageGenerating(pipeline_type=pipeline_type) for _ in range(num_batch)
+            ImageGenerating(pipeline_type=pipeline_type, model_name=model_name)
+            for _ in range(num_batch)
         ]
         for synapse in synapses:
             synapse.pipeline_params.update(
