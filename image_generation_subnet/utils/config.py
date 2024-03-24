@@ -144,6 +144,12 @@ def add_args(cls, parser):
             help="The maximum number of TAO allowed to query a validator with a vpermit.",
             default=4096,
         )
+        parser.add_argument(
+            "--num_concurrent_forward",
+            type=int,
+            help="The number of concurrent forwards running at any time.",
+            default=1,
+        )
 
         parser.add_argument(
             "--proxy.port",

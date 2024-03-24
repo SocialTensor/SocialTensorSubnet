@@ -129,7 +129,7 @@ class Validator(BaseValidatorNeuron):
         """
 
         bt.logging.info("Updating available models & uids")
-        num_concurrent_forward = self.config.validator.num_concurrent_forward
+        num_concurrent_forward = self.config.num_concurrent_forward
         self.miner_manager.update_miners_identity()
         uids = self.miner_manager.all_uids
         rate_limit_per_uid = [
