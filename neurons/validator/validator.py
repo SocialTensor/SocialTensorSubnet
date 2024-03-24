@@ -177,14 +177,16 @@ class Validator(BaseValidatorNeuron):
                 )
                 for model_name in batch_model_names
             ]
-
-            del self.flattened_uids[:forward_batch_size]
+            bt.logging.info(
+                f"Forwarding {len(batch_uids)} uids with model names {batch_model_names} and pipeline types {pipeline_types}"
+            )
             thread = threading.Thread(
                 target=self.async_query_and_reward,
                 args=(batch_uids, batch_model_names, pipeline_types),
             )
             threads.append(thread)
             thread.start()
+            del self.flattened_uids[:forward_batch_size]
             time.sleep(sleep_per_batch)
         for thread in threads:
             thread.join()
