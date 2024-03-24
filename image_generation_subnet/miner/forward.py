@@ -8,9 +8,9 @@ def set_info(self):
     response = get_model_name(self)
     miner_info = {
         "model_name": response["model_name"],
-        "total_volume": self.config.total_volume,
-        "size_preference_factor": self.config.size_preference_factor,
-        "min_stake": self.config.min_stake,
+        "total_volume": self.config.miner.total_volume,
+        "size_preference_factor": self.config.miner.size_preference_factor,
+        "min_stake": self.config.miner.min_stake,
         "volume_per_validator": self.volume_per_validator,
     }
     return miner_info
