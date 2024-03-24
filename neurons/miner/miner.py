@@ -24,6 +24,7 @@ class Miner(BaseMinerNeuron):
         self.miner_info = image_generation_subnet.miner.set_info(self)
 
     def get_volume_per_validator(
+        self,
         metagraph,
         total_volume: int,
         size_preference_factor: float,
