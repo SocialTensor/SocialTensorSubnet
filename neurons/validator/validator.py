@@ -178,7 +178,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("Updating available models & uids")
         num_forward_thread_per_loop = self.config.num_forward_thread_per_loop
         self.miner_manager.update_miners_identity()
-        self.update_flattened_uids()
+        should_reward_indexes = self.update_flattened_uids()
 
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         forward_batch_size = len(self.flattened_uids) // num_forward_thread_per_loop
@@ -205,22 +205,23 @@ class Validator(BaseValidatorNeuron):
                 for model_name in batch_model_names
             ]
             bt.logging.info(
-                f"Forwarding {len(batch_uids)} uids with model names {batch_model_names} and pipeline types {pipeline_types}"
+                f"Forwarding {len(batch_uids)} uids"
             )
             thread = threading.Thread(
                 target=self.async_query_and_reward,
-                args=(batch_uids, batch_model_names, pipeline_types),
+                args=(batch_uids, batch_model_names, pipeline_types, should_reward_indexes),
             )
             threads.append(thread)
             thread.start()
             del self.flattened_uids[:forward_batch_size]
-            bt.logging.info(f"Sleeping {sleep_per_batch} seconds before next batch")
-            time.sleep(sleep_per_batch)
-        bt.logging.info(self.miner_manager.all_uids_info)
+            if self.flattened_uids:
+                bt.logging.info(f"Sleeping {sleep_per_batch} seconds before next batch")
+                time.sleep(sleep_per_batch)
         for thread in threads:
             thread.join()
         self.update_scores_on_chain()
         self.save_state()
+        bt.logging.info(f"\n{self.miner_manager.all_uids_info}")
         self.wandb_data["scores"] = {k: v for k, v in enumerate(self.scores)}
         bt.logging.info("Logging to wandb")
         wandb.log(self.wandb_data)
@@ -230,6 +231,7 @@ class Validator(BaseValidatorNeuron):
             
 
     def update_flattened_uids(self):
+        self.flattened_uids = []
         _uids = self.miner_manager.all_uids
         _model_names = [
             self.miner_manager.all_uids_info[uid]["model_name"] for uid in _uids
@@ -242,55 +244,72 @@ class Validator(BaseValidatorNeuron):
                 self.flattened_uids += [uid] * int(math.ceil(rate_limit * self.config.volume_utilization_factor))
         random.shuffle(self.flattened_uids)
 
+        should_reward_indexes = [0]*len(self.flattened_uids)
+
+        # Each uid should be rewarded only once
+        uid_to_slots = {}
+        for i, uid in enumerate(self.flattened_uids):
+            uid_to_slots.setdefault(uid, []).append(i)
+        for uid, slots in uid_to_slots.items():
+            should_reward_indexes[random.choice(slots)] = 1
+        return should_reward_indexes
+
     def async_query_and_reward(
-        self, uids: list[int], model_names: list[str], pipeline_types: list[str]
+        self, uids: list[int], model_names: list[str], pipeline_types: list[str], should_reward_indexes: list[int]
     ):
         dendrite = bt.dendrite(self.wallet)
         batch_by_model_pipeline = {}
-        for uid, model_name, pipeline_type in zip(uids, model_names, pipeline_types):
+        for uid, model_name, pipeline_type, should_reward in zip(uids, model_names, pipeline_types, should_reward_indexes):
             batch_by_model_pipeline.setdefault((model_name, pipeline_type), []).append(
-                uid
+                (uid, should_reward)
             )
-        for (model_name, pipeline_type), uids in batch_by_model_pipeline.items():
+        for (model_name, pipeline_type), batched_uid_data in batch_by_model_pipeline.items():
             try:
                 reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
-                synapses, batched_uids = self.prepare_challenge(
-                    uids, model_name, pipeline_type
+                synapses, batched_uid_data = self.prepare_challenge(
+                    batched_uid_data, model_name, pipeline_type
                 )
-                for synapse, _uids in zip(synapses, batched_uids):
+                for synapse, uid_data in zip(synapses, batched_uid_data):
                     if not synapse:
                         continue
                     base_synapse = synapse.copy()
+                    forward_uids = [uid for uid, _ in uid_data]
+                    axons = [self.metagraph.axons[int(uid)] for uid, _ in uid_data]
+                    should_rewards = [should_reward for _, should_reward in uid_data]
                     responses = dendrite.query(
-                        axons=[self.metagraph.axons[int(uid)] for uid in _uids],
+                        axons=axons,
                         synapse=synapse,
                         deserialize=False,
                         timeout=self.nicheimage_catalogue[model_name]["timeout"],
                     )
-                    
-
-                    bt.logging.info("Received responses, calculating rewards")
-                    if callable(reward_url):
-                        _uids, rewards = reward_url(base_synapse, responses, _uids)
-                    else:
-                        _uids, rewards = ig_subnet.validator.get_reward(
-                            reward_url, base_synapse, responses, _uids
-                        )
                     if self.config.use_wandb:
-                        for uid, response in zip(_uids, responses):
+                        for uid, response in zip(forward_uids, responses):
                             try:
                                 wandb_data = response.wandb_deserialize(uid)
                                 wandb.log(wandb_data)
                             except Exception as e:
                                 continue
+                    reward_responses = [
+                        response for response, should_reward in zip(responses, should_rewards) if should_reward
+                    ]
+                    reward_uids = [
+                        uid for uid, should_reward in uid_data if should_reward
+                    ]
+                    bt.logging.info("Received responses, calculating rewards")
+                    if callable(reward_url):
+                        reward_uids, rewards = reward_url(base_synapse, reward_responses, reward_uids)
+                    else:
+                        reward_uids, rewards = ig_subnet.validator.get_reward(
+                            reward_url, base_synapse, reward_responses, reward_uids
+                        )
                     
                     # Scale Reward based on Miner Volume
-                    for i, uid in enumerate(_uids):
+                    for i, uid in enumerate(reward_uids):
                         rewards[i] = rewards[i] * self.miner_manager.all_uids_info[uid]["reward_scale"]
 
                     bt.logging.info(f"Scored responses: {rewards}")
 
-                    self.miner_manager.update_scores(_uids, rewards)
+                    self.miner_manager.update_scores(reward_uids, rewards)
             except Exception as e:
                 bt.logging.error(
                     f"Error while processing forward pass for {model_name}: {e}"
