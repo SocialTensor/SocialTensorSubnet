@@ -58,8 +58,8 @@ class MinerManager:
             )
             miner_state["total_volume"] = info.get("total_volume", 100)
             miner_state["min_stake"] = info.get("min_stake", 0)
-            miner_state["reward_scale"] = min(
-                max(miner_state["total_volume"] ** 0.5 / 10, 1), 0
+            miner_state["reward_scale"] = max(
+                min(miner_state["total_volume"] ** 0.5 / 10, 1), 0
             )
 
             if miner_state["model_name"] == model_name:
