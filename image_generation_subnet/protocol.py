@@ -72,6 +72,5 @@ class ImageGenerating(bt.Synapse):
         image = base64_to_pil_image(self.image)
         prompt = self.prompt
         return {
-            "images": {uid: wandb.Image(image)},
-            "prompts": {uid: prompt},
+            "images": {uid: wandb.Image(image, caption=prompt)},
         }

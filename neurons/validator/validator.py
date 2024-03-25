@@ -168,7 +168,7 @@ class Validator(BaseValidatorNeuron):
         """
 
         self.wandb_data = {
-            "all_uids_info": self.miner_manager.all_uids_info,
+            "all_uids_info": {},
             "images": {},
             "prompts": {},
             "scores": {},
