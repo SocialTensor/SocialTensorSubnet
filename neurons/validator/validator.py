@@ -10,6 +10,7 @@ import image_generation_subnet as ig_subnet
 import traceback
 import yaml
 import threading
+import math
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -190,7 +191,7 @@ class Validator(BaseValidatorNeuron):
         ]
         for uid, rate_limit, model_name in zip(_uids, rate_limit_per_uid, _model_names):
             if model_name:
-                self.flattened_uids += [uid] * int(rate_limit * self.config.volume_utilization_factor)
+                self.flattened_uids += [uid] * int(math.ceil(rate_limit * self.config.volume_utilization_factor))
         random.shuffle(self.flattened_uids)
 
     def async_query_and_reward(
