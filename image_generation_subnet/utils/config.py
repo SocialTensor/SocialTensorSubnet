@@ -166,6 +166,13 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--use_wandb",
+            action="store_true",
+            help="If set, we will use wandb for logging.",
+            default=False,
+        )
+
+        parser.add_argument(
             "--proxy.port",
             type=int,
             help="The port to run the proxy on.",

@@ -11,6 +11,9 @@ import traceback
 import yaml
 import threading
 import math
+from copy import deepcopy
+import wandb
+from generation_models.utils import base64_to_pil_image
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -118,6 +121,43 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.warning("Share validator info to owner failed")
         self.miner_manager.update_miners_identity()
         self.flattened_uids = []
+        self.init_wandb()
+        self.wandb_data = {
+            "all_uids_info": self.miner_manager.all_uids_info,
+            "images": {},
+            "prompts": {},
+            "scores": {},
+            "text_responses": {},
+        }
+
+    def init_wandb(self):
+        if not self.config.use_wandb:
+            return
+    
+        config = deepcopy(self.config)
+
+        run_name = f'validator-{self.uid}-{ig_subnet.__version__}'
+        config.hotkey = self.wallet.hotkey.ss58_address
+        config.run_name = run_name
+        config.version = ig_subnet.__version__
+        config.type = 'validator'
+
+        # Initialize the wandb run for the single project
+        run = wandb.init(
+            name=run_name,
+            project="NicheImage",
+            entity='nicheimage',
+            config=config,
+            dir=config.full_path,
+            reinit=True
+        )
+
+        # Sign the run to ensure it's from the correct hotkey
+        signature = self.wallet.hotkey.sign(run.id.encode()).hex()
+        config.signature = signature
+        wandb.config.update(config, allow_val_change=True)
+
+        bt.logging.success(f"Started wandb run for project '{run.project}', run '{run.name}'")
 
     def forward(self):
         """
@@ -128,6 +168,14 @@ class Validator(BaseValidatorNeuron):
         - Updating scores based on rewards
         - Saving the state
         """
+
+        self.wandb_data = {
+            "all_uids_info": self.miner_manager.all_uids_info,
+            "images": {},
+            "prompts": {},
+            "scores": {},
+            "text_responses": {},
+        }
 
         bt.logging.info("Updating available models & uids")
         num_forward_thread_per_loop = self.config.num_forward_thread_per_loop
@@ -175,7 +223,7 @@ class Validator(BaseValidatorNeuron):
             thread.join(120)
         self.update_scores_on_chain()
         self.save_state()
-
+        wandb.log(self.wandb_data)
         actual_time_taken = time.time() - loop_start
         if actual_time_taken < loop_base_time:
             time.sleep(loop_base_time - actual_time_taken)
@@ -219,6 +267,15 @@ class Validator(BaseValidatorNeuron):
                         deserialize=False,
                         timeout=self.nicheimage_catalogue[model_name]["timeout"],
                     )
+                    
+                    if self.config.use_wandb:
+                        for uid, response in zip(_uids, responses):
+                            try:
+                                wandb_data = response.wandb_deserialize(uid)
+                                self.wandb_data.update(wandb_data)
+                            except Exception as e:
+                                bt.logging.warning(f"Error while updating wandb data: {e}")
+                                bt.logging.warning(traceback.print_exc())
 
                     bt.logging.info("Received responses, calculating rewards")
                     if callable(reward_url):
