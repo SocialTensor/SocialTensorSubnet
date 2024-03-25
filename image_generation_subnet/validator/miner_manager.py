@@ -47,8 +47,8 @@ class MinerManager:
                 {
                     "scores": [],
                     "model_name": "",
-                    "rate_limit": 0,
-                    "total_volume": 0,
+                    "rate_limit": 1,
+                    "total_volume": 100,
                     "min_stake": 0,
                 },
             )
