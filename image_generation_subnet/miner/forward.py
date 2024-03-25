@@ -27,7 +27,7 @@ async def generate(self, synapse: ImageGenerating) -> ImageGenerating:
     }
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            self.config.generate_endpoint, headers=headers, json=data, timeout=60
+            self.config.generate_endpoint, headers=headers, json=data, timeout=synapse.timeout
         )
     synapse = synapse.copy(update=response.json())
     return synapse

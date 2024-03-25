@@ -144,18 +144,25 @@ def add_args(cls, parser):
             help="The maximum number of TAO allowed to query a validator with a vpermit.",
             default=4096,
         )
-        parser.add_argument(
-            "--num_concurrent_forward",
-            type=int,
-            help="The number of concurrent forwards running at any time.",
-            default=1,
-        )
 
         parser.add_argument(
             "--loop_base_time",
             type=int,
             help="The base time for the loop to run in seconds.",
             default=600,
+        )
+        parser.add_argument(
+            "--volume_utilization_factor",
+            type=float,
+            help="Determine how much of the volume to be used for synthentic quering.",
+            default=0.9,
+        )
+        
+        parser.add_argument(
+            "--num_forward_thread_per_loop",
+            type=int,
+            help="The number of threads to run in a single loop.",
+            default=16,
         )
 
         parser.add_argument(

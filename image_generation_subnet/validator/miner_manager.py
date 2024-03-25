@@ -54,7 +54,7 @@ class MinerManager:
             )
             model_name = info.get("model_name", "")
             miner_state["rate_limit"] = info.get("volume_per_validator", {}).get(
-                int(self.validator.uid), 10
+                str(self.validator.uid), 0
             )
             miner_state["total_volume"] = info.get("total_volume", 200)
             miner_state["min_stake"] = info.get("min_stake", 0)

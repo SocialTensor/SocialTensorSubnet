@@ -53,7 +53,8 @@ def get_challenge(url: str, synapses: List[ImageGenerating]) -> List[ImageGenera
             if response.status_code != 200:
                 raise
             challenge = response.json()
-        except Exception:
+        except Exception as e:
+            bt.logging.warning(f"Error in get_challenge: {e}")
             challenge = None
         if challenge:
             synapses[i] = synapse.copy(update=challenge)

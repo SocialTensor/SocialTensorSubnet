@@ -60,7 +60,7 @@ class Miner(BaseMinerNeuron):
         return volume_per_validator
 
     async def forward(self, synapse: ImageGenerating) -> ImageGenerating:
-        if synapse.request_dict:
+        if "get_miner_info" in synapse.request_dict:
             return await self.forward_info(synapse)
         bt.logging.info(
             f"synapse prompt: {synapse.prompt}, pipeline_type: {synapse.pipeline_type}"
@@ -93,6 +93,9 @@ class Miner(BaseMinerNeuron):
                 f"Blacklisting {validator_uid}-validator has {stake} stake"
             )
             return True, "Not enough stake"
+
+        if "get_miner_info" in synapse.request_dict:
+            return False, "Getting info request, passed!"
         if image_generation_subnet.miner.check_limit(
             self,
             uid=validator_uid,
