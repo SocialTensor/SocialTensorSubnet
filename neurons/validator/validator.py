@@ -13,6 +13,7 @@ import threading
 import math
 from copy import deepcopy
 import wandb
+import numpy as np
 from generation_models.utils import base64_to_pil_image
 
 MODEL_CONFIGS = yaml.load(
@@ -145,8 +146,8 @@ class Validator(BaseValidatorNeuron):
         # Initialize the wandb run for the single project
         run = wandb.init(
             name=run_name,
-            project="NicheImage",
-            entity='nicheimage',
+            project="nicheimage",
+            entity='toilaluan',
             config=config,
             dir=config.full_path,
             reinit=True
@@ -217,12 +218,15 @@ class Validator(BaseValidatorNeuron):
             thread.start()
             del self.flattened_uids[:forward_batch_size]
             bt.logging.info(f"Sleeping {sleep_per_batch} seconds before next batch")
-            time.sleep(sleep_per_batch)
+            # time.sleep(sleep_per_batch)
         bt.logging.info(self.miner_manager.all_uids_info)
         for thread in threads:
-            thread.join(120)
+            thread.join()
         self.update_scores_on_chain()
         self.save_state()
+        self.wandb_data["scores"] = {k: v for k, v in enumerate(self.scores)}
+        bt.logging.info("Logging to wandb")
+        print(self.wandb_data)
         wandb.log(self.wandb_data)
         actual_time_taken = time.time() - loop_start
         if actual_time_taken < loop_base_time:
@@ -268,14 +272,6 @@ class Validator(BaseValidatorNeuron):
                         timeout=self.nicheimage_catalogue[model_name]["timeout"],
                     )
                     
-                    if self.config.use_wandb:
-                        for uid, response in zip(_uids, responses):
-                            try:
-                                wandb_data = response.wandb_deserialize(uid)
-                                self.wandb_data.update(wandb_data)
-                            except Exception as e:
-                                bt.logging.warning(f"Error while updating wandb data: {e}")
-                                bt.logging.warning(traceback.print_exc())
 
                     bt.logging.info("Received responses, calculating rewards")
                     if callable(reward_url):
@@ -284,6 +280,13 @@ class Validator(BaseValidatorNeuron):
                         _uids, rewards = ig_subnet.validator.get_reward(
                             reward_url, base_synapse, responses, _uids
                         )
+                    if self.config.use_wandb:
+                        for uid, response in zip(_uids, responses):
+                            try:
+                                wandb_data = response.wandb_deserialize(uid)
+                                self.wandb_data.update(wandb_data)
+                            except Exception as e:
+                                continue
                     
                     # Scale Reward based on Miner Volume
                     for i, uid in enumerate(_uids):

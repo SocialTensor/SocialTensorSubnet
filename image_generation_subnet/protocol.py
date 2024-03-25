@@ -1,6 +1,7 @@
 import bittensor as bt
 import pydantic
 from generation_models.utils import base64_to_pil_image
+import wandb
 
 class ImageGenerating(bt.Synapse):
     prompt: str = pydantic.Field(
@@ -71,6 +72,6 @@ class ImageGenerating(bt.Synapse):
         image = base64_to_pil_image(self.image)
         prompt = self.prompt
         return {
-            "images": {uid: image},
+            "images": {uid: wandb.Image(image)},
             "prompts": {uid: prompt},
         }
