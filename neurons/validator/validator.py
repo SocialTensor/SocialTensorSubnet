@@ -218,7 +218,7 @@ class Validator(BaseValidatorNeuron):
             thread.start()
             del self.flattened_uids[:forward_batch_size]
             bt.logging.info(f"Sleeping {sleep_per_batch} seconds before next batch")
-            # time.sleep(sleep_per_batch)
+            time.sleep(sleep_per_batch)
         bt.logging.info(self.miner_manager.all_uids_info)
         for thread in threads:
             thread.join()
