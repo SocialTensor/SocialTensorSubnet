@@ -125,10 +125,7 @@ class Validator(BaseValidatorNeuron):
         self.init_wandb()
         self.wandb_data = {
             "all_uids_info": self.miner_manager.all_uids_info,
-            "images": {},
-            "prompts": {},
             "scores": {},
-            "text_responses": {},
         }
 
     def init_wandb(self):
@@ -226,7 +223,6 @@ class Validator(BaseValidatorNeuron):
         self.save_state()
         self.wandb_data["scores"] = {k: v for k, v in enumerate(self.scores)}
         bt.logging.info("Logging to wandb")
-        print(self.wandb_data)
         wandb.log(self.wandb_data)
         actual_time_taken = time.time() - loop_start
         if actual_time_taken < loop_base_time:
@@ -284,7 +280,7 @@ class Validator(BaseValidatorNeuron):
                         for uid, response in zip(_uids, responses):
                             try:
                                 wandb_data = response.wandb_deserialize(uid)
-                                self.wandb_data.update(wandb_data)
+                                wandb.log(wandb_data)
                             except Exception as e:
                                 continue
                     
