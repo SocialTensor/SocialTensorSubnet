@@ -1,7 +1,7 @@
 import bittensor as bt
 from image_generation_subnet.protocol import ImageGenerating
 import torch
-
+import math
 
 class MinerManager:
     def __init__(self, validator):
@@ -54,9 +54,9 @@ class MinerManager:
             )
             model_name = info.get("model_name", "")
             miner_state["rate_limit"] = info.get("volume_per_validator", {}).get(
-                str(self.validator.uid), 0
+                str(self.validator.uid), 1
             )
-            miner_state["total_volume"] = info.get("total_volume", 200)
+            miner_state["total_volume"] = info.get("total_volume", 100)
             miner_state["min_stake"] = info.get("min_stake", 0)
             miner_state["reward_scale"] = min(
                 max(miner_state["total_volume"] ** 0.5 / 10, 1), 0

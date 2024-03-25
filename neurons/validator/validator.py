@@ -226,6 +226,10 @@ class Validator(BaseValidatorNeuron):
                         _uids, rewards = ig_subnet.validator.get_reward(
                             reward_url, base_synapse, responses, _uids
                         )
+                    
+                    # Scale Reward based on Miner Volume
+                    for i, uid in enumerate(_uids):
+                        rewards[i] = rewards[i] * self.miner_manager.all_uids_info[uid]["reward_scale"]
 
                     bt.logging.info(f"Scored responses: {rewards}")
 
