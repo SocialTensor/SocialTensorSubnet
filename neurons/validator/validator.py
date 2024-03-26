@@ -164,6 +164,7 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.warning("Share validator info to owner failed")
 
     def init_wandb(self):
+        import wandb
         if not self.config.use_wandb:
             return
 
@@ -352,6 +353,7 @@ class Validator(BaseValidatorNeuron):
                     if self.config.use_wandb:
                         for uid, response in zip(forward_uids, responses):
                             try:
+                                import wandb
                                 wandb_data = response.wandb_deserialize(uid)
                                 wandb.log(wandb_data)
                             except Exception:
