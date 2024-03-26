@@ -367,7 +367,7 @@ class Validator(BaseValidatorNeuron):
                             )
                         else:
                             reward_uids, rewards = ig_subnet.validator.get_reward(
-                                reward_url, base_synapse, reward_responses, reward_uids
+                                reward_url, base_synapse, reward_responses, reward_uids, self.nicheimage_category[model_name].get("timeout", 12)
                             )
 
                         # Scale Reward based on Miner Volume
