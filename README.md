@@ -134,7 +134,7 @@ To start mining with this model, follow these steps:
       ```
       - Start the API server with your Hugging Face token (ensure access to `gemma-7b-it` at [https://huggingface.co/google/gemma-7b-it](https://huggingface.co/google/gemma-7b-it)):
       ```
-      HF_TOKEN=YourHuggingFaceToken python -m vllm.entrypoints.openai.api_server --model facebook/opt-125m
+      HF_TOKEN=YourHuggingFaceToken python -m vllm.entrypoints.openai.api_server --model google/gemma-7b-it
       ```
 
    2. **Install the NicheImage Repository:**
