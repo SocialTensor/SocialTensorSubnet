@@ -13,7 +13,6 @@ import yaml
 import threading
 import math
 from copy import deepcopy
-import wandb
 from image_generation_subnet.validator.offline_challenge import (
     get_backup_image,
     get_backup_prompt,
@@ -269,6 +268,7 @@ class Validator(BaseValidatorNeuron):
         self.wandb_data["scores"] = {k: v for k, v in enumerate(self.scores)}
         if self.config.use_wandb:
             try:
+                import wandb
                 wandb.log(self.wandb_data)
             except Exception:
                 pass
