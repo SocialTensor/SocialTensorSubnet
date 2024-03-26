@@ -17,6 +17,7 @@ import wandb
 from image_generation_subnet.validator.offline_challenge import (
     get_backup_image,
     get_backup_prompt,
+    get_backup_llm_prompt,
 )
 
 MODEL_CONFIGS = yaml.load(
@@ -54,7 +55,7 @@ class Validator(BaseValidatorNeuron):
             },
             "text_generation": {
                 "main": [self.config.challenge.llm_prompt],
-                "backup": [None],
+                "backup": [get_backup_llm_prompt],
             },
         }
         # TODO: Balancing Incentive Weights
@@ -89,7 +90,7 @@ class Validator(BaseValidatorNeuron):
                 "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                     "supporting_pipelines"
                 ],
-                "model_incentive_weight": 0.26,
+                "model_incentive_weight": 0.25,
                 "reward_url": self.config.reward_url.RealisticVision,
                 "inference_params": {
                     "num_inference_steps": 30,
@@ -133,7 +134,7 @@ class Validator(BaseValidatorNeuron):
                 "supporting_pipelines": MODEL_CONFIGS["Gemma7b"]["params"][
                     "supporting_pipelines"
                 ],
-                "model_incentive_weight": 0.00,
+                "model_incentive_weight": 0.01,
                 "timeout": 64,
                 "synapse_type": ig_subnet.protocol.TextGenerating,
                 "reward_url": self.config.reward_url.Gemma7b,

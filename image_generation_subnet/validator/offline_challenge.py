@@ -44,6 +44,15 @@ def get_offline_prompt():
 def get_backup_prompt():
     return {"prompt": get_offline_prompt()}
 
+def get_backup_llm_prompt():
+    return {
+        "prompt_input": "How AI can change the world?",
+        "pipeline_params": {
+            "max_tokens": 1024,
+            "logprobs": 100,
+        },
+    }
+
 
 def get_backup_image():
     blank_image = Image.new("RGB", (512, 512), "white")
