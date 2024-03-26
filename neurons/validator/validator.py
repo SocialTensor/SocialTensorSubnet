@@ -134,7 +134,7 @@ class Validator(BaseValidatorNeuron):
                     "supporting_pipelines"
                 ],
                 "model_incentive_weight": 0.00,
-                "timeout": 32,
+                "timeout": 64,
                 "synapse_type": ig_subnet.protocol.TextGenerating,
                 "reward_url": self.config.reward_url.Gemma7b,
                 "inference_params": {},
