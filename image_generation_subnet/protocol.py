@@ -3,6 +3,7 @@ import pydantic
 from generation_models.utils import base64_to_pil_image
 import typing
 import yaml
+import traceback
 
 
 MODEL_CONFIG = yaml.load(
@@ -128,12 +129,17 @@ class TextGenerating(bt.Synapse):
     def wandb_deserialize(self, uid) -> dict:
         import wandb
         import pandas as pd
+        
         if self.prompt_output:
-            data = pd.json_normalize(self.deserialize())
-            print(data)
-            table = wandb.Table(dataframe=data, allow_mixed_types=True)
-            return {
-                "texts": {str(uid): table},
-            }
+            try:
+                data = pd.json_normalize(self.deserialize())
+                print(data)
+                table = wandb.Table(dataframe=data, allow_mixed_types=True)
+                return {
+                    "texts": {str(uid): table},
+                }
+            except Exception as e:
+                print(e)
+                traceback.print_exc()
         else:
             bt.logging.info("No prompt output to log")
