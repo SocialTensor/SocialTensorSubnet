@@ -125,6 +125,14 @@ class Validator(BaseValidatorNeuron):
         self.max_validate_batch = 5
         self.miner_manager = MinerManager(self)
         self.load_state()
+        self.miner_manager.update_miners_identity()
+        self.flattened_uids = []
+        self.should_reward_indexes = []
+        self.init_wandb()
+        self.wandb_data = {
+            "all_uids_info": self.miner_manager.all_uids_info,
+            "scores": {},
+        }
         try:
             self.validator_proxy = ValidatorProxy(self)
             bt.logging.info("Validator proxy started succesfully")
@@ -136,14 +144,6 @@ class Validator(BaseValidatorNeuron):
                 )
             else:
                 bt.logging.warning("Share validator info to owner failed")
-        self.miner_manager.update_miners_identity()
-        self.flattened_uids = []
-        self.should_reward_indexes = []
-        self.init_wandb()
-        self.wandb_data = {
-            "all_uids_info": self.miner_manager.all_uids_info,
-            "scores": {},
-        }
 
     def init_wandb(self):
         if not self.config.use_wandb:

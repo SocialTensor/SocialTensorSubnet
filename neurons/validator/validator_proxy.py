@@ -227,7 +227,7 @@ class ValidatorProxy:
                 if not self.validator.should_reward_indexes[i]:
                     # remove the uid in index i
                     del self.validator.flattened_uids[i]
-                    del self.validatorshould_reward_indexes[i]
+                    del self.validator.should_reward_indexes[i]
                     return True
             return False
         except Exception as e:
