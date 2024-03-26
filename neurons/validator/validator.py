@@ -474,7 +474,7 @@ if __name__ == "__main__":
         while True:
             bt.logging.info("Validator running...", time.time())
             try:
-                os.system("wandb artifact cache cleanup --remove-temp")
+                os.system("wandb artifact cache cleanup --remove-temp 300MB")
             except Exception:
                 pass
             time.sleep(60)
