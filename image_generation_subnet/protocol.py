@@ -131,7 +131,9 @@ class TextGenerating(bt.Synapse):
         if self.prompt_output:
             data = pd.json_normalize(self.deserialize())
             print(data)
-            table = wandb.Table(dataframe=data)
+            table = wandb.Table(dataframe=data, allow_mixed_types=True)
             return {
                 "texts": {str(uid): table},
             }
+        else:
+            bt.logging.info("No prompt output to log")
