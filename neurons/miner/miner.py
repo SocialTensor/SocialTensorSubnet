@@ -46,7 +46,7 @@ class Miner(BaseMinerNeuron):
                     f"Metagraph stake: {metagraph.total_stake.tolist()}"
                 )
             )
-        valid_stakes = torch.tensor(valid_stakes)
+        valid_stakes = torch.tensor(valid_stakes) + 1e-4
         prefered_valid_stakes = valid_stakes * size_preference_factor
         normalized_prefered_valid_stakes = (
             prefered_valid_stakes / prefered_valid_stakes.sum()
