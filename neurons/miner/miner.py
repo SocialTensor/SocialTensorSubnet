@@ -30,12 +30,12 @@ class Miner(BaseMinerNeuron):
         min_stake: int,
     ) -> dict:
         valid_stakes = [
-            stake for stake in metagraph.total_stake.tolist() if stake > min_stake
+            stake for stake in metagraph.total_stake.tolist() if stake >= min_stake
         ]
         valid_uids = [
             uid
             for uid, stake in enumerate(metagraph.total_stake.tolist())
-            if stake > min_stake
+            if stake >= min_stake
         ]
         if not valid_stakes:
             bt.logging.warning(
@@ -54,6 +54,10 @@ class Miner(BaseMinerNeuron):
         volume_per_validator = total_volume * normalized_prefered_valid_stakes
         volume_per_validator = torch.ceil(volume_per_validator)
         volume_per_validator = dict(zip(valid_uids, volume_per_validator.tolist()))
+        for uid, volume in volume_per_validator.items():
+            if metagraph.total_stake[uid] >= 10000:
+                volume_per_validator[uid] = max(1, volume)
+            bt.logging.info(f"Volume for {uid}-validator: {volume}")
 
         return volume_per_validator
 
