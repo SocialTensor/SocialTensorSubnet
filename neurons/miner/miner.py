@@ -5,7 +5,7 @@ from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
 from image_generation_subnet.protocol import ImageGenerating, TextGenerating
 import torch
-
+import traceback
 T = TypeVar("T", bound=bt.Synapse)
 
 
@@ -117,6 +117,7 @@ class Miner(BaseMinerNeuron):
             return False, "All passed!"
         except Exception as e:
             bt.logging.error(f"Error in blacklist: {e}")
+            traceback.print_exc()
             return False, "All passed!"
     async def blacklist_image(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         return await self.blacklist(synapse)
