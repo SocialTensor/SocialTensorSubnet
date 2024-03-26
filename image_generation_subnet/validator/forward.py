@@ -43,7 +43,7 @@ def skip(**kwargs):
     return decorator
 
 
-def get_challenge(url: str, synapses: List[ImageGenerating]) -> List[ImageGenerating]:
+def get_challenge(url: str, synapses: List[ImageGenerating], backup_func: callable) -> List[ImageGenerating]:
     for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
         if not synapse:
             continue
@@ -51,9 +51,11 @@ def get_challenge(url: str, synapses: List[ImageGenerating]) -> List[ImageGenera
             data = synapse.deserialize()
             response = requests.post(url, json=data)
             if response.status_code != 200:
-                raise
-            challenge = response.json()
-        except Exception:
+                challenge = backup_func()
+            else:
+                challenge = response.json()
+        except Exception as e:
+            bt.logging.warning(f"Error in get_challenge: {e}")
             challenge = None
         if challenge:
             synapses[i] = synapse.copy(update=challenge)
@@ -67,6 +69,7 @@ def get_reward(
     base_synapse: ImageGenerating,
     synapses: List[ImageGenerating],
     uids: List[int],
+    timeout: float,
 ) -> List[float]:
     valid_uids = [uid for uid, response in zip(uids, synapses) if response.is_success]
     invalid_uids = [
@@ -77,7 +80,7 @@ def get_reward(
     if valid_uids:
         data = {
             "miner_data": [synapse.deserialize() for synapse in valid_synapses],
-            "base_data": base_synapse.deserialize(),
+            "base_data": base_synapse.deserialize_input(),
         }
         response = requests.post(url, json=data)
         if response.status_code != 200:
@@ -85,8 +88,10 @@ def get_reward(
         valid_rewards = response.json()["rewards"]
         valid_rewards = [float(reward) for reward in valid_rewards]
         process_times = [synapse.dendrite.process_time for synapse in valid_synapses]
-
-        valid_rewards = add_time_penalty(valid_rewards, process_times)
+        if timeout > 12:
+            valid_rewards = add_time_penalty(valid_rewards, process_times, 0.4, 64)
+        else:
+            valid_rewards = add_time_penalty(valid_rewards, process_times, 0.4, 12)
         valid_rewards = [round(num, 3) for num in valid_rewards]
     else:
         bt.logging.info("0 valid responses in a batch")
@@ -97,12 +102,12 @@ def get_reward(
     return total_uids, total_rewards
 
 
-def add_time_penalty(rewards, process_times, max_penalty=0.4):
+def add_time_penalty(rewards, process_times, max_penalty=0.4, factor: float = 12):
     """
     Add time penalty to rewards, based on process time
     """
     penalties = [
-        max_penalty * pow(process_time, 3) / pow(12, 3)
+        max_penalty * pow(process_time, 3) / pow(factor, 3)
         for process_time in process_times
     ]
     penalties = [min(penalty, max_penalty) for penalty in penalties]

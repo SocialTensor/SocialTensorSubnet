@@ -14,8 +14,7 @@ class BaseModel(ABC):
         self.nsfw_threshold = 0.5
 
     @abstractmethod
-    def load_model(self, *args, **kwargs):
-        ...
+    def load_model(self, *args, **kwargs): ...
 
     def __call__(self, *args, **kwargs):
         image: Image.Image = self.inference_function(*args, **kwargs)

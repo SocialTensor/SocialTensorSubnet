@@ -1,6 +1,6 @@
-bittensor==6.9.2
+bittensor==6.9.3
 diffusers==0.25.0
-transformers==4.35.2
+transformers==4.39.1
 accelerate==0.27.2
 cryptography==42.0.0
 ImageHash==4.3.1
@@ -20,3 +20,5 @@ ray[serve]
 controlnet_aux==0.0.7
 discord-webhook
 timm
+wandb
+pandas

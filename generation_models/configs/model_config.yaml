@@ -37,3 +37,9 @@ GoJourney:
   params:
     supporting_pipelines: 
       - "gojourney"
+Gemma7b:
+  target: ""
+  repo_id: "google/gemma-7b-it"
+  params:
+    supporting_pipelines: 
+      - "text_generation"

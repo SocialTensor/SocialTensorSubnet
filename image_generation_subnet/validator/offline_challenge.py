@@ -2,6 +2,8 @@ from image_generation_subnet.protocol import ImageGenerating
 import random
 import requests
 import bittensor as bt
+from PIL import Image
+from generation_models.utils import pil_image_to_base64
 
 
 def get_promptGoJouney(synapses: list[ImageGenerating]) -> list[ImageGenerating]:
@@ -18,6 +20,8 @@ def get_promptGoJouney(synapses: list[ImageGenerating]) -> list[ImageGenerating]
     ]
     synapses = check_batch_prompt(synapses)
     for synapse in synapses:
+        if not synapse:
+            continue
         synapse.prompt = f"{synapse.prompt} --ar {random.choice(ars)} --v 6"
     return synapses
 
@@ -35,6 +39,24 @@ def get_offline_prompt():
     animals = ["dog", "cat", "bird", "fish", "horse", "rabbit"]
     actions = ["running", "jumping", "flying", "swimming", "sitting", "standing"]
     return f"{random.choice(landscapes)} with {random.choice(animals)} {random.choice(actions)}, {random.randint(1, 10000)}"
+
+
+def get_backup_prompt():
+    return {"prompt": get_offline_prompt()}
+
+def get_backup_llm_prompt():
+    return {
+        "prompt_input": "How AI can change the world?",
+        "pipeline_params": {
+            "max_tokens": 1024,
+            "logprobs": 100,
+        },
+    }
+
+
+def get_backup_image():
+    blank_image = Image.new("RGB", (512, 512), "white")
+    return {"conditional_image": pil_image_to_base64(blank_image)}
 
 
 def check_batch_prompt(synapses: list[ImageGenerating]) -> list[ImageGenerating]:

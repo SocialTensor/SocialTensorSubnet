@@ -1,19 +1,18 @@
-from fastapi import FastAPI, Request, Response
-import bittensor as bt
+from fastapi import FastAPI
 from pydantic import BaseModel, Extra
 import uvicorn
 import argparse
-import time
 import threading
 from slowapi.errors import RateLimitExceeded
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from typing import Optional
 import re
 from ray import serve
 from ray.serve.handle import DeploymentHandle
 from transformers import pipeline, set_seed
 import random
+from functools import partial
+from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limiter
 
 with open("services/challenge_generating/prompt_generating/idea.txt", "r") as file:
     ideas = file.readlines()
@@ -91,22 +90,24 @@ class PromptGenerator:
         return prompt
 
 
-limiter = Limiter(key_func=get_remote_address)
-
-
 class ChallengeImage:
     def __init__(self, model_handle: DeploymentHandle, args):
         self.args = args
         self.model_handle = model_handle
         self.app = FastAPI()
         self.app.add_api_route("/", self.__call__, methods=["POST"])
-        self.app.middleware("http")(self.filter_allowed_ips)
+        self.app.middleware("http")(partial(filter_allowed_ips, self))
         self.app.state.limiter = limiter
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         if not self.args.disable_secure:
             self.allowed_ips_thread = threading.Thread(
-                target=self.define_allowed_ips,
-                args=(self.args.chain_endpoint, self.args.netuid, self.args.min_stake),
+                target=define_allowed_ips,
+                args=(
+                    self,
+                    self.args.chain_endpoint,
+                    self.args.netuid,
+                    self.args.min_stake,
+                ),
             )
             self.allowed_ips_thread.daemon = True
             self.allowed_ips_thread.start()
@@ -118,37 +119,6 @@ class ChallengeImage:
         data = dict(data)
         prompt = await self.model_handle.remote(data)
         return {"prompt": prompt}
-
-    @limiter.limit("120/minute")
-    async def filter_allowed_ips(self, request: Request, call_next):
-        if self.args.disable_secure:
-            response = await call_next(request)
-            return response
-        if (request.client.host not in ALLOWED_IPS) and (
-            request.client.host != "127.0.0.1"
-        ):
-            print("Blocking an unallowed ip:", request.client.host, flush=True)
-            return Response(
-                content="You do not have permission to access this resource",
-                status_code=403,
-            )
-        print("Allow an ip:", request.client.host, flush=True)
-        response = await call_next(request)
-        return response
-
-    def define_allowed_ips(self, url, netuid, min_stake):
-        global ALLOWED_IPS
-        ALLOWED_IPS = []
-        while True:
-            all_allowed_ips = []
-            subtensor = bt.subtensor(url)
-            metagraph = subtensor.metagraph(netuid)
-            for uid in range(len(metagraph.total_stake)):
-                if metagraph.total_stake[uid] > min_stake:
-                    all_allowed_ips.append(metagraph.axons[uid].ip)
-            ALLOWED_IPS = all_allowed_ips
-            print("Updated allowed ips:", ALLOWED_IPS, flush=True)
-            time.sleep(60)
 
 
 if __name__ == "__main__":

@@ -146,6 +146,33 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--loop_base_time",
+            type=int,
+            help="The base time for the loop to run in seconds.",
+            default=600,
+        )
+        parser.add_argument(
+            "--volume_utilization_factor",
+            type=float,
+            help="Determine how much of the volume to be used for synthentic quering.",
+            default=0.9,
+        )
+
+        parser.add_argument(
+            "--num_forward_thread_per_loop",
+            type=int,
+            help="The number of threads to run in a single loop.",
+            default=16,
+        )
+
+        parser.add_argument(
+            "--use_wandb",
+            action="store_true",
+            help="If set, we will use wandb for logging.",
+            default=False,
+        )
+
+        parser.add_argument(
             "--proxy.port",
             type=int,
             help="The port to run the proxy on.",
@@ -197,6 +224,13 @@ def add_args(cls, parser):
             help="The endpoint to query to see if the image hash is correct.",
             default="http://nicheimage.nichetensor.com/reward/DreamShaper",
         )
+
+        parser.add_argument(
+            "--reward_url.Gemma7b",
+            type=str,
+            help="The endpoint to get the reward for Gemma7b.",
+            default="http://nicheimage.nichetensor.com/reward/Gemma7b",
+        )
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(
@@ -211,6 +245,13 @@ def add_args(cls, parser):
             type=str,
             help="The endpoint to send generate requests to.",
             default="http://nicheimage.nichetensor.com/challenge/image",
+        )
+
+        parser.add_argument(
+            "--challenge.llm_prompt",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="http://nicheimage.nichetensor.com/challenge/llm_prompt",
         )
         # TODO: add more challenge endpoints for categories
 
@@ -241,6 +282,33 @@ def add_args(cls, parser):
             type=str,
             help="The endpoint to send info requests to.",
             default="http://127.0.0.1:10006/info",
+        )
+
+        parser.add_argument(
+            "--miner.total_volume",
+            type=int,
+            help="The total volume of requests to be served per 10 minutes",
+            default=360,
+        )
+
+        parser.add_argument(
+            "--miner.size_preference_factor",
+            type=float,
+            help="The size preference factor for the volume per validator",
+            default=1.03,
+        )
+
+        parser.add_argument(
+            "--miner.min_stake",
+            type=int,
+            help="The minimum stake for a validator to be considered",
+            default=10000,
+        )
+        parser.add_argument(
+            "--miner.limit_interval",
+            type=int,
+            help="The interval to limit the number of requests",
+            default=600,
         )
 
 
