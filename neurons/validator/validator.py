@@ -52,9 +52,10 @@ class Validator(BaseValidatorNeuron):
                 ],
                 "backup": [get_backup_prompt, ig_subnet.validator.get_promptGoJouney],
             },
-            "text_generation": [
-                self.config.challenge.llm_prompt,
-            ],
+            "text_generation": {
+                "main": [self.config.challenge.llm_prompt],
+                "backup": [None],
+            },
         }
         # TODO: Balancing Incentive Weights
         self.nicheimage_catalogue = {
