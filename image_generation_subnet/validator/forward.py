@@ -79,7 +79,7 @@ def get_reward(
     if valid_uids:
         data = {
             "miner_data": [synapse.deserialize() for synapse in valid_synapses],
-            "base_data": base_synapse.deserialize(),
+            "base_data": base_synapse.deserialize_input(),
         }
         response = requests.post(url, json=data)
         if response.status_code != 200:

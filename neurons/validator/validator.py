@@ -52,6 +52,9 @@ class Validator(BaseValidatorNeuron):
                 ],
                 "backup": [get_backup_prompt, ig_subnet.validator.get_promptGoJouney],
             },
+            "text_generation": [
+                self.config.challenge.llm_prompt,
+            ],
         }
         # TODO: Balancing Incentive Weights
         self.nicheimage_catalogue = {
@@ -63,6 +66,7 @@ class Validator(BaseValidatorNeuron):
                 "reward_url": ig_subnet.validator.get_reward_GoJourney,
                 "timeout": 12,
                 "inference_params": {},
+                "synapse_type": ig_subnet.protocol.ImageGenerating,
             },
             "DreamShaper": {
                 "model_incentive_weight": 0.06,
@@ -78,6 +82,7 @@ class Validator(BaseValidatorNeuron):
                     "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                 },
                 "timeout": 12,
+                "synapse_type": ig_subnet.protocol.ImageGenerating,
             },
             "RealisticVision": {
                 "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
@@ -90,6 +95,7 @@ class Validator(BaseValidatorNeuron):
                     "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                 },
                 "timeout": 12,
+                "synapse_type": ig_subnet.protocol.ImageGenerating,
             },
             "RealitiesEdgeXL": {
                 "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
@@ -104,6 +110,7 @@ class Validator(BaseValidatorNeuron):
                     "guidance_scale": 5.5,
                 },
                 "timeout": 12,
+                "synapse_type": ig_subnet.protocol.ImageGenerating,
             },
             "AnimeV3": {
                 "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
@@ -119,6 +126,17 @@ class Validator(BaseValidatorNeuron):
                     "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
                 },
                 "timeout": 12,
+                "synapse_type": ig_subnet.protocol.ImageGenerating,
+            },
+            "Gemma7b": {
+                "supporting_pipelines": MODEL_CONFIGS["Gemma7b"]["params"][
+                    "supporting_pipelines"
+                ],
+                "model_incentive_weight": 0.00,
+                "timeout": 32,
+                "synapse_type": ig_subnet.protocol.TextGenerating,
+                "reward_url": self.config.reward_url.Gemma7b,
+                "inference_params": {},
             },
         }
         self.max_validate_batch = 5
@@ -370,6 +388,7 @@ class Validator(BaseValidatorNeuron):
                 continue
 
     def prepare_challenge(self, available_uids, model_name, pipeline_type):
+        synapse_type = self.nicheimage_catalogue[model_name]["synapse_type"]
         batch_size = random.randint(1, 5)
         random.shuffle(available_uids)
         batched_uids = [
@@ -378,7 +397,7 @@ class Validator(BaseValidatorNeuron):
         ]
         num_batch = len(batched_uids)
         synapses = [
-            ImageGenerating(pipeline_type=pipeline_type, model_name=model_name)
+            synapse_type(pipeline_type=pipeline_type, model_name=model_name)
             for _ in range(num_batch)
         ]
         for synapse in synapses:
