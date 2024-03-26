@@ -26,7 +26,7 @@ def get_args():
     parser.add_argument(
         "--chain_endpoint",
         type=str,
-        default="subtensor_fixed_imagenet.thinkiftechnology.com:9944",
+        default="finney",
     )
     parser.add_argument("--disable_secure", action="store_true")
     parser.add_argument(
