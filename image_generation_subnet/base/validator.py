@@ -28,7 +28,6 @@ from typing import List
 from traceback import print_exception
 
 from image_generation_subnet.base.neuron import BaseNeuron
-import time
 
 
 class BaseValidatorNeuron(BaseNeuron):
@@ -132,20 +131,14 @@ class BaseValidatorNeuron(BaseNeuron):
                         )
                     except Exception:
                         bt.logging.warning("Warning, proxy can't ping to proxy-client.")
-                if self.step < 5:
-                    time_per_loop = (
-                        60  # If validator just started, run more frequent tests
-                    )
-                else:
-                    time_per_loop = 60 * 10  # One loop every 10 minutes
-                start_time_forward_loop = time.time()
+
                 bt.logging.info(f"step({self.step}) block({self.block})")
 
                 # Run forward.
                 try:
                     self.forward()
                 except Exception as err:
-                    bt.logging.debug(print_exception(type(err), err, err.__traceback__))
+                    print_exception(type(err), err, err.__traceback__)
 
                 # Check if we should exit.
                 if self.should_exit:
@@ -156,17 +149,6 @@ class BaseValidatorNeuron(BaseNeuron):
                 self.save_state()
 
                 self.step += 1
-
-                bt.logging.info(
-                    "Loop completed, uids info:\n",
-                    str(self.miner_manager.all_uids_info).replace("},", "},\n"),
-                )
-
-                time_elapse_in_loop = time.time() - start_time_forward_loop
-                time_to_sleep = time_per_loop - time_elapse_in_loop
-                if time_to_sleep > 0:
-                    bt.logging.info(f"Sleeping for {time_to_sleep} seconds.")
-                    time.sleep(time_to_sleep)
 
             # If someone intentionally stops the validator, it'll safely terminate operations.
             except KeyboardInterrupt:

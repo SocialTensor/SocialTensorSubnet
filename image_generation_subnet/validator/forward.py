@@ -43,7 +43,7 @@ def skip(**kwargs):
     return decorator
 
 
-def get_challenge(url: str, synapses: List[ImageGenerating]) -> List[ImageGenerating]:
+def get_challenge(url: str, synapses: List[ImageGenerating], backup_func: callable) -> List[ImageGenerating]:
     for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
         if not synapse:
             continue
@@ -51,9 +51,11 @@ def get_challenge(url: str, synapses: List[ImageGenerating]) -> List[ImageGenera
             data = synapse.deserialize()
             response = requests.post(url, json=data)
             if response.status_code != 200:
-                raise
-            challenge = response.json()
-        except Exception:
+                challenge = backup_func()
+            else:
+                challenge = response.json()
+        except Exception as e:
+            bt.logging.warning(f"Error in get_challenge: {e}")
             challenge = None
         if challenge:
             synapses[i] = synapse.copy(update=challenge)

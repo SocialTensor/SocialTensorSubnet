@@ -1,5 +1,7 @@
 import bittensor as bt
 import pydantic
+from generation_models.utils import base64_to_pil_image
+import wandb
 
 
 class ImageGenerating(bt.Synapse):
@@ -65,4 +67,11 @@ class ImageGenerating(bt.Synapse):
             "conditional_image": self.conditional_image,
             "image": self.image,
             "response_dict": self.response_dict,
+        }
+
+    def wandb_deserialize(self, uid) -> dict:
+        image = base64_to_pil_image(self.image)
+        prompt = self.prompt
+        return {
+            "images": {uid: wandb.Image(image, caption=prompt)},
         }

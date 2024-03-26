@@ -167,7 +167,10 @@ class ValidatorProxy:
                         raise Exception("No miners available")
             is_valid_response = False
             random.shuffle(available_uids)
-            for uid in available_uids[:5]:
+            for uid in available_uids[:16]:
+                if not self.check_valid_quota(uid):
+                    bt.logging.info(f"Not enough quota for miner {uid}")
+                    continue
                 bt.logging.info(f"Selected miner uid: {uid}")
                 bt.logging.info(
                     f"Forwarding request to miner {uid} with score {specific_weights[uid]}"
@@ -216,6 +219,20 @@ class ValidatorProxy:
                 return response["response_dict"]
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+    def check_valid_quota(self, uid):
+        try:
+            if uid not in self.validator.flattened_uids:
+                return False
+            for i, uid in enumerate(self.validator.flattened_uids):
+                if not self.validator.should_reward_indexes[i]:
+                    # remove the uid in index i
+                    del self.validator.flattened_uids[i]
+                    del self.validator.should_reward_indexes[i]
+                    return True
+            return False
+        except Exception as e:
+            print("Exception occured in checking valid quota", e, flush=True)
+            return False
 
     async def get_self(self):
         return self
