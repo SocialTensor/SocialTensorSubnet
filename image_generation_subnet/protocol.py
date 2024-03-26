@@ -132,15 +132,11 @@ class TextGenerating(bt.Synapse):
         
         if self.prompt_output:
             try:
-                data = pd.json_normalize({
-                    "prompt_input": self.prompt_input,
-                    "prompt_output": self.prompt_output["choices"][0]["text"],
-                    "model_name": self.model_name,
-                })
+                data = [[self.prompt_input,self.prompt_output["choices"][0]["text"],self.model_name,]]
                 print(data)
-                table = wandb.Table(dataframe=data, allow_mixed_types=True)
+                table = wandb.Table(columns=["prompt_input", "prompt_output", "model_name"], data=data)
                 return {
-                    "texts": {str(uid): table},
+                    f"texts_{uid}": table,
                 }
             except Exception as e:
                 print(e)
