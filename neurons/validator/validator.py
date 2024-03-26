@@ -168,11 +168,8 @@ class Validator(BaseValidatorNeuron):
         """
 
         self.wandb_data = {
-            "all_uids_info": {},
-            "images": {},
-            "prompts": {},
+            "all_uids_info": self.miner_manager.all_uids_info,
             "scores": {},
-            "text_responses": {},
         }
 
         bt.logging.info("Updating available models & uids")
@@ -195,6 +192,7 @@ class Validator(BaseValidatorNeuron):
         loop_start = time.time()
         while self.flattened_uids:
             batch_uids = self.flattened_uids[:forward_batch_size]
+            batch_should_reward_indexes = should_reward_indexes[:forward_batch_size]
             batch_model_names = [
                 self.miner_manager.all_uids_info[uid]["model_name"] for uid in batch_uids
             ]
@@ -205,11 +203,11 @@ class Validator(BaseValidatorNeuron):
                 for model_name in batch_model_names
             ]
             bt.logging.info(
-                f"Forwarding {len(batch_uids)} uids"
+                f"Forwarding {len(batch_uids)} uids\n {batch_uids}\n {batch_should_reward_indexes}"
             )
             thread = threading.Thread(
                 target=self.async_query_and_reward,
-                args=(batch_uids, batch_model_names, pipeline_types, should_reward_indexes),
+                args=(batch_uids, batch_model_names, pipeline_types, batch_should_reward_indexes),
             )
             threads.append(thread)
             thread.start()
@@ -221,12 +219,17 @@ class Validator(BaseValidatorNeuron):
             thread.join()
         self.update_scores_on_chain()
         self.save_state()
-        bt.logging.info(f"\n{self.miner_manager.all_uids_info}")
         self.wandb_data["scores"] = {k: v for k, v in enumerate(self.scores)}
-        bt.logging.info("Logging to wandb")
-        wandb.log(self.wandb_data)
+
+        bt.logging.info(
+            "Loop completed, uids info:\n",
+            str(self.miner_manager.all_uids_info).replace("},", "},\n"),
+        )
+
         actual_time_taken = time.time() - loop_start
+
         if actual_time_taken < loop_base_time:
+            bt.logging.info(f"Sleeping for {loop_base_time - actual_time_taken} seconds")
             time.sleep(loop_base_time - actual_time_taken)
             
 
@@ -295,21 +298,23 @@ class Validator(BaseValidatorNeuron):
                     reward_uids = [
                         uid for uid, should_reward in uid_data if should_reward
                     ]
-                    bt.logging.info("Received responses, calculating rewards")
-                    if callable(reward_url):
-                        reward_uids, rewards = reward_url(base_synapse, reward_responses, reward_uids)
-                    else:
-                        reward_uids, rewards = ig_subnet.validator.get_reward(
-                            reward_url, base_synapse, reward_responses, reward_uids
-                        )
+                    if reward_uids:
+                        bt.logging.info("Received responses, calculating rewards")
+                        if callable(reward_url):
+                            reward_uids, rewards = reward_url(base_synapse, reward_responses, reward_uids)
+                        else:
+                            reward_uids, rewards = ig_subnet.validator.get_reward(
+                                reward_url, base_synapse, reward_responses, reward_uids
+                            )
                     
-                    # Scale Reward based on Miner Volume
-                    for i, uid in enumerate(reward_uids):
-                        rewards[i] = rewards[i] * self.miner_manager.all_uids_info[uid]["reward_scale"]
+                        # Scale Reward based on Miner Volume
+                        for i, uid in enumerate(reward_uids):
+                            if rewards[i] > 0:
+                                rewards[i] = rewards[i] * (0.9 + 0.1 * self.miner_manager.all_uids_info[uid]["reward_scale"])
 
-                    bt.logging.info(f"Scored responses: {rewards}")
+                        bt.logging.info(f"Scored responses: {rewards}")
 
-                    self.miner_manager.update_scores(reward_uids, rewards)
+                        self.miner_manager.update_scores(reward_uids, rewards)
             except Exception as e:
                 bt.logging.error(
                     f"Error while processing forward pass for {model_name}: {e}"

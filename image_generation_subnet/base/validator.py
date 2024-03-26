@@ -150,11 +150,6 @@ class BaseValidatorNeuron(BaseNeuron):
 
                 self.step += 1
 
-                bt.logging.info(
-                    "Loop completed, uids info:\n",
-                    str(self.miner_manager.all_uids_info).replace("},", "},\n"),
-                )
-
             # If someone intentionally stops the validator, it'll safely terminate operations.
             except KeyboardInterrupt:
                 self.axon.stop()
