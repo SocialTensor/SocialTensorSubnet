@@ -331,6 +331,7 @@ class Validator(BaseValidatorNeuron):
                     batched_uid_data, model_name, pipeline_type
                 )
                 for synapse, uid_data in zip(synapses, batched_uid_data):
+                    bt.logging.info(f"Quering {uid_data}")
                     if not synapse:
                         continue
                     base_synapse = synapse.copy()
@@ -358,8 +359,8 @@ class Validator(BaseValidatorNeuron):
                     reward_uids = [
                         uid for uid, should_reward in uid_data if should_reward
                     ]
+                    bt.logging.info(f"Received {len(responses)} responses, calculating rewards")
                     if reward_uids:
-                        bt.logging.info("Received responses, calculating rewards")
                         if callable(reward_url):
                             reward_uids, rewards = reward_url(
                                 base_synapse, reward_responses, reward_uids
