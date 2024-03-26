@@ -131,5 +131,5 @@ class TextGenerating(bt.Synapse):
         data = pd.json_normalize(self.deserialize())
         table = wandb.Table(dataframe=data)
         return {
-            "texts": {uid: table},
+            "texts": {str(uid): table},
         }
