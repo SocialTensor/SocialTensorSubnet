@@ -138,6 +138,7 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.warning("Share validator info to owner failed")
         self.miner_manager.update_miners_identity()
         self.flattened_uids = []
+        self.should_reward_indexes = []
         self.init_wandb()
         self.wandb_data = {
             "all_uids_info": self.miner_manager.all_uids_info,
@@ -193,7 +194,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("Updating available models & uids")
         num_forward_thread_per_loop = self.config.num_forward_thread_per_loop
         self.miner_manager.update_miners_identity()
-        should_reward_indexes = self.update_flattened_uids()
+        self.should_reward_indexes = self.update_flattened_uids()
 
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         forward_batch_size = len(self.flattened_uids) // num_forward_thread_per_loop
@@ -210,7 +211,7 @@ class Validator(BaseValidatorNeuron):
         loop_start = time.time()
         while self.flattened_uids:
             batch_uids = self.flattened_uids[:forward_batch_size]
-            batch_should_reward_indexes = should_reward_indexes[:forward_batch_size]
+            batch_should_reward_indexes = self.should_reward_indexes[:forward_batch_size]
             batch_model_names = [
                 self.miner_manager.all_uids_info[uid]["model_name"]
                 for uid in batch_uids
@@ -236,6 +237,7 @@ class Validator(BaseValidatorNeuron):
             threads.append(thread)
             thread.start()
             del self.flattened_uids[:forward_batch_size]
+            del self.should_reward_indexes[:forward_batch_size]
             if self.flattened_uids:
                 bt.logging.info(f"Sleeping {sleep_per_batch} seconds before next batch")
                 time.sleep(sleep_per_batch)
