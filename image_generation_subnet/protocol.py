@@ -1,9 +1,9 @@
 import bittensor as bt
 import pydantic
 from generation_models.utils import base64_to_pil_image
-import wandb
 import typing
 import yaml
+
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -80,6 +80,7 @@ class ImageGenerating(bt.Synapse):
         }
 
     def wandb_deserialize(self, uid) -> dict:
+        import wandb
         image = base64_to_pil_image(self.image)
         prompt = self.prompt
         return {
@@ -122,4 +123,13 @@ class TextGenerating(bt.Synapse):
             "prompt_output": self.prompt_output,
             "prompt_input": self.prompt_input,
             "model_name": self.model_name,
+        }
+    
+    def wandb_deserialize(self, uid) -> dict:
+        import wandb
+        import pandas as pd
+        data = pd.json_normalize(self.deserialize())
+        table = wandb.Table(dataframe=data)
+        return {
+            "texts": {uid: table},
         }

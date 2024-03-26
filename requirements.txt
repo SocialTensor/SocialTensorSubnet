@@ -1,4 +1,4 @@
-bittensor==6.9.2
+bittensor==6.9.3
 diffusers==0.25.0
 transformers==4.39.1
 accelerate==0.27.2
@@ -21,3 +21,4 @@ controlnet_aux==0.0.7
 discord-webhook
 timm
 wandb
+pandas

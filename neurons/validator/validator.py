@@ -345,7 +345,7 @@ class Validator(BaseValidatorNeuron):
                             try:
                                 wandb_data = response.wandb_deserialize(uid)
                                 wandb.log(wandb_data)
-                            except Exception as e:
+                            except Exception:
                                 continue
                     reward_responses = [
                         response
