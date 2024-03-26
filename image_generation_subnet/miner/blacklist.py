@@ -14,7 +14,7 @@ def check_limit(
     if uid not in self.validator_logs:
         self.validator_logs[uid] = {
             "start_interval": time.time(),
-            "max_request": volume_per_validator[uid],
+            "max_request": volume_per_validator.get(uid, 1),
             "request_counter": 1,
         }
     elif time.time() - self.validator_logs[uid]["start_interval"] > interval:
