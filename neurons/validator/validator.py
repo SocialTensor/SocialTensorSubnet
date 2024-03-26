@@ -1,4 +1,5 @@
 import time
+import os
 import bittensor as bt
 import random
 import torch
@@ -13,8 +14,6 @@ import threading
 import math
 from copy import deepcopy
 import wandb
-import numpy as np
-from generation_models.utils import base64_to_pil_image
 from image_generation_subnet.validator.offline_challenge import (
     get_backup_image,
     get_backup_prompt,
@@ -455,4 +454,8 @@ if __name__ == "__main__":
     with Validator() as validator:
         while True:
             bt.logging.info("Validator running...", time.time())
+            try:
+                os.system("wandb artifact cache cleanup --remove-temp")
+            except Exception:
+                pass
             time.sleep(60)
