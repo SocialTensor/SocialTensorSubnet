@@ -128,8 +128,9 @@ class TextGenerating(bt.Synapse):
     def wandb_deserialize(self, uid) -> dict:
         import wandb
         import pandas as pd
-        data = pd.json_normalize(self.deserialize())
-        table = wandb.Table(dataframe=data)
-        return {
-            "texts": {str(uid): table},
-        }
+        if self.prompt_output:
+            data = pd.json_normalize(self.deserialize())
+            table = wandb.Table(dataframe=data)
+            return {
+                "texts": {str(uid): table},
+            }
