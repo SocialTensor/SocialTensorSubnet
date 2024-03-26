@@ -132,7 +132,11 @@ class TextGenerating(bt.Synapse):
         
         if self.prompt_output:
             try:
-                data = pd.json_normalize(self.deserialize())
+                data = pd.json_normalize({
+                    "prompt_input": self.prompt_input,
+                    "prompt_output": self.prompt_output["choices"][0]["text"],
+                    "model_name": self.model_name,
+                })
                 print(data)
                 table = wandb.Table(dataframe=data, allow_mixed_types=True)
                 return {
