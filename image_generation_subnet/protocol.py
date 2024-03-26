@@ -3,6 +3,7 @@ import pydantic
 from generation_models.utils import base64_to_pil_image
 import wandb
 
+
 class ImageGenerating(bt.Synapse):
     prompt: str = pydantic.Field(
         default="",

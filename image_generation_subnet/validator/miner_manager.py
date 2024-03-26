@@ -3,6 +3,7 @@ from image_generation_subnet.protocol import ImageGenerating
 import torch
 import math
 
+
 class MinerManager:
     def __init__(self, validator):
         self.validator = validator

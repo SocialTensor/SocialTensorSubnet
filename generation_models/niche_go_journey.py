@@ -6,7 +6,6 @@ API_KEY = os.getenv("GOJOURNEY_API_KEY")
 PROCESS_MODE = os.getenv("PROCESS_MODE", "relax")
 
 
-
 class NicheGoJourney(BaseModel):
     def __init__(self, *args, **kwargs):
         assert API_KEY, "GOJOURNEY_API_KEY is not set"

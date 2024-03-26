@@ -15,6 +15,10 @@ from copy import deepcopy
 import wandb
 import numpy as np
 from generation_models.utils import base64_to_pil_image
+from image_generation_subnet.validator.offline_challenge import (
+    get_backup_image,
+    get_backup_prompt,
+)
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -27,16 +31,28 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("load_state()")
         self.challenge_urls = {
-            "txt2img": [self.config.challenge.prompt],
-            "img2img": [self.config.challenge.prompt, self.config.challenge.image],
-            "controlnet_txt2img": [
-                self.config.challenge.prompt,
-                self.config.challenge.image,
-            ],
-            "gojourney": [
-                self.config.challenge.prompt,
-                ig_subnet.validator.get_promptGoJouney,
-            ],
+            "txt2img": {
+                "main": [self.config.challenge.prompt],
+                "backup": [get_backup_prompt],
+            },
+            "img2img": {
+                "main": [self.config.challenge.prompt, self.config.challenge.image],
+                "backup": [get_backup_prompt, get_backup_image],
+            },
+            "controlnet_txt2img": {
+                "main": [
+                    self.config.challenge.prompt,
+                    self.config.challenge.image,
+                ],
+                "backup": [get_backup_prompt, get_backup_image],
+            },
+            "gojourney": {
+                "main": [
+                    self.config.challenge.prompt,
+                    ig_subnet.validator.get_promptGoJouney,
+                ],
+                "backup": [get_backup_prompt, ig_subnet.validator.get_promptGoJouney],
+            },
         }
         # TODO: Balancing Incentive Weights
         self.nicheimage_catalogue = {
@@ -131,23 +147,23 @@ class Validator(BaseValidatorNeuron):
     def init_wandb(self):
         if not self.config.use_wandb:
             return
-    
+
         config = deepcopy(self.config)
 
-        run_name = f'validator-{self.uid}-{ig_subnet.__version__}'
+        run_name = f"validator-{self.uid}-{ig_subnet.__version__}"
         config.hotkey = self.wallet.hotkey.ss58_address
         config.run_name = run_name
         config.version = ig_subnet.__version__
-        config.type = 'validator'
+        config.type = "validator"
 
         # Initialize the wandb run for the single project
         run = wandb.init(
             name=run_name,
             project="nicheimage",
-            entity='toilaluan',
+            entity="toilaluan",
             config=config,
             dir=config.full_path,
-            reinit=True
+            reinit=True,
         )
 
         # Sign the run to ensure it's from the correct hotkey
@@ -155,7 +171,9 @@ class Validator(BaseValidatorNeuron):
         config.signature = signature
         wandb.config.update(config, allow_val_change=True)
 
-        bt.logging.success(f"Started wandb run for project '{run.project}', run '{run.name}'")
+        bt.logging.success(
+            f"Started wandb run for project '{run.project}', run '{run.name}'"
+        )
 
     def forward(self):
         """
@@ -194,7 +212,8 @@ class Validator(BaseValidatorNeuron):
             batch_uids = self.flattened_uids[:forward_batch_size]
             batch_should_reward_indexes = should_reward_indexes[:forward_batch_size]
             batch_model_names = [
-                self.miner_manager.all_uids_info[uid]["model_name"] for uid in batch_uids
+                self.miner_manager.all_uids_info[uid]["model_name"]
+                for uid in batch_uids
             ]
             pipeline_types = [
                 random.choice(
@@ -207,7 +226,12 @@ class Validator(BaseValidatorNeuron):
             )
             thread = threading.Thread(
                 target=self.async_query_and_reward,
-                args=(batch_uids, batch_model_names, pipeline_types, batch_should_reward_indexes),
+                args=(
+                    batch_uids,
+                    batch_model_names,
+                    pipeline_types,
+                    batch_should_reward_indexes,
+                ),
             )
             threads.append(thread)
             thread.start()
@@ -229,9 +253,10 @@ class Validator(BaseValidatorNeuron):
         actual_time_taken = time.time() - loop_start
 
         if actual_time_taken < loop_base_time:
-            bt.logging.info(f"Sleeping for {loop_base_time - actual_time_taken} seconds")
+            bt.logging.info(
+                f"Sleeping for {loop_base_time - actual_time_taken} seconds"
+            )
             time.sleep(loop_base_time - actual_time_taken)
-            
 
     def update_flattened_uids(self):
         self.flattened_uids = []
@@ -244,10 +269,12 @@ class Validator(BaseValidatorNeuron):
         ]
         for uid, rate_limit, model_name in zip(_uids, rate_limit_per_uid, _model_names):
             if model_name:
-                self.flattened_uids += [uid] * int(math.ceil(rate_limit * self.config.volume_utilization_factor))
+                self.flattened_uids += [uid] * int(
+                    math.ceil(rate_limit * self.config.volume_utilization_factor)
+                )
         random.shuffle(self.flattened_uids)
 
-        should_reward_indexes = [0]*len(self.flattened_uids)
+        should_reward_indexes = [0] * len(self.flattened_uids)
 
         # Each uid should be rewarded only once
         uid_to_slots = {}
@@ -258,15 +285,24 @@ class Validator(BaseValidatorNeuron):
         return should_reward_indexes
 
     def async_query_and_reward(
-        self, uids: list[int], model_names: list[str], pipeline_types: list[str], should_reward_indexes: list[int]
+        self,
+        uids: list[int],
+        model_names: list[str],
+        pipeline_types: list[str],
+        should_reward_indexes: list[int],
     ):
         dendrite = bt.dendrite(self.wallet)
         batch_by_model_pipeline = {}
-        for uid, model_name, pipeline_type, should_reward in zip(uids, model_names, pipeline_types, should_reward_indexes):
+        for uid, model_name, pipeline_type, should_reward in zip(
+            uids, model_names, pipeline_types, should_reward_indexes
+        ):
             batch_by_model_pipeline.setdefault((model_name, pipeline_type), []).append(
                 (uid, should_reward)
             )
-        for (model_name, pipeline_type), batched_uid_data in batch_by_model_pipeline.items():
+        for (
+            model_name,
+            pipeline_type,
+        ), batched_uid_data in batch_by_model_pipeline.items():
             try:
                 reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
                 synapses, batched_uid_data = self.prepare_challenge(
@@ -293,7 +329,9 @@ class Validator(BaseValidatorNeuron):
                             except Exception as e:
                                 continue
                     reward_responses = [
-                        response for response, should_reward in zip(responses, should_rewards) if should_reward
+                        response
+                        for response, should_reward in zip(responses, should_rewards)
+                        if should_reward
                     ]
                     reward_uids = [
                         uid for uid, should_reward in uid_data if should_reward
@@ -301,16 +339,24 @@ class Validator(BaseValidatorNeuron):
                     if reward_uids:
                         bt.logging.info("Received responses, calculating rewards")
                         if callable(reward_url):
-                            reward_uids, rewards = reward_url(base_synapse, reward_responses, reward_uids)
+                            reward_uids, rewards = reward_url(
+                                base_synapse, reward_responses, reward_uids
+                            )
                         else:
                             reward_uids, rewards = ig_subnet.validator.get_reward(
                                 reward_url, base_synapse, reward_responses, reward_uids
                             )
-                    
+
                         # Scale Reward based on Miner Volume
                         for i, uid in enumerate(reward_uids):
                             if rewards[i] > 0:
-                                rewards[i] = rewards[i] * (0.9 + 0.1 * self.miner_manager.all_uids_info[uid]["reward_scale"])
+                                rewards[i] = rewards[i] * (
+                                    0.9
+                                    + 0.1
+                                    * self.miner_manager.all_uids_info[uid][
+                                        "reward_scale"
+                                    ]
+                                )
 
                         bt.logging.info(f"Scored responses: {rewards}")
 
@@ -339,12 +385,15 @@ class Validator(BaseValidatorNeuron):
                 self.nicheimage_catalogue[model_name]["inference_params"]
             )
             synapse.seed = random.randint(0, 1e9)
-        for challenge_url in self.challenge_urls[pipeline_type]:
+        for challenge_url, backup_func in zip(
+            self.challenge_urls[pipeline_type]["main"],
+            self.challenge_urls[pipeline_type]["backup"],
+        ):
             if callable(challenge_url):
                 synapses = challenge_url(synapses)
             else:
                 assert isinstance(challenge_url, str)
-                synapses = ig_subnet.validator.get_challenge(challenge_url, synapses)
+                synapses = ig_subnet.validator.get_challenge(challenge_url, synapses, backup_func)
         return synapses, batched_uids
 
     def update_scores_on_chain(self):

@@ -157,7 +157,7 @@ def add_args(cls, parser):
             help="Determine how much of the volume to be used for synthentic quering.",
             default=0.9,
         )
-        
+
         parser.add_argument(
             "--num_forward_thread_per_loop",
             type=int,
