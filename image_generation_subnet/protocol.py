@@ -130,6 +130,7 @@ class TextGenerating(bt.Synapse):
         import pandas as pd
         if self.prompt_output:
             data = pd.json_normalize(self.deserialize())
+            print(data)
             table = wandb.Table(dataframe=data)
             return {
                 "texts": {str(uid): table},
