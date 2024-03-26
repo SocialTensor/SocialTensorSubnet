@@ -79,41 +79,45 @@ class Miner(BaseMinerNeuron):
     
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
-        if "get_miner_info" in synapse.request_dict:
-            return False, "Getting info request, passed!"
-        if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
-            # Ignore requests from unrecognized entities.
-            bt.logging.trace(
-                f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
-            )
-            return True, "Unrecognized hotkey"
+        try:
+            if "get_miner_info" in synapse.request_dict:
+                return False, "Getting info request, passed!"
+            if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
+                # Ignore requests from unrecognized entities.
+                bt.logging.trace(
+                    f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
+                )
+                return True, "Unrecognized hotkey"
 
-        validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
-        stake = self.metagraph.stake[validator_uid].item()
+            validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
+            stake = self.metagraph.stake[validator_uid].item()
 
-        if image_generation_subnet.miner.check_min_stake(
-            stake, validator_uid, self.config.miner.min_stake
-        ):
-            bt.logging.trace(
-                f"Blacklisting {validator_uid}-validator has {stake} stake"
-            )
-            return True, "Not enough stake"
+            if image_generation_subnet.miner.check_min_stake(
+                stake, validator_uid, self.config.miner.min_stake
+            ):
+                bt.logging.trace(
+                    f"Blacklisting {validator_uid}-validator has {stake} stake"
+                )
+                return True, "Not enough stake"
 
-        if "get_miner_info" in synapse.request_dict:
-            return False, "Getting info request, passed!"
-        if image_generation_subnet.miner.check_limit(
-            self,
-            uid=validator_uid,
-            stake=stake,
-            volume_per_validator=self.volume_per_validator,
-            interval=self.config.miner.limit_interval,
-        ):
-            bt.logging.trace(
-                f"Blacklisting {validator_uid}-validator for exceeding the limit"
-            )
-            return True, "Limit exceeded"
+            if "get_miner_info" in synapse.request_dict:
+                return False, "Getting info request, passed!"
+            if image_generation_subnet.miner.check_limit(
+                self,
+                uid=validator_uid,
+                stake=stake,
+                volume_per_validator=self.volume_per_validator,
+                interval=self.config.miner.limit_interval,
+            ):
+                bt.logging.trace(
+                    f"Blacklisting {validator_uid}-validator for exceeding the limit"
+                )
+                return True, "Limit exceeded"
 
-        return False, "All passed!"
+            return False, "All passed!"
+        except Exception as e:
+            bt.logging.error(f"Error in blacklist: {e}")
+            return False, "All passed!"
     async def blacklist_image(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         return await self.blacklist(synapse)
 

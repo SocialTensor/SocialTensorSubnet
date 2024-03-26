@@ -215,6 +215,8 @@ class Validator(BaseValidatorNeuron):
 
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         forward_batch_size = len(self.flattened_uids) // num_forward_thread_per_loop
+        if forward_batch_size == 0:
+            forward_batch_size = len(self.flattened_uids)
         sleep_per_batch = loop_base_time / num_forward_thread_per_loop * 0.75
         bt.logging.info(
             (
