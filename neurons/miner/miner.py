@@ -79,7 +79,8 @@ class Miner(BaseMinerNeuron):
     
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
-
+        if "get_miner_info" in synapse.request_dict:
+            return False, "Getting info request, passed!"
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
             # Ignore requests from unrecognized entities.
             bt.logging.trace(
