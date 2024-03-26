@@ -267,7 +267,11 @@ class Validator(BaseValidatorNeuron):
         self.update_scores_on_chain()
         self.save_state()
         self.wandb_data["scores"] = {k: v for k, v in enumerate(self.scores)}
-
+        if self.config.use_wandb:
+            try:
+                wandb.log(self.wandb_data)
+            except Exception:
+                pass
         bt.logging.info(
             "Loop completed, uids info:\n",
             str(self.miner_manager.all_uids_info).replace("},", "},\n"),
