@@ -220,15 +220,19 @@ class ValidatorProxy:
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
     def check_valid_quota(self, uid):
-        if uid not in self.flattened_uids:
+        try:
+            if uid not in self.validator.flattened_uids:
+                return False
+            for i, uid in enumerate(self.validator.flattened_uids):
+                if not self.validator.should_reward_indexes[i]:
+                    # remove the uid in index i
+                    del self.validator.flattened_uids[i]
+                    del self.validatorshould_reward_indexes[i]
+                    return True
             return False
-        for i, uid in enumerate(self.flattened_uids):
-            if not self.validator.should_reward_indexes[i]:
-                # remove the uid in index i
-                del self.flattened_uids[i]
-                del self.should_reward_indexes[i]
-                return True
-        return False
+        except Exception as e:
+            print("Exception occured in checking valid quota", e, flush=True)
+            return False
 
     async def get_self(self):
         return self
