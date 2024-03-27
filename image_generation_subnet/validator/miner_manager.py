@@ -1,7 +1,6 @@
 import bittensor as bt
 from image_generation_subnet.protocol import ImageGenerating
 import torch
-import math
 
 
 class MinerManager:
@@ -50,7 +49,7 @@ class MinerManager:
                     "model_name": "",
                     "rate_limit": 5,
                     "total_volume": 100,
-                    "min_stake": 0,
+                    "min_stake": 1,
                 },
             )
             model_name = info.get("model_name", "")
@@ -60,7 +59,7 @@ class MinerManager:
             miner_state["total_volume"] = info.get("total_volume", 100)
             miner_state["min_stake"] = info.get("min_stake", 0)
             miner_state["reward_scale"] = max(
-                min(miner_state["total_volume"] ** 0.5 / 10, 1), 0
+                min(miner_state["total_volume"] ** 0.5 / 1000**0.5, 1), 0
             )
 
             if miner_state["model_name"] == model_name:

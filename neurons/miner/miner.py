@@ -6,6 +6,7 @@ import image_generation_subnet
 from image_generation_subnet.protocol import ImageGenerating, TextGenerating
 import torch
 import traceback
+
 T = TypeVar("T", bound=bt.Synapse)
 
 
@@ -56,7 +57,7 @@ class Miner(BaseMinerNeuron):
         volume_per_validator = dict(zip(valid_uids, volume_per_validator.tolist()))
         for uid, volume in volume_per_validator.items():
             if metagraph.total_stake[uid] >= 10000:
-                volume_per_validator[uid] = max(1, volume)
+                volume_per_validator[uid] = max(5, volume)
             bt.logging.info(f"Volume for {uid}-validator: {volume}")
 
         return volume_per_validator
@@ -69,6 +70,7 @@ class Miner(BaseMinerNeuron):
         )
         synapse = await image_generation_subnet.miner.generate(self, synapse)
         return synapse
+
     async def forward_info(self, synapse: ImageGenerating) -> ImageGenerating:
         synapse.response_dict = self.miner_info
         bt.logging.info(f"Response dict: {self.miner_info}")
@@ -80,7 +82,7 @@ class Miner(BaseMinerNeuron):
         bt.logging.info(f"synapse prompt: {synapse.prompt_input}")
         synapse = await image_generation_subnet.miner.generate(self, synapse)
         return synapse
-    
+
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
         try:
@@ -123,6 +125,7 @@ class Miner(BaseMinerNeuron):
             bt.logging.error(f"Error in blacklist: {e}")
             traceback.print_exc()
             return False, "All passed!"
+
     async def blacklist_image(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         return await self.blacklist(synapse)
 
@@ -147,4 +150,13 @@ if __name__ == "__main__":
     with Miner() as miner:
         while True:
             bt.logging.info("Miner running...", time.time())
-            time.sleep(5)
+            try:
+                miner.volume_per_validator = miner.get_volume_per_validator(
+                    miner.metagraph,
+                    miner.config.miner.total_volume,
+                    miner.config.miner.size_preference_factor,
+                    miner.config.miner.min_stake,
+                )
+            except Exception:
+                pass
+            time.sleep(60)
