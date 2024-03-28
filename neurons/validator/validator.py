@@ -302,7 +302,7 @@ class Validator(BaseValidatorNeuron):
         for uid, rate_limit, model_name in zip(_uids, rate_limit_per_uid, _model_names):
             rate_limit_usable = (
                 int(math.ceil(rate_limit * self.config.volume_utilization_factor)) - 1
-                if self.config.debug_validator
+                if not self.config.debug_validator
                 else [uid]
             )
             if model_name in self.nicheimage_catalogue:
