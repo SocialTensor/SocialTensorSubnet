@@ -39,7 +39,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 
 **Example Practice**: 
    - Miner - 1 RTX 4090 - AnimeV3:
-      - It takes about 4s to process a AnimeV3 request, so in 10 minutes, it can serve maximum 150 requests so you should allocate `total_volume` in range 100 -> 125.
+      - It takes about 4s to process a AnimeV3 request, so in 10 minutes, it can serve maximum 150 requests so you should allocate `total_volume` in range 100 -> 125. AnimeV3 timeout is 12 seconds, so `max_concurrent_requests` should be assigned 2 or 3.
 
 #### To Do
 - [x] Add SOTA models for image generation
