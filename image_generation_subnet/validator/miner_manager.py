@@ -61,6 +61,7 @@ class MinerManager:
                 miner_state["total_volume"],
                 1.03,
                 miner_state["min_stake"],
+                False,
             )
             miner_state["rate_limit"] = volume_per_validator[self.validator.uid]
 
