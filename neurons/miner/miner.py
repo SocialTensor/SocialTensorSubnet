@@ -73,6 +73,9 @@ class Miner(BaseMinerNeuron):
                 self.num_processing_requests
                 >= self.config.miner.max_concurrent_requests
             ):
+                bt.logging.info(
+                    f"Serving {self.num_processing_requests} requests, max concurrent requests: {self.config.miner.max_concurrent_requests}"
+                )
                 bt.logging.trace(
                     f"Blacklisting {synapse.dendrite.hotkey} for exceeding the limit of concurrent requests"
                 )
