@@ -29,11 +29,15 @@ class Miner(BaseMinerNeuron):
         if synapse.request_dict:
             return await self.forward_info(synapse)
         self.num_processing_requests += 1
-        bt.logging.info(
-            f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
-        )
-        synapse = await image_generation_subnet.miner.generate(self, synapse)
-        self.num_processing_requests -= 1
+        try:
+            bt.logging.info(
+                f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
+            )
+            synapse = await image_generation_subnet.miner.generate(self, synapse)
+            self.num_processing_requests -= 1
+        except Exception as e:
+            bt.logging.warning(f"Error in forward_image: {e}")
+            self.num_processing_requests -= 1
         return synapse
 
     async def forward_info(self, synapse: ImageGenerating) -> ImageGenerating:
@@ -45,11 +49,15 @@ class Miner(BaseMinerNeuron):
         if synapse.request_dict:
             return await self.forward_info(synapse)
         self.num_processing_requests += 1
-        bt.logging.info(
-            f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
-        )
-        synapse = await image_generation_subnet.miner.generate(self, synapse)
-        self.num_processing_requests -= 1
+        try:
+            bt.logging.info(
+                f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
+            )
+            synapse = await image_generation_subnet.miner.generate(self, synapse)
+            self.num_processing_requests -= 1
+        except Exception as e:
+            bt.logging.warning(f"Error in forward_text: {e}")
+            self.num_processing_requests -= 1
         return synapse
 
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
@@ -65,6 +73,9 @@ class Miner(BaseMinerNeuron):
                 self.num_processing_requests
                 >= self.config.miner.max_concurrent_requests
             ):
+                bt.logging.info(
+                    f"Serving {self.num_processing_requests} requests, max concurrent requests: {self.config.miner.max_concurrent_requests}"
+                )
                 bt.logging.trace(
                     f"Blacklisting {synapse.dendrite.hotkey} for exceeding the limit of concurrent requests"
                 )
