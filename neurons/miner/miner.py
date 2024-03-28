@@ -34,9 +34,9 @@ class Miner(BaseMinerNeuron):
                 f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
             )
             synapse = await image_generation_subnet.miner.generate(self, synapse)
+            self.num_processing_requests -= 1
         except Exception as e:
-            bt.logging.error(f"Error in forward_image: {e}")
-            traceback.print_exc()
+            bt.logging.warning(f"Error in forward_image: {e}")
             self.num_processing_requests -= 1
         return synapse
 
@@ -54,9 +54,9 @@ class Miner(BaseMinerNeuron):
                 f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
             )
             synapse = await image_generation_subnet.miner.generate(self, synapse)
+            self.num_processing_requests -= 1
         except Exception as e:
-            bt.logging.error(f"Error in forward_text: {e}")
-            traceback.print_exc()
+            bt.logging.warning(f"Error in forward_text: {e}")
             self.num_processing_requests -= 1
         return synapse
 
