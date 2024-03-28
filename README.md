@@ -12,30 +12,41 @@
 NicheImage is a decentralized network that utilizes the Bittensor protocol to enable distributed image generation. This document serves as a guide for setting up and participating in the network, targeting both validators and miners. It includes essential information on project setup, operation, and contribution.
 
 **For more information, please click [here](image_generation_subnet/NicheImage.md)**
-#### Latest Updates
-- **5/3/2024**: 
-   - Highlights
-      - Introduction of DreamShaper featuring Txt2Img, Img2Img, and Controlnet capabilities.
-      - Update incentive distribution
-         - RealisticVision: 30%
-         - DreamShaper: 6%
-         - AnimeV3: 34%
-         - RealitiesEdgeXL: 30%
-      - Integrate Ray to allow multi replicas for each miner to optimize GPU usage.
-      - Refractor the codebase
-      - Better Safety Checker
-   - Actions
-      - Miners are required to update to use lastest codebase and Ray to optimize GPU usage.
-         - It should be done by doing update and restart pm2 processes, or follow detailed instruction bellow.
-      - Validators are required to update to have DreamShaper and new incentive distribution as well as new reward endpoint.
-         - It should be done by doing update and restart pm2 processes, or follow detailed instruction bellow.
+#### Incentive Distribution
+- GoJourney: 4%
+- AnimeV3: 34%
+- RealisticVision: 25%
+- RealitiesEdgeXL: 30%
+- DreamShaper: 6%
+- Gemma7b: 1%
+#### Latest Updates (March 28, 2024)
+
+##### Key Highlights:
+- **Miner Configuration Enhancements**: Miners can now tailor their service capacity with new settings, improving network efficiency and aligning with their computational resources.
+  - `--miner.min_stake X`: Sets the minimum stake for validators to participate, defaulting to 10,000 TAO. This ensures only committed validators are considered.
+  - `--miner.total_volume Y`: Defines the total request capacity a miner commits to in a 10-minute window, with a default of 40 requests. This allows for better management of computational resources.
+  - `--miner.max_concurrent_requests Z`: Caps the number of simultaneous requests to prevent overload, set at a default of 4. This helps in managing processing times and avoiding bottlenecks.
+
+- **Reward Structure Update**: The reward formula now incorporates the volume of requests handled, calculated as follows:
+  - `new_reward = old_reward * (0.9 + 0.1 * volume_scale)`
+  - `volume_scale = max(min(total_volume**0.5 / 1000**0.5, 1), 0)`
+  This adjustment means miners who handle a larger volume of requests can earn more, incentivizing efficient scaling.
+
+- **Minimum Quota for Validators**: Validators with over 10,000 TAO staked are guaranteed a minimum request volume, ensuring fair access across different validator sizes. For example, with a total volume of 100 requests, validators would receive volumes proportional to their stake, with a minimum of 2 requests for those meeting the stake threshold.
+
+- **Introduction of Gemma 7B Instruct**: A new model, Gemma 7B Instruct, has been added to enhance text generation capabilities. This update suggests improvements in synthetic text generation, offering more sophisticated and varied outputs.
+- **Wandb logging Images & Texts**: Validators can share the miners' responses to WandB. This is **OPTIONAL**
+
+**Example Practice**: 
+   - Miner - 1 RTX 4090 - AnimeV3:
+      - It takes about 4s to process a AnimeV3 request, so in 10 minutes, it can serve maximum 150 requests so you should allocate `total_volume` in range 100 -> 125. AnimeV3 timeout is 12 seconds, so `max_concurrent_requests` should be assigned 2 or 3.
 
 #### To Do
 - [x] Add SOTA models for image generation
 - [x] Integrate Ray to allow multi replicas for each miner to optimize GPU usage.
 - [x] Add Img2Img and Controlnet capabilities to DreamShaper
-- [ ] Add Img2Img and Controlnet capabilities to other models
-- [ ] Add **Mid Journey**
+- [x] Add **Mid Journey**
+- [x] Add `gemma-7b-it` model for Text Generation
 
 #### NicheImage Studio - [Visit Here](https://nicheimage.streamlit.app)
 ![image](https://github.com/NicheTensor/NicheImage/assets/92072154/a02e299b-308d-40dd-90a2-5cc4789b896d)
@@ -107,15 +118,15 @@ GOJOURNEY_API_KEY=xxx PROCESS_MODE=yyy pm2 start python --name "miner_endpoint" 
    **Eg.**
    - If you have 1 GPU RTX 4090 and selected AnimeV3
    ```
-   pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name Anime --num_replicas 1 --num_gpus 1
+   pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name AnimeV3 --num_replicas 1 --num_gpus 1
    ```
    - If you have 2 GPUs RTX 4090 and selected AnimeV3, you can serve 2 replicas, each replica is on 1 GPU
    ```
-   pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name Anime --num_replicas 2 --num_gpus 2
+   pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name AnimeV3 --num_replicas 2 --num_gpus 1
    ```
    - If you have 1 GPU A100-80G and selected AnimeV3, you can serve 3 replicas, each allocated ~26.6GB VRAM to optimize your large VRAM
    ```
-   pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name Anime --num_replicas 3 --num_gpus 0.33
+   pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app --port 10006 --model_name AnimeV3 --num_replicas 3 --num_gpus 0.33
    ```
 
 
@@ -159,19 +170,19 @@ To start mining with this model, follow these steps:
 - **Custom Generation Volume:** Miners now have the ability to specify their generation volume for every 10-minute interval. This volume will be distributed to validators based on the amount of TAO staked.
 - **Configuration:** To set your generation volume, use the argument `--miner.total_volume X`, where `X` is your desired volume per 10 minutes.
 - **Performance Metrics:** For instance, an RTX 4090 can process 1 RealisticVision Request per second, equating to 600 requests in 10 minutes.
-- **Impact on Rewards:** The miner's maximum volume directly influences their rewards. The new reward formula is `new_reward = old_reward * (0.9 + 0.1 * volume_scale)`, where `volume_scale` is calculated as `max(min(total_volume ** 0.5 / 10, 1), 0)`.
-- **Recommended Volume**: We recommend setting the volume to 150 to 200 for an RTX 4090 and A100
+- **Impact on Rewards:** The miner's maximum volume directly influences their rewards. The new reward formula is `new_reward = old_reward * (0.9 + 0.1 * volume_scale)`, where `volume_scale` is calculated as `max(min(total_volume ** 0.5 / 1000**0.5, 1), 0)`.
+- **Recommended Volume**: We recommend setting the volume to 100 to 150 for an RTX 4090 and A100
 
 | `total_volume` | `volume_scale` |
 |--------------|----------------|
-| 100          | 1              |
-| 50           | 0.707          |
-| 30           | 0.547          |
+| 1000          | 1              |
+| 500           | 0.707          |
+| 300           | 0.547          |
 
-- **Minimum Quota for Validators:** Any validator with a stake greater than 10,000 TAO is guaranteed a minimum quota of 2 requests/miner.
+- **Minimum Quota for Validators:** Any validator with a stake greater than 10,000 TAO is guaranteed a minimum quota of 3 requests/miner.
 
-Example: If a miner sets `total_volume = 100` and there are two validators with stakes of 15K, 600K, 1M TAO respectively, the distribution of volume would be as follows:
-- Validator 1 receives 2 requests because it has over 10k staked TAO.
+Example: If a miner sets `total_volume = 100` and there are 3 validators with stakes of 15K, 600K, 1M TAO respectively, the distribution of volume would be as follows:
+- Validator 1 receives 3 requests because it has over 10k staked TAO.
 - Validator 2 receives ~37 requests.
 - Validator 3 receives ~62 requests
 
@@ -221,6 +232,5 @@ pm2 start python --name "validator_nicheimage" \
 --subtensor.network <network> \
 --axon.port <your_public_port> \
 --proxy.port <other_public_port> # Optional, pass only if you want allow queries through your validator and get paid
---use_wandb # optional, log images and texts result as a dataset to WandB
+--use_wandb # Optional, log images and texts result as a dataset to WandB
 ```
-
