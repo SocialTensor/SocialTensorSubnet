@@ -22,15 +22,18 @@ class Miner(BaseMinerNeuron):
             )
         )
         self.miner_info = image_generation_subnet.miner.set_info(self)
+        self.num_processing_requests = 0
         bt.logging.info(f"Miner info: {self.miner_info}")
 
     async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
         if synapse.request_dict:
             return await self.forward_info(synapse)
+        self.num_processing_requests += 1
         bt.logging.info(
-            f"synapse prompt: {synapse.prompt}, pipeline_type: {synapse.pipeline_type}"
+            f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
         )
         synapse = await image_generation_subnet.miner.generate(self, synapse)
+        self.num_processing_requests -= 1
         return synapse
 
     async def forward_info(self, synapse: ImageGenerating) -> ImageGenerating:
@@ -41,21 +44,31 @@ class Miner(BaseMinerNeuron):
     async def forward_text(self, synapse: TextGenerating) -> TextGenerating:
         if synapse.request_dict:
             return await self.forward_info(synapse)
-        bt.logging.info(f"synapse prompt: {synapse.prompt_input}")
+        self.num_processing_requests += 1
+        bt.logging.info(
+            f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
+        )
         synapse = await image_generation_subnet.miner.generate(self, synapse)
+        self.num_processing_requests -= 1
         return synapse
 
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
         try:
-            if "get_miner_info" in synapse.request_dict:
-                return False, "Getting info request, passed!"
             if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
                 # Ignore requests from unrecognized entities.
                 bt.logging.trace(
                     f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
                 )
                 return True, "Unrecognized hotkey"
+            if (
+                self.num_processing_requests
+                >= self.config.miner.max_concurrent_requests
+            ):
+                bt.logging.trace(
+                    f"Blacklisting {synapse.dendrite.hotkey} for exceeding the limit of concurrent requests"
+                )
+                return True, "Max concurrent requests exceeded"
 
             validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
             stake = self.metagraph.stake[validator_uid].item()
@@ -67,9 +80,6 @@ class Miner(BaseMinerNeuron):
                     f"Blacklisting {validator_uid}-validator has {stake} stake"
                 )
                 return True, "Not enough stake"
-
-            if "get_miner_info" in synapse.request_dict:
-                return False, "Getting info request, passed!"
             if image_generation_subnet.miner.check_limit(
                 self,
                 uid=validator_uid,
