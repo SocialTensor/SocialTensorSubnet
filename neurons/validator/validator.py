@@ -300,11 +300,13 @@ class Validator(BaseValidatorNeuron):
             self.miner_manager.all_uids_info[uid]["rate_limit"] for uid in _uids
         ]
         for uid, rate_limit, model_name in zip(_uids, rate_limit_per_uid, _model_names):
-            if model_name:
-                self.flattened_uids += [uid] * (
-                    int(math.ceil(rate_limit * self.config.volume_utilization_factor))
-                    - 1
-                )
+            rate_limit_usable = (
+                int(math.ceil(rate_limit * self.config.volume_utilization_factor)) - 1
+                if self.config.debug_validator
+                else [uid]
+            )
+            if model_name in self.nicheimage_catalogue:
+                self.flattened_uids = self.flattened_uids + [uid] * rate_limit_usable
         random.shuffle(self.flattened_uids)
 
         should_reward_indexes = [0] * len(self.flattened_uids)

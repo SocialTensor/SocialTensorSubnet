@@ -253,6 +253,13 @@ def add_args(cls, parser):
             help="The endpoint to send generate requests to.",
             default="http://nicheimage.nichetensor.com/challenge/llm_prompt",
         )
+
+        parser.add_argument(
+            "--debug_validator",
+            action="store_true",
+            help="If set, we will run the validator in debug mode.",
+            default=False,
+        )
         # TODO: add more challenge endpoints for categories
 
     else:
