@@ -29,11 +29,15 @@ class Miner(BaseMinerNeuron):
         if synapse.request_dict:
             return await self.forward_info(synapse)
         self.num_processing_requests += 1
-        bt.logging.info(
-            f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
-        )
-        synapse = await image_generation_subnet.miner.generate(self, synapse)
-        self.num_processing_requests -= 1
+        try:
+            bt.logging.info(
+                f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
+            )
+            synapse = await image_generation_subnet.miner.generate(self, synapse)
+        except Exception as e:
+            bt.logging.error(f"Error in forward_image: {e}")
+            traceback.print_exc()
+            self.num_processing_requests -= 1
         return synapse
 
     async def forward_info(self, synapse: ImageGenerating) -> ImageGenerating:
@@ -45,11 +49,15 @@ class Miner(BaseMinerNeuron):
         if synapse.request_dict:
             return await self.forward_info(synapse)
         self.num_processing_requests += 1
-        bt.logging.info(
-            f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
-        )
-        synapse = await image_generation_subnet.miner.generate(self, synapse)
-        self.num_processing_requests -= 1
+        try:
+            bt.logging.info(
+                f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
+            )
+            synapse = await image_generation_subnet.miner.generate(self, synapse)
+        except Exception as e:
+            bt.logging.error(f"Error in forward_text: {e}")
+            traceback.print_exc()
+            self.num_processing_requests -= 1
         return synapse
 
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
