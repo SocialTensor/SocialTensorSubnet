@@ -155,7 +155,7 @@ def add_args(cls, parser):
             "--volume_utilization_factor",
             type=float,
             help="Determine how much of the volume to be used for synthentic quering.",
-            default=0.9,
+            default=0.8,
         )
 
         parser.add_argument(
