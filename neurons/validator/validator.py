@@ -144,6 +144,7 @@ class Validator(BaseValidatorNeuron):
         self.load_state()
         self.miner_manager.update_miners_identity()
         self.flattened_uids = []
+        self.proxy_flatenned_uids = []
         self.should_reward_indexes = []
         if self.config.use_wandb:
             self.init_wandb()
@@ -292,6 +293,7 @@ class Validator(BaseValidatorNeuron):
 
     def update_flattened_uids(self):
         self.flattened_uids = []
+        self.proxy_flatenned_uids = []
         _uids = self.miner_manager.all_uids
         _model_names = [
             self.miner_manager.all_uids_info[uid]["model_name"] for uid in _uids
@@ -300,14 +302,22 @@ class Validator(BaseValidatorNeuron):
             self.miner_manager.all_uids_info[uid]["rate_limit"] for uid in _uids
         ]
         for uid, rate_limit, model_name in zip(_uids, rate_limit_per_uid, _model_names):
-            rate_limit_usable = (
+            rate_limit_forward_pass = (
                 1
                 if self.config.debug_validator
-                else int(math.ceil(rate_limit * self.config.volume_utilization_factor))
-                - 1
+                else max(
+                    1,
+                    int(math.floor(rate_limit * self.config.volume_utilization_factor))
+                    - 1,
+                )
             )
             if model_name in self.nicheimage_catalogue:
-                self.flattened_uids = self.flattened_uids + [uid] * rate_limit_usable
+                self.flattened_uids = (
+                    self.flattened_uids + [uid] * rate_limit_forward_pass
+                )
+                self.proxy_flatenned_uids = self.proxy_flatenned_uids + [uid] * (
+                    rate_limit - rate_limit_forward_pass
+                )
         random.shuffle(self.flattened_uids)
 
         should_reward_indexes = [0] * len(self.flattened_uids)
