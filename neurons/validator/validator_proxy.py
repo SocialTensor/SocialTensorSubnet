@@ -87,41 +87,6 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def update_proxy_quota(self):
-        model_to_slot = {}
-        # Get from synthentic quota
-        if not self.validator.config.proxy.only_proxy_quota:
-            for uid, should_reward in zip(
-                self.validator.flattened_uids, self.validator.should_reward_indexes
-            ):
-                if should_reward:
-                    continue
-                model_name = self.validator.miner_manager.all_uids_info[uid][
-                    "model_name"
-                ]
-                model_slot = model_to_slot.setdefault(
-                    model_name, {"uids": [], "should_rewards": []}
-                )
-                model_slot["uids"].append(uid)
-                model_slot["should_rewards"].append(should_reward)
-        random.shuffle(self.validator.proxy_flatenned_uids)
-        # Get from organic quota
-        for uid in self.validator.proxy_flatenned_uids:
-            model_name = self.validator.miner_manager.all_uids_info[uid]["model_name"]
-            model_slot = model_to_slot.setdefault(
-                model_name, {"uids": [], "should_rewards": []}
-            )
-            model_slot["uids"].append(uid)
-            if random.random() < self.validator.config.proxy.checking_probability:
-                model_slot["should_rewards"].append(True)
-            else:
-                model_slot["should_rewards"].append(False)
-        for k, v in model_to_slot.items():
-            bt.logging.info(
-                f"Model: {k}, num_uids: {len(v['uids'])}, num_rewards: {sum(v['should_rewards'])}"
-            )
-        return model_to_slot
-
     async def forward(self, data: dict = {}):
         self.authenticate_token(data["authorization"])
         payload = data.get("payload")
@@ -139,45 +104,57 @@ class ValidatorProxy:
             timeout = self.validator.nicheimage_catalogue[model_name]["timeout"] * 2
             metagraph = self.validator.metagraph
             reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
-            model_to_slot = self.update_proxy_quota()
-            available_uids, should_rewards = (
-                model_to_slot[model_name]["uids"],
-                model_to_slot[model_name]["should_rewards"],
-            )
 
-            for i, (uid, should_reward) in enumerate(
-                zip(available_uids, should_rewards)
+            for uids, should_rewards in (
+                (self.validator.flattened_uids, self.validator.should_reward_indexes),
+                (
+                    self.validator.proxy_flatenned_uids,
+                    self.validator.proxy_should_reward_indexes,
+                ),
             ):
-                del available_uids[i]
-                del should_rewards[i]
-                bt.logging.info(f"Selected miner uid: {uid}")
-                bt.logging.info(
-                    f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
-                )
-                axon = metagraph.axons[uid]
-                bt.logging.info(f"Sending request to axon: {axon}")
-                task = asyncio.create_task(
-                    self.dendrite.forward(
-                        [axon],
-                        synapse,
-                        deserialize=False,
-                        timeout=timeout,
+                is_done = False
+                for i, (uid, should_reward) in enumerate(zip(uids, should_rewards)):
+                    if (
+                        self.validator.miner_manager.all_uids_info[uid]["model_name"]
+                        != model_name
+                    ):
+                        continue
+                    bt.logging.info(f"Selected miner uid: {uid}, {i}/{len(uids)}")
+                    del uids[i]
+                    del should_rewards[i]
+                    bt.logging.info(
+                        f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
                     )
-                )
-                await asyncio.gather(task)
-                response = task.result()[0]
-                bt.logging.info(
-                    f"Received response from miner {uid}, status: {response.is_success}"
-                )
-                if should_reward:
-                    if callable(reward_url):
-                        uids, rewards = reward_url(synapse, [response], [uid])
-                    else:
-                        uids, rewards = image_generation_subnet.validator.get_reward(
-                            reward_url, synapse, [response], [uid], timeout
+                    axon = metagraph.axons[uid]
+                    bt.logging.info(f"Sending request to axon: {axon}")
+                    task = asyncio.create_task(
+                        self.dendrite.forward(
+                            [axon],
+                            synapse,
+                            deserialize=False,
+                            timeout=timeout,
                         )
-                    self.validator.miner_manager.update_scores(uids, rewards)
-                if response.is_success:
+                    )
+                    await asyncio.gather(task)
+                    response = task.result()[0]
+                    bt.logging.info(
+                        f"Received response from miner {uid}, status: {response.is_success}"
+                    )
+                    if should_reward:
+                        if callable(reward_url):
+                            uids, rewards = reward_url(synapse, [response], [uid])
+                        else:
+                            (
+                                uids,
+                                rewards,
+                            ) = image_generation_subnet.validator.get_reward(
+                                reward_url, synapse, [response], [uid], timeout
+                            )
+                        self.validator.miner_manager.update_scores(uids, rewards)
+                    if response.is_success:
+                        is_done = True
+                        break
+                if is_done:
                     break
 
             self.proxy_counter.update(is_success=True)

@@ -207,7 +207,10 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("Updating available models & uids")
         num_forward_thread_per_loop = self.config.num_forward_thread_per_loop
         self.miner_manager.update_miners_identity()
-        self.should_reward_indexes = self.update_flattened_uids()
+        (
+            self.should_reward_indexes,
+            self.proxy_should_reward_indexes,
+        ) = self.update_flattened_uids()
 
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         forward_batch_size = len(self.flattened_uids) // num_forward_thread_per_loop
@@ -226,6 +229,7 @@ class Validator(BaseValidatorNeuron):
         loop_start = time.time()
         if self.config.only_organic:
             self.flattened_uids = []
+            self.should_reward_indexes = []
         while self.flattened_uids:
             batch_uids = self.flattened_uids[:forward_batch_size]
             batch_should_reward_indexes = self.should_reward_indexes[
@@ -323,14 +327,17 @@ class Validator(BaseValidatorNeuron):
         random.shuffle(self.flattened_uids)
 
         should_reward_indexes = [0] * len(self.flattened_uids)
-
+        proxy_should_reward_indexes = [
+            random.random() < self.config.proxy.checking_probability
+            for _ in self.proxy_flatenned_uids
+        ]
         # Each uid should be rewarded only once
         uid_to_slots = {}
         for i, uid in enumerate(self.flattened_uids):
             uid_to_slots.setdefault(uid, []).append(i)
         for uid, slots in uid_to_slots.items():
             should_reward_indexes[random.choice(slots)] = 1
-        return should_reward_indexes
+        return should_reward_indexes, proxy_should_reward_indexes
 
     def async_query_and_reward(
         self,
