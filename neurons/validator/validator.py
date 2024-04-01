@@ -224,6 +224,8 @@ class Validator(BaseValidatorNeuron):
         )
         threads = []
         loop_start = time.time()
+        if self.config.only_organic:
+            self.flattened_uids = []
         while self.flattened_uids:
             batch_uids = self.flattened_uids[:forward_batch_size]
             batch_should_reward_indexes = self.should_reward_indexes[
