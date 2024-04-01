@@ -116,7 +116,10 @@ class ValidatorProxy:
                 model_slot["should_rewards"].append(True)
             else:
                 model_slot["should_rewards"].append(False)
-        print("Model to slot", model_to_slot)
+        for k, v in model_to_slot.items():
+            bt.logging.info(
+                f"Model: {k}, num_uids: {len(v['uids'])}, num_rewards: {sum(v['should_rewards'])}"
+            )
         return model_to_slot
 
     async def forward(self, data: dict = {}):
@@ -142,7 +145,11 @@ class ValidatorProxy:
                 model_to_slot[model_name]["should_rewards"],
             )
 
-            for uid, should_reward in zip(available_uids, should_rewards):
+            for i, (uid, should_reward) in enumerate(
+                zip(available_uids, should_rewards)
+            ):
+                del available_uids[i]
+                del should_rewards[i]
                 bt.logging.info(f"Selected miner uid: {uid}")
                 bt.logging.info(
                     f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
