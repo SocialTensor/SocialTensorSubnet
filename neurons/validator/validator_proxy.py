@@ -104,7 +104,7 @@ class ValidatorProxy:
                 )
                 model_slot["uids"].append(uid)
                 model_slot["should_rewards"].append(should_reward)
-
+        random.shuffle(self.validator.proxy_flatenned_uids)
         # Get from organic quota
         for uid in self.validator.proxy_flatenned_uids:
             model_name = self.validator.miner_manager.all_uids_info[uid]["model_name"]
@@ -139,7 +139,7 @@ class ValidatorProxy:
             model_to_slot = self.update_proxy_quota()
             available_uids, should_rewards = (
                 model_to_slot[model_name]["uids"],
-                model_to_slot[model_name]["should_reward"],
+                model_to_slot[model_name]["should_rewards"],
             )
 
             for uid, should_reward in zip(available_uids, should_rewards):
