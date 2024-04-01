@@ -170,6 +170,8 @@ class ValidatorProxy:
                             reward_url, synapse, [response], [uid], timeout
                         )
                     self.validator.miner_manager.update_scores(uids, rewards)
+                if response.is_success:
+                    break
 
             self.proxy_counter.update(is_success=True)
             self.proxy_counter.save()
