@@ -317,8 +317,8 @@ class Validator(BaseValidatorNeuron):
                 self.flattened_uids = (
                     self.flattened_uids + [uid] * rate_limit_forward_pass
                 )
-                self.proxy_flatenned_uids = self.proxy_flatenned_uids + [uid] * (
-                    rate_limit - rate_limit_forward_pass
+                self.proxy_flatenned_uids = self.proxy_flatenned_uids + [uid] * max(
+                    0, (int(rate_limit) - rate_limit_forward_pass)
                 )
         random.shuffle(self.flattened_uids)
 
