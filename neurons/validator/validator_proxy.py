@@ -167,7 +167,7 @@ class ValidatorProxy:
                         uids, rewards = reward_url(synapse, [response], [uid])
                     else:
                         uids, rewards = image_generation_subnet.validator.get_reward(
-                            reward_url, synapse, [response], [uid]
+                            reward_url, synapse, [response], [uid], timeout
                         )
                     self.validator.miner_manager.update_scores(uids, rewards)
 
