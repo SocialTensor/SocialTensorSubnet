@@ -260,6 +260,13 @@ def add_args(cls, parser):
             help="If set, we will run the validator in debug mode.",
             default=False,
         )
+
+        parser.add_argument(
+            "--proxy.only_proxy_quota",
+            action="store_true",
+            help="If set, we will only use the proxy quota.",
+            default=False,
+        )
         # TODO: add more challenge endpoints for categories
 
     else:

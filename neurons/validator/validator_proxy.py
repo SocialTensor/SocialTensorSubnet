@@ -90,17 +90,20 @@ class ValidatorProxy:
     def update_proxy_quota(self):
         model_to_slot = {}
         # Get from synthentic quota
-        for uid, should_reward in zip(
-            self.validator.flattened_uids, self.validator.should_reward_indexes
-        ):
-            if should_reward:
-                continue
-            model_name = self.validator.miner_manager.all_uids_info[uid]["model_name"]
-            model_slot = model_to_slot.setdefault(
-                model_name, {"uids": [], "should_rewards": []}
-            )
-            model_slot["uids"].append(uid)
-            model_slot["should_rewards"].append(should_reward)
+        if not self.validator.config.proxy.only_proxy_quota:
+            for uid, should_reward in zip(
+                self.validator.flattened_uids, self.validator.should_reward_indexes
+            ):
+                if should_reward:
+                    continue
+                model_name = self.validator.miner_manager.all_uids_info[uid][
+                    "model_name"
+                ]
+                model_slot = model_to_slot.setdefault(
+                    model_name, {"uids": [], "should_rewards": []}
+                )
+                model_slot["uids"].append(uid)
+                model_slot["should_rewards"].append(should_reward)
 
         # Get from organic quota
         for uid in self.validator.proxy_flatenned_uids:
@@ -113,6 +116,7 @@ class ValidatorProxy:
                 model_slot["should_rewards"].append(True)
             else:
                 model_slot["should_rewards"].append(False)
+        print("Model to slot", model_to_slot)
         return model_to_slot
 
     async def forward(self, data: dict = {}):
