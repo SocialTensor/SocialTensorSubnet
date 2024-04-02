@@ -345,7 +345,9 @@ class Validator(BaseValidatorNeuron):
         )
         batched_uids = [t[0] for t in batched_uids_should_rewards]
         batched_should_rewards = [t[1] for t in batched_uids_should_rewards]
-        bt.logging.info(f"UIDS: {uids}, Should rewards: {should_rewards}")
+        bt.logging.info(
+            f"UIDS: {batched_uids}, Should rewards: {batched_should_rewards}"
+        )
         for synapse, uids, should_rewards in zip(
             synapses, batched_uids, batched_should_rewards
         ):
@@ -379,7 +381,7 @@ class Validator(BaseValidatorNeuron):
             ]
 
             bt.logging.info(
-                f"Received {len(responses)} responses, {len(reward_responses)} to be rewarded, calculating rewards"
+                f"Received {len(responses)} responses, {len(reward_responses)} to be rewarded"
             )
             if reward_uids:
                 if callable(reward_url):
