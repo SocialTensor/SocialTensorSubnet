@@ -77,7 +77,7 @@ class QueryQueue:
                 f"- Model {model_name} has {len(q.queue)} uids remaining for organic"
             )
 
-    def get_batch_query(self, num_thread):
+    def get_batch_query(self, batch_size: int):
         if not self.total_uids_remaining:
             return
         more_data = True
@@ -86,11 +86,6 @@ class QueryQueue:
             for model_name, q in self.synthentic_queue.items():
                 if q.empty():
                     continue
-                batch_size = (
-                    len(q.queue) // num_thread
-                    if len(q.queue) > num_thread
-                    else len(q.queue)
-                )
                 time_to_sleep = self.time_per_loop * (
                     batch_size / self.total_uids_remaining
                 )
@@ -287,7 +282,7 @@ class Validator(BaseValidatorNeuron):
         """
 
         bt.logging.info("Updating available models & uids")
-        num_forward_thread_per_loop = self.config.num_forward_thread_per_loop
+        async_batch_size = self.config.async_batch_size
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         threads = []
         loop_start = time.time()
@@ -298,7 +293,7 @@ class Validator(BaseValidatorNeuron):
             uids,
             should_rewards,
             sleep_per_batch,
-        ) in self.query_queue.get_batch_query(num_forward_thread_per_loop):
+        ) in self.query_queue.get_batch_query(async_batch_size):
             bt.logging.info(
                 f"Querying {len(uids)} uids for model {model_name}, sleep_per_batch: {sleep_per_batch}"
             )

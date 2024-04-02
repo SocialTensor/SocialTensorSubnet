@@ -159,7 +159,7 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--num_forward_thread_per_loop",
+            "--async_batch_size",
             type=int,
             help="The number of threads to run in a single loop.",
             default=16,
