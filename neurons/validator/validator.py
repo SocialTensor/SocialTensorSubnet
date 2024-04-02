@@ -44,6 +44,10 @@ class QueryQueue:
     def update_queue(self, all_uids_info):
         self.total_uids_remaining = 0
         self.synthentic_rewarded = []
+        for q in self.synthentic_queue.values():
+            q.queue.clear()
+        for q in self.proxy_queue.values():
+            q.queue.clear()
         for uid, info in all_uids_info.items():
             if not info["model_name"]:
                 continue
@@ -53,8 +57,6 @@ class QueryQueue:
             proxy_model_queue = self.proxy_queue.setdefault(
                 info["model_name"], queue.Queue()
             )
-            synthentic_model_queue = queue.Queue()
-            proxy_model_queue = queue.Queue()
             synthetic_rate_limit, proxy_rate_limit = self.get_rate_limit_by_type(
                 info["rate_limit"]
             )
