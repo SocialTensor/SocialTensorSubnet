@@ -76,30 +76,34 @@ class QueryQueue:
     def get_batch_query(self, num_thread):
         if not self.total_uids_remaining:
             return
-        for model_name, q in self.synthentic_queue.items():
-            if q.empty():
-                continue
-            batch_size = (
-                len(q.queue) // num_thread
-                if len(q.queue) > num_thread
-                else len(q.queue)
-            )
-            time_to_sleep = self.time_per_loop * (
-                batch_size / self.total_uids_remaining
-            )
-            uids_to_query = []
-            should_rewards = []
+        more_data = True
+        while more_data:
+            more_data = False
+            for model_name, q in self.synthentic_queue.items():
+                if q.empty():
+                    continue
+                batch_size = (
+                    len(q.queue) // num_thread
+                    if len(q.queue) > num_thread
+                    else len(q.queue)
+                )
+                time_to_sleep = self.time_per_loop * (
+                    batch_size / self.total_uids_remaining
+                )
+                uids_to_query = []
+                should_rewards = []
 
-            while len(uids_to_query) < batch_size and not q.empty():
-                query_item = q.get()
-                uids_to_query.append(query_item.uid)
-                if query_item.uid in self.synthentic_rewarded:
-                    should_rewards.append(False)
-                else:
-                    should_rewards.append(True)
-                    self.synthentic_rewarded.append(query_item.uid)
+                while len(uids_to_query) < batch_size and not q.empty():
+                    more_data = True
+                    query_item = q.get()
+                    uids_to_query.append(query_item.uid)
+                    if query_item.uid in self.synthentic_rewarded:
+                        should_rewards.append(False)
+                    else:
+                        should_rewards.append(True)
+                        self.synthentic_rewarded.append(query_item.uid)
 
-            yield model_name, uids_to_query, should_rewards, time_to_sleep
+                yield model_name, uids_to_query, should_rewards, time_to_sleep
 
     def get_query_for_proxy(self, model_name):
         synthentic_q = self.synthentic_queue[model_name]
