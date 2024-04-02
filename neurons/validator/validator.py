@@ -286,7 +286,7 @@ class Validator(BaseValidatorNeuron):
             )
             threads.append(thread)
             thread.start()
-            bt.logging(f"Sleeping for {sleep_per_batch} seconds")
+            bt.logging.info(f"Sleeping for {sleep_per_batch} seconds")
             time.sleep(sleep_per_batch)
 
         for thread in threads:
