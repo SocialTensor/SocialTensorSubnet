@@ -13,7 +13,6 @@ from image_generation_subnet.validator.proxy import ProxyCounter
 from image_generation_subnet.protocol import ImageGenerating
 import traceback
 import requests
-from neurons.validator.validator import Validator
 
 
 class ValidatorProxy:
@@ -21,7 +20,7 @@ class ValidatorProxy:
         self,
         validator,
     ):
-        self.validator: Validator = validator
+        self.validator = validator
         self.verify_credentials = self.get_credentials()
         self.miner_request_counter = {}
         self.dendrite = bt.dendrite(wallet=validator.wallet)
