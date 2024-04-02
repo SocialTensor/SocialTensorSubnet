@@ -76,7 +76,11 @@ class QueryQueue:
         if not self.total_uids_remaining:
             return
         for model_name, q in self.synthentic_queue.items():
-            batch_size = len(q.queue) // num_thread
+            batch_size = (
+                len(q.queue) // num_thread
+                if len(q.queue) > num_thread
+                else len(q.queue)
+            )
             time_to_sleep = self.time_per_loop * (
                 batch_size / self.total_uids_remaining
             )
