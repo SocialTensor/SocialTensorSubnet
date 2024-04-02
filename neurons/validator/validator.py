@@ -53,6 +53,8 @@ class QueryQueue:
             proxy_model_queue = self.proxy_queue.setdefault(
                 info["model_name"], queue.Queue()
             )
+            synthentic_model_queue = queue.Queue()
+            proxy_model_queue = queue.Queue()
             synthetic_rate_limit, proxy_rate_limit = self.get_rate_limit_by_type(
                 info["rate_limit"]
             )
@@ -407,8 +409,8 @@ class Validator(BaseValidatorNeuron):
                 for i, uid in enumerate(reward_uids):
                     if rewards[i] > 0:
                         rewards[i] = rewards[i] * (
-                            0.9
-                            + 0.1
+                            0.8
+                            + 0.2
                             * self.miner_manager.all_uids_info[uid]["reward_scale"]
                         )
 
