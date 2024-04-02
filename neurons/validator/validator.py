@@ -44,6 +44,8 @@ class QueryQueue:
     def update_queue(self, all_uids_info):
         self.synthentic_rewarded = []
         for uid, info in all_uids_info.items():
+            if not info["model_name"]:
+                continue
             synthentic_model_queue = self.synthentic_queue.setdefault(
                 info["model_name"], queue.Queue()
             )
