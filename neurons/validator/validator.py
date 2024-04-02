@@ -343,10 +343,8 @@ class Validator(BaseValidatorNeuron):
         synapses, batched_uids_should_rewards = self.prepare_challenge(
             uids_should_rewards, model_name, pipeline_type
         )
-        batched_uids = [uids for uids, _ in batched_uids_should_rewards]
-        batched_should_rewards = [
-            should_rewards for _, should_rewards in batched_uids_should_rewards
-        ]
+        batched_uids = [t[0] for t in batched_uids_should_rewards]
+        batched_should_rewards = [t[1] for t in batched_uids_should_rewards]
         bt.logging.info(f"UIDS: {uids}, Should rewards: {should_rewards}")
         for synapse, uids, should_rewards in zip(
             synapses, batched_uids, batched_should_rewards
