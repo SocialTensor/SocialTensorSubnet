@@ -108,11 +108,10 @@ class QueryQueue:
     def get_query_for_proxy(self, model_name):
         synthentic_q = self.synthentic_queue[model_name]
         proxy_q = self.proxy_queue[model_name]
-
-        if not synthentic_q.empty():
+        while not synthentic_q.empty():
             query_item = synthentic_q.get()
             yield query_item.uid
-        elif not proxy_q.empty():
+        while not proxy_q.empty():
             query_item = proxy_q.get()
             yield query_item.uid
 
