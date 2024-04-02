@@ -159,7 +159,7 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--num_forward_thread_per_loop",
+            "--async_batch_size",
             type=int,
             help="The number of threads to run in a single loop.",
             default=16,
@@ -258,6 +258,20 @@ def add_args(cls, parser):
             "--debug_validator",
             action="store_true",
             help="If set, we will run the validator in debug mode.",
+            default=False,
+        )
+
+        parser.add_argument(
+            "--proxy.only_proxy_quota",
+            action="store_true",
+            help="If set, we will only use the proxy quota.",
+            default=False,
+        )
+
+        parser.add_argument(
+            "--only_organic",
+            action="store_true",
+            help="If set, we will only use organic requests.",
             default=False,
         )
         # TODO: add more challenge endpoints for categories

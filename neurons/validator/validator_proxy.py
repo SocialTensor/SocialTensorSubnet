@@ -87,93 +87,30 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def organic_reward(self, uid, synapse, response, url):
-        if not len(response.image) and isinstance(url, str):
-            bt.logging.info(f"Empty image for miner {uid}")
-            self.validator.miner_manager.all_uids_info[uid]["scores"].append(0)
-            return False
-        if (
-            random.random() < self.validator.config.proxy.checking_probability
-            or callable(url)
-        ):
-            bt.logging.info(f"Rewarding an organic request for miner {uid}")
-            if callable(url):
-                uids, rewards = url(synapse, [response], [uid])
-            else:
-                uids, rewards = image_generation_subnet.validator.get_reward(
-                    url, synapse, [response], [uid]
-                )
-            if rewards is None:
-                return False
-            self.validator.miner_manager.update_scores(uids, rewards)
-            bt.logging.info(f"Organic rewards: {rewards}")
-            return rewards[0] > 0
-        else:
-            bt.logging.info("Not doing organic reward")
-            return True
-
     async def forward(self, data: dict = {}):
         self.authenticate_token(data["authorization"])
         payload = data.get("payload")
-        miner_uid = data.get("miner_uid", -1)
         if "recheck" in payload:
             bt.logging.info("Rechecking validators")
             self.verify_credentials = self.get_credentials()
             return {"message": "Rechecked"}
         try:
-            bt.logging.info("Received a request!")
+            bt.logging.info("Received a organic request!")
             if "seed" not in payload:
                 payload["seed"] = random.randint(0, 1e9)
             model_name = payload["model_name"]
             synapse = ImageGenerating(**payload)
-            synapse.limit_params()
 
-            # Override default pipeline params
-            for k, v in self.validator.nicheimage_catalogue[synapse.model_name][
-                "inference_params"
-            ].items():
-                if k not in synapse.pipeline_params:
-                    synapse.pipeline_params[k] = v
             timeout = self.validator.nicheimage_catalogue[model_name]["timeout"] * 2
             metagraph = self.validator.metagraph
             reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
 
-            specific_weights = self.validator.miner_manager.get_model_specific_weights(
-                model_name, normalize=False
-            )
-
-            if miner_uid >= 0:
-                if specific_weights[miner_uid] == 0:
-                    raise Exception("Selected miner score is 0")
-                available_uids = [miner_uid]
-            else:
-                available_uids = [
-                    i
-                    for i in range(len(specific_weights))
-                    if specific_weights[i]
-                    > self.validator.config.proxy.miner_score_threshold
-                ]
-
-                if not available_uids:
-                    bt.logging.warning(
-                        "No miners meet the score threshold, selecting all non-zero miners"
-                    )
-                    available_uids = [
-                        i
-                        for i in range(len(specific_weights))
-                        if specific_weights[i] > 0
-                    ]
-                    if not available_uids:
-                        raise Exception("No miners available")
-            is_valid_response = False
-            random.shuffle(available_uids)
-            for uid in available_uids[:16]:
-                if not self.check_valid_quota(uid):
-                    bt.logging.info(f"Not enough quota for miner {uid}")
-                    continue
-                bt.logging.info(f"Selected miner uid: {uid}")
+            for uid, should_reward in self.validator.query_queue.get_query_for_proxy(
+                model_name
+            ):
+                is_done = False
                 bt.logging.info(
-                    f"Forwarding request to miner {uid} with score {specific_weights[uid]}"
+                    f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
                 )
                 axon = metagraph.axons[uid]
                 bt.logging.info(f"Sending request to axon: {axon}")
@@ -187,52 +124,42 @@ class ValidatorProxy:
                 )
                 await asyncio.gather(task)
                 response = task.result()[0]
-                bt.logging.info("Received responses")
-                if self.organic_reward(
-                    uid,
-                    synapse,
-                    response,
-                    reward_url,
-                ):
-                    is_valid_response = True
-                    bt.logging.info("Checked OK")
-                    break
-                else:
-                    bt.logging.info("Checked not OK, trying another miner")
-                    continue
-
-            if not is_valid_response:
-                raise Exception("No valid response")
-            try:
-                self.proxy_counter.update(is_success=is_valid_response)
-                self.proxy_counter.save()
-            except Exception:
-                print(
-                    "Exception occured in updating proxy counter",
-                    traceback.format_exc(),
-                    flush=True,
+                bt.logging.info(
+                    f"Received response from miner {uid}, status: {response.is_success}"
                 )
+                if (
+                    random.random() < self.validator.config.proxy.checking_probability
+                    or should_reward
+                ):
+                    if callable(reward_url):
+                        uids, rewards = reward_url(synapse, [response], [uid])
+                    else:
+                        (
+                            uids,
+                            rewards,
+                        ) = image_generation_subnet.validator.get_reward(
+                            reward_url, synapse, [response], [uid], timeout
+                        )
+                    bt.logging.info(
+                        f"Proxy: Updating scores of miners {uids} with rewards {rewards}, should_reward: {should_reward}"
+                    )
+                    self.validator.miner_manager.update_scores(uids, rewards)
+                if response.is_success:
+                    is_done = True
+                    break
+                if is_done:
+                    break
+
+            self.proxy_counter.update(is_success=True)
+            self.proxy_counter.save()
             response = response.deserialize()
             if response.get("image", ""):
                 return response["image"]
             else:
                 return response["response_dict"]
         except Exception as e:
+            traceback.print_exc()
             raise HTTPException(status_code=400, detail=str(e))
-    def check_valid_quota(self, uid):
-        try:
-            if uid not in self.validator.flattened_uids:
-                return False
-            for i, uid in enumerate(self.validator.flattened_uids):
-                if not self.validator.should_reward_indexes[i]:
-                    # remove the uid in index i
-                    del self.validator.flattened_uids[i]
-                    del self.validator.should_reward_indexes[i]
-                    return True
-            return False
-        except Exception as e:
-            print("Exception occured in checking valid quota", e, flush=True)
-            return False
 
     async def get_self(self):
         return self
