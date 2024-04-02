@@ -23,12 +23,14 @@ class Miner(BaseMinerNeuron):
         )
         self.miner_info = image_generation_subnet.miner.set_info(self)
         self.num_processing_requests = 0
+        self.total_request_in_interval = 0
         bt.logging.info(f"Miner info: {self.miner_info}")
 
     async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
         if synapse.request_dict:
             return await self.forward_info(synapse)
         self.num_processing_requests += 1
+        self.total_request_in_interval += 1
         try:
             bt.logging.info(
                 f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
@@ -49,6 +51,7 @@ class Miner(BaseMinerNeuron):
         if synapse.request_dict:
             return await self.forward_info(synapse)
         self.num_processing_requests += 1
+        self.total_request_in_interval += 1
         try:
             bt.logging.info(
                 f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
@@ -131,8 +134,15 @@ class Miner(BaseMinerNeuron):
 # This is the main function, which runs the miner.
 if __name__ == "__main__":
     with Miner() as miner:
+        start_time = time.time()
         while True:
             bt.logging.info("Miner running...", time.time())
+            if time.time() - start_time > 300:
+                bt.logging.info(
+                    f"---Total request in last 5 minutes: {miner.total_request_in_interval}"
+                )
+                start_time = time.time()
+                miner.total_request_in_interval = 0
             try:
                 miner.volume_per_validator = miner.get_volume_per_validator(
                     miner.metagraph,
