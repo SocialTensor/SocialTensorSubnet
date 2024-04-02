@@ -53,9 +53,9 @@ class QueryQueue:
             synthetic_rate_limit, proxy_rate_limit = self.get_rate_limit_by_type(
                 info["rate_limit"]
             )
-            for _ in range(synthetic_rate_limit):
+            for _ in range(int(synthetic_rate_limit)):
                 synthentic_model_queue.put(QueryItem(uid=uid))
-            for _ in range(proxy_rate_limit):
+            for _ in range(int(proxy_rate_limit)):
                 proxy_model_queue.put(QueryItem(uid=uid))
         # Shuffle the queue
         for model_name, q in self.synthentic_queue.items():
