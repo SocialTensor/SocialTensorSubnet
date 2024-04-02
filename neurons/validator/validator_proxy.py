@@ -105,7 +105,7 @@ class ValidatorProxy:
             metagraph = self.validator.metagraph
             reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
 
-            for uid in self.validator.query_queue.get_query_for_proxy():
+            for uid in self.validator.query_queue.get_query_for_proxy(model_name):
                 is_done = False
                 bt.logging.info(
                     f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
