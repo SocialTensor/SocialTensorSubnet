@@ -287,6 +287,7 @@ class Validator(BaseValidatorNeuron):
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         threads = []
         loop_start = time.time()
+        self.miner_manager.update_miners_identity()
         self.query_queue.update_queue(self.miner_manager.all_uids_info)
         for (
             model_name,

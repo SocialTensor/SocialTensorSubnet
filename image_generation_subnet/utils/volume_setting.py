@@ -32,7 +32,7 @@ def get_volume_per_validator(
         prefered_valid_stakes / prefered_valid_stakes.sum()
     )
     volume_per_validator = total_volume * normalized_prefered_valid_stakes
-    volume_per_validator = torch.ceil(volume_per_validator)
+    volume_per_validator = torch.floor(volume_per_validator)
     volume_per_validator = dict(zip(valid_uids, volume_per_validator.tolist()))
     for uid, volume in volume_per_validator.items():
         if metagraph.total_stake[uid] >= min_stake:
