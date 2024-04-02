@@ -25,7 +25,8 @@ MODEL_CONFIGS = yaml.load(
 
 
 class QueryItem:
-    uid: int
+    def __init__(self, uid: int):
+        self.uid = uid
 
 
 class QueryQueue:
