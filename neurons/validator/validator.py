@@ -57,11 +57,17 @@ class QueryQueue:
             for _ in range(proxy_rate_limit):
                 proxy_model_queue.put(QueryItem(uid=uid))
         # Shuffle the queue
-        for _, q in self.synthentic_queue.items():
+        for model_name, q in self.synthentic_queue.items():
             random.shuffle(q.queue)
             self.total_uids_remaining += len(q.queue)
-        for _, q in self.proxy_queue.items():
+            bt.logging.info(
+                f"- Model {model_name} has {len(q.queue)} uids remaining for synthentic"
+            )
+        for model_name, q in self.proxy_queue.items():
             random.shuffle(q.queue)
+            bt.logging.info(
+                f"- Model {model_name} has {len(q.queue)} uids remaining for organic"
+            )
 
     def get_batch_query(self, num_thread):
         if not self.total_uids_remaining:
