@@ -13,6 +13,7 @@ from image_generation_subnet.validator.proxy import ProxyCounter
 from image_generation_subnet.protocol import ImageGenerating
 import traceback
 import requests
+from neurons.validator.validator import Validator
 
 
 class ValidatorProxy:
@@ -20,7 +21,7 @@ class ValidatorProxy:
         self,
         validator,
     ):
-        self.validator = validator
+        self.validator: Validator = validator
         self.verify_credentials = self.get_credentials()
         self.miner_request_counter = {}
         self.dendrite = bt.dendrite(wallet=validator.wallet)
@@ -105,55 +106,40 @@ class ValidatorProxy:
             metagraph = self.validator.metagraph
             reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
 
-            for uids, should_rewards in (
-                (self.validator.flattened_uids, self.validator.should_reward_indexes),
-                (
-                    self.validator.proxy_flatenned_uids,
-                    self.validator.proxy_should_reward_indexes,
-                ),
-            ):
+            for uid in self.validator.query_queue.get_query_for_proxy():
                 is_done = False
-                for i, (uid, should_reward) in enumerate(zip(uids, should_rewards)):
-                    if (
-                        self.validator.miner_manager.all_uids_info[uid]["model_name"]
-                        != model_name
-                    ):
-                        continue
-                    bt.logging.info(f"Selected miner uid: {uid}, {i}/{len(uids)}")
-                    del uids[i]
-                    del should_rewards[i]
-                    bt.logging.info(
-                        f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
+                bt.logging.info(
+                    f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
+                )
+                axon = metagraph.axons[uid]
+                bt.logging.info(f"Sending request to axon: {axon}")
+                task = asyncio.create_task(
+                    self.dendrite.forward(
+                        [axon],
+                        synapse,
+                        deserialize=False,
+                        timeout=timeout,
                     )
-                    axon = metagraph.axons[uid]
-                    bt.logging.info(f"Sending request to axon: {axon}")
-                    task = asyncio.create_task(
-                        self.dendrite.forward(
-                            [axon],
-                            synapse,
-                            deserialize=False,
-                            timeout=timeout,
+                )
+                await asyncio.gather(task)
+                response = task.result()[0]
+                bt.logging.info(
+                    f"Received response from miner {uid}, status: {response.is_success}"
+                )
+                if random.random() < self.validator.config.proxy.checking_probability:
+                    if callable(reward_url):
+                        uids, rewards = reward_url(synapse, [response], [uid])
+                    else:
+                        (
+                            uids,
+                            rewards,
+                        ) = image_generation_subnet.validator.get_reward(
+                            reward_url, synapse, [response], [uid], timeout
                         )
-                    )
-                    await asyncio.gather(task)
-                    response = task.result()[0]
-                    bt.logging.info(
-                        f"Received response from miner {uid}, status: {response.is_success}"
-                    )
-                    if should_reward:
-                        if callable(reward_url):
-                            uids, rewards = reward_url(synapse, [response], [uid])
-                        else:
-                            (
-                                uids,
-                                rewards,
-                            ) = image_generation_subnet.validator.get_reward(
-                                reward_url, synapse, [response], [uid], timeout
-                            )
-                        self.validator.miner_manager.update_scores(uids, rewards)
-                    if response.is_success:
-                        is_done = True
-                        break
+                    self.validator.miner_manager.update_scores(uids, rewards)
+                if response.is_success:
+                    is_done = True
+                    break
                 if is_done:
                     break
 
