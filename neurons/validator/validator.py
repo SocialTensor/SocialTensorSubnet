@@ -333,9 +333,11 @@ class Validator(BaseValidatorNeuron):
             self.nicheimage_catalogue[model_name]["supporting_pipelines"]
         )
         reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
+        uids_should_rewards = list(zip(uids, should_rewards))
         synapses, (batched_uids, batched_should_rewards) = self.prepare_challenge(
-            zip(uids, should_rewards), model_name, pipeline_type
+            uids_should_rewards, model_name, pipeline_type
         )
+        bt.logging.info(f"UIDS: {uids}, Should rewards: {should_rewards}")
         for synapse, uids, should_rewards in zip(
             synapses, batched_uids, batched_should_rewards
         ):
