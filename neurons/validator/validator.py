@@ -334,9 +334,13 @@ class Validator(BaseValidatorNeuron):
         )
         reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
         uids_should_rewards = list(zip(uids, should_rewards))
-        synapses, (batched_uids, batched_should_rewards) = self.prepare_challenge(
+        synapses, batched_uids_should_rewards = self.prepare_challenge(
             uids_should_rewards, model_name, pipeline_type
         )
+        batched_uids = [uids for uids, _ in batched_uids_should_rewards]
+        batched_should_rewards = [
+            should_rewards for _, should_rewards in batched_uids_should_rewards
+        ]
         bt.logging.info(f"UIDS: {uids}, Should rewards: {should_rewards}")
         for synapse, uids, should_rewards in zip(
             synapses, batched_uids, batched_should_rewards
@@ -400,15 +404,15 @@ class Validator(BaseValidatorNeuron):
 
                 self.miner_manager.update_scores(reward_uids, rewards)
 
-    def prepare_challenge(self, available_uids, model_name, pipeline_type):
+    def prepare_challenge(self, uids_should_rewards, model_name, pipeline_type):
         synapse_type = self.nicheimage_catalogue[model_name]["synapse_type"]
         batch_size = 4
-        random.shuffle(available_uids)
-        batched_uids = [
-            available_uids[i * batch_size : (i + 1) * batch_size]
-            for i in range((len(available_uids) + batch_size - 1) // batch_size)
+        random.shuffle(uids_should_rewards)
+        batched_uids_should_rewards = [
+            uids_should_rewards[i * batch_size : (i + 1) * batch_size]
+            for i in range((len(uids_should_rewards) + batch_size - 1) // batch_size)
         ]
-        num_batch = len(batched_uids)
+        num_batch = len(batched_uids_should_rewards)
         synapses = [
             synapse_type(pipeline_type=pipeline_type, model_name=model_name)
             for _ in range(num_batch)
@@ -429,7 +433,7 @@ class Validator(BaseValidatorNeuron):
                 synapses = ig_subnet.validator.get_challenge(
                     challenge_url, synapses, backup_func
                 )
-        return synapses, batched_uids
+        return synapses, batched_uids_should_rewards
 
     def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
