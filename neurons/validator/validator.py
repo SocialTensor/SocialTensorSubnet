@@ -325,6 +325,7 @@ class Validator(BaseValidatorNeuron):
                     0, (int(rate_limit) - rate_limit_forward_pass)
                 )
         random.shuffle(self.flattened_uids)
+        random.shuffle(self.proxy_flatenned_uids)
 
         should_reward_indexes = [0] * len(self.flattened_uids)
         proxy_should_reward_indexes = [
