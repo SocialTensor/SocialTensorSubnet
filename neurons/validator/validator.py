@@ -252,6 +252,8 @@ class Validator(BaseValidatorNeuron):
         self.nicheimage_catalogue = initialize_nicheimage_catalogue(self.config)
         self.miner_manager = MinerManager(self)
         self.load_state()
+        self.update_scores_on_chain()
+        self.sync()
         self.miner_manager.update_miners_identity()
         self.query_queue = QueryQueue(
             list(self.nicheimage_catalogue.keys()),

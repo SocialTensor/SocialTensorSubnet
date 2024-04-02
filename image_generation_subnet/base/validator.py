@@ -50,8 +50,7 @@ class BaseValidatorNeuron(BaseNeuron):
         self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
 
         # Init sync with the network. Updates the metagraph.
-        self.update_scores_on_chain()
-        self.sync()
+        self.resync_metagraph()
 
         # Serve axon to enable external connections.
         if not self.config.neuron.axon_off:
