@@ -109,10 +109,11 @@ class QueryQueue:
         proxy_q = self.proxy_queue[model_name]
         while not synthentic_q.empty():
             query_item = synthentic_q.get()
-            yield query_item.uid
+            should_reward = query_item.uid not in self.synthentic_rewarded
+            yield query_item.uid, should_reward
         while not proxy_q.empty():
             query_item = proxy_q.get()
-            yield query_item.uid
+            yield query_item.uid, False
 
     def get_rate_limit_by_type(self, rate_limit):
         synthentic_rate_limit = max(1, int(math.floor(rate_limit * 0.8)) - 1)
@@ -303,7 +304,7 @@ class Validator(BaseValidatorNeuron):
             )
             threads.append(thread)
             thread.start()
-            bt.logging.info(f"Sleeping for {sleep_per_batch} seconds")
+            bt.logging.info(f"Sleeping for {sleep_per_batch} seconds between batches")
             time.sleep(sleep_per_batch)
 
         for thread in threads:

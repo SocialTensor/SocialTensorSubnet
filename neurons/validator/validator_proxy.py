@@ -105,7 +105,9 @@ class ValidatorProxy:
             metagraph = self.validator.metagraph
             reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
 
-            for uid in self.validator.query_queue.get_query_for_proxy(model_name):
+            for uid, should_reward in self.validator.query_queue.get_query_for_proxy(
+                model_name
+            ):
                 is_done = False
                 bt.logging.info(
                     f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
@@ -125,7 +127,10 @@ class ValidatorProxy:
                 bt.logging.info(
                     f"Received response from miner {uid}, status: {response.is_success}"
                 )
-                if random.random() < self.validator.config.proxy.checking_probability:
+                if (
+                    random.random() < self.validator.config.proxy.checking_probability
+                    or should_reward
+                ):
                     if callable(reward_url):
                         uids, rewards = reward_url(synapse, [response], [uid])
                     else:
