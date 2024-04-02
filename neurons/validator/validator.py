@@ -42,6 +42,7 @@ class QueryQueue:
         self.total_uids_remaining = 0
 
     def update_queue(self, all_uids_info):
+        self.total_uids_remaining = 0
         self.synthentic_rewarded = []
         for uid, info in all_uids_info.items():
             if not info["model_name"]:
@@ -76,6 +77,8 @@ class QueryQueue:
         if not self.total_uids_remaining:
             return
         for model_name, q in self.synthentic_queue.items():
+            if q.empty():
+                continue
             batch_size = (
                 len(q.queue) // num_thread
                 if len(q.queue) > num_thread
@@ -111,6 +114,9 @@ class QueryQueue:
 
     def get_rate_limit_by_type(self, rate_limit):
         synthentic_rate_limit = max(1, int(math.floor(rate_limit * 0.8)) - 1)
+        synthentic_rate_limit = max(
+            rate_limit - synthentic_rate_limit, synthentic_rate_limit
+        )
         proxy_rate_limit = rate_limit - synthentic_rate_limit
         return synthentic_rate_limit, proxy_rate_limit
 
