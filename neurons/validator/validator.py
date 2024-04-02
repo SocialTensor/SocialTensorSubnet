@@ -64,6 +64,8 @@ class QueryQueue:
             random.shuffle(q.queue)
 
     def get_batch_query(self, num_thread):
+        if not self.total_uids_remaining:
+            return
         for model_name, q in self.synthentic_queue.items():
             batch_size = len(q.queue) // num_thread
             time_to_sleep = self.time_per_loop * (
