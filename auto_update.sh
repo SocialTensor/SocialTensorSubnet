@@ -21,6 +21,8 @@ while true; do
     # Pull the latest changes from the repository
     git stash
     git pull -f
+    git reset --hard origin/main
+    pip install -e .
 
     # Get the new HEAD hash
     new_head=$(git rev-parse HEAD)
