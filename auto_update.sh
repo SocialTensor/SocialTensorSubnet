@@ -12,7 +12,6 @@ while true; do
     git stash
     git pull -f
     git reset --hard origin/main
-    pip install -e .
 
     # Get the new HEAD hash
     new_head=$(git rev-parse HEAD)
@@ -21,6 +20,7 @@ while true; do
     if [ "$current_head" != "$new_head" ]; then
         # The HEAD has changed, meaning there's a new version
         echo "$(date): New version detected, restarting the validator."
+        pip install -e .
         pm2 restart validator_nicheimage
     else
         # No new version, no action needed
