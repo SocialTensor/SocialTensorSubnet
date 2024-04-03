@@ -19,7 +19,7 @@ while true; do
     # Check if the new HEAD is different from the current HEAD
     if [ "$current_head" != "$new_head" ]; then
         # The HEAD has changed, meaning there's a new version
-        echo "$(date): New version detected, restarting the validator."
+        echo "$(date): New version detected, installing requirements and restarting the validator."
         pip install -e .
         pm2 restart validator_nicheimage
     else
