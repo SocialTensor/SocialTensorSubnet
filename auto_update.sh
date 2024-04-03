@@ -2,16 +2,6 @@
 
 
 while true; do
-    # Calculate the amount of time to sleep until the beginning of the next hour
-    current_minute=$(date +%M)
-    current_second=$(date +%S)
-    sleep_seconds=$(( (60 - current_minute) * 60 - current_second ))
-
-    # If it's exactly on the hour, don't sleep
-    if [ $sleep_seconds -ne 3600 ]; then
-        sleep $sleep_seconds
-    fi
-
     # Log the start of the script execution
     echo "$(date): Script started"
 
