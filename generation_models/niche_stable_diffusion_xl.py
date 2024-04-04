@@ -71,3 +71,5 @@ class NicheStableDiffusionXL(BaseModel):
         resolution = kwargs.get("resolution", 768)
         conditional_image = resize_for_condition_image(conditional_image, resolution)
         return conditional_image
+
+

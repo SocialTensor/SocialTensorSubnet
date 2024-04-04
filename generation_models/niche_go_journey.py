@@ -18,6 +18,7 @@ class NicheGoJourney(BaseModel):
     def __call__(self, *args, **kwargs):
         return self.inference_function(*args, **kwargs)
 
+
     def load_imagine(self, *args, **kwargs):
         imagine_endpoint = "https://api.midjourneyapi.xyz/mj/v2/imagine"
         fetch_endpoint = "https://api.midjourneyapi.xyz/mj/v2/fetch"
