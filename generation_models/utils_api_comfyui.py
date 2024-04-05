@@ -4,8 +4,8 @@ import json
 import urllib.request
 import urllib.parse
 
-server_address = "82.67.70.191:40830"
-client_id = str(uuid.uuid4())
+server_address = "82.67.70.191:40892"
+client_id = "13c08530-8911-4e38-8489-7cded8eddd9d"
 
 def queue_prompt(prompt):
     p = {"prompt": prompt, "client_id": client_id}
@@ -27,7 +27,7 @@ def load_workflow(workflow_path):
     try:
         with open(workflow_path, 'r') as file:
             workflow = json.load(file)
-            return json.dumps(workflow)
+            return workflow
     except FileNotFoundError:
         print(f"The file {workflow_path} was not found.")
         return None
@@ -40,7 +40,9 @@ def get_images(ws, prompt):
     output_images = {}
     while True:
         out = ws.recv()
+
         if isinstance(out, str):
+
             message = json.loads(out)
             if message['type'] == 'executing':
                 data = message['data']
@@ -62,118 +64,31 @@ def get_images(ws, prompt):
 
     return output_images
 if __name__ == "__main__":
-    prompt_text = """
-    {
-        "3": {
-            "class_type": "KSampler",
-            "inputs": {
-                "cfg": 8,
-                "denoise": 1,
-                "latent_image": [
-                    "5",
-                    0
-                ],
-                "model": [
-                    "4",
-                    0
-                ],
-                "negative": [
-                    "7",
-                    0
-                ],
-                "positive": [
-                    "6",
-                    0
-                ],
-                "sampler_name": "euler",
-                "scheduler": "normal",
-                "seed": 8566257,
-                "steps": 20
-            }
-        },
-        "4": {
-            "class_type": "CheckpointLoaderSimple",
-            "inputs": {
-                "ckpt_name": "v1-5-pruned-emaonly.ckpt"
-            }
-        },
-        "5": {
-            "class_type": "EmptyLatentImage",
-            "inputs": {
-                "batch_size": 1,
-                "height": 512,
-                "width": 512
-            }
-        },
-        "6": {
-            "class_type": "CLIPTextEncode",
-            "inputs": {
-                "clip": [
-                    "4",
-                    1
-                ],
-                "text": "masterpiece best quality girl"
-            }
-        },
-        "7": {
-            "class_type": "CLIPTextEncode",
-            "inputs": {
-                "clip": [
-                    "4",
-                    1
-                ],
-                "text": "bad hands"
-            }
-        },
-        "8": {
-            "class_type": "VAEDecode",
-            "inputs": {
-                "samples": [
-                    "3",
-                    0
-                ],
-                "vae": [
-                    "4",
-                    2
-                ]
-            }
-        },
-        "9": {
-            "class_type": "SaveImage",
-            "inputs": {
-                "filename_prefix": "ComfyUI",
-                "images": [
-                    "8",
-                    0
-                ]
-            }
-        }
-    }
-    """
 
-    prompt = json.loads(prompt_text)
+    with open("generation_models/workflow-json/sticker_maker.json", "r") as file:
+        workflow_json = file.read()
+  
+
+    workflow = json.loads(workflow_json)
     #set the text prompt for our positive CLIPTextEncode
-    prompt["6"]["inputs"]["text"] = "(realistic:1.25), beautiful:1.1) mountain landscape with a deep blue lake, photolike, high detail, monoton colors"
-
-
-    seed = 7
-
-    #set the seed for our KSampler node
-    prompt["3"]["inputs"]["seed"] = seed
+    workflow["2"]["inputs"]["positive"] = "a dog"
+    workflow["4"]["inputs"]["seed"] = 7
 
     ws = websocket.WebSocket()
     ws.connect("ws://{}/ws?clientId={}".format(server_address, client_id))
 
+    print(ws)
+    images = get_images(ws, workflow)
 
-
-    images = get_images(ws, prompt)
 
     #Commented out code to display the output images:
-
+    i=0
     for node_id in images:
         for image_data in images[node_id]:
+            i+=1
             from PIL import Image
             import io
             image = Image.open(io.BytesIO(image_data))
             # image.show()
-            image.save(f"Output-{seed}.png")
+            print("out")
+            image.save(f"Output{i}.webp")

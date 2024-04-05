@@ -28,7 +28,7 @@
     "inputs": {
       "input_mode": "simple",
       "lora_count": 3,
-      "lora_name_1": "artificialguybr/StickersRedmond.safetensors",
+      "lora_name_1": "StickersRedmond.safetensors",
       "lora_wt_1": 1,
       "model_str_1": 1,
       "clip_str_1": 1,
