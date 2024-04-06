@@ -136,7 +136,7 @@ if __name__ == "__main__":
     args = get_args()
     model_deployment = serve.deployment(
         ModelDeployment,
-        name="model_deployment",
+        name="model_deployment-reward",
         num_replicas=args.num_replicas,
         ray_actor_options={"num_gpus": args.num_gpus},
     )
@@ -144,12 +144,13 @@ if __name__ == "__main__":
         model_deployment.bind(
             MODEL_CONFIG[args.model_name],
         ),
-        name="model_deployment",
+        name="model_deployment-reward",
     )
-    model_handle = serve.get_deployment_handle("model_deployment", "model_deployment")
+    model_handle = serve.get_deployment_handle("model_deployment-reward", "model_deployment-reward")
     app = RewardApp(model_handle, args)
     uvicorn.run(
         app.app,
         host="0.0.0.0",
         port=args.port,
     )
+    

@@ -37,6 +37,11 @@ GoJourney:
   params:
     supporting_pipelines: 
       - "gojourney"
+StickerMaker:
+  target: generation_models.NicheStickerMaker
+  params:
+    supporting_pipelines: 
+      - "txt2img"
 Gemma7b:
   target: ""
   repo_id: "google/gemma-7b-it"
