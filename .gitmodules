@@ -1,0 +1,4 @@
+[submodule "generation_models/comfyui_helper/ComfyUI"]
+	path = generation_models/comfyui_helper/ComfyUI
+	url = https://github.com/comfyanonymous/ComfyUI
+	branch = 7f89cb48bf8200254cde1306ba60d10ca019264d
