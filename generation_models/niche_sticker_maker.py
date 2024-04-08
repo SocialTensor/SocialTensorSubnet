@@ -24,6 +24,7 @@ class NicheStickerMaker(BaseModel):
 
         def inference_function(*args, **kwargs) -> Image.Image:
             self.cleanup(comfyui, output_folder, input_folder, comfyui_temp_output_folder)
+            workflow = json.load(open(workflow_json_file))
             self.update_workflow(workflow=workflow, **kwargs)
             wf = comfyui.load_workflow(workflow)
             comfyui.connect()
