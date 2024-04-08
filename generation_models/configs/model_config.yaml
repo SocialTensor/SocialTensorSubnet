@@ -43,3 +43,10 @@ Gemma7b:
   params:
     supporting_pipelines: 
       - "text_generation"
+StickerMaker:
+  target: "generation_models.NicheStickerMaker"
+  params:
+    supporting_pipelines:
+      - "txt2img"
+    workflow_json_file: "generation_models/comfyui_helper/configs/sticker_maker/workflow.json"
+    update_wf_func_name: "update_wf_sticker_maker"

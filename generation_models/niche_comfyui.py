@@ -7,10 +7,49 @@ import shutil
 from pathlib import Path
 import random
 
-class NicheStickerMaker(BaseModel):
-    def load_model(self, workflow_json_file, **kwargs):
+def update_wf_sticker_maker(
+    workflow,
+    width=1024,
+    height=1024,
+    steps=20,
+    prompt="a cute cat",
+    negative_prompt="",
+    seed=None,
+    upscale_steps=10,
+    is_upscale=True,
+    **kwargs
+):
+    if not seed:
+        seed = random.randint(0, 1e9)
+    loader = workflow["2"]["inputs"]
+    loader["empty_latent_width"] = width
+    loader["empty_latent_height"] = height
+    loader["positive"] = f"Sticker, {prompt}, svg, solid color background"
+    loader["negative"] = f"nsfw, nude, {negative_prompt}, photo, photography"
 
-        comfyui = ComfyUI("127.0.0.1:8188")
+    sampler = workflow["4"]["inputs"]
+    sampler["seed"] = seed
+    sampler["steps"] = steps
+
+    upscaler = workflow["11"]["inputs"]
+    if is_upscale:
+        del workflow["5"]
+        del workflow["10"]
+        upscaler["steps"] = upscale_steps
+        upscaler["seed"] = seed
+    else:
+        del workflow["16"]
+        del workflow["17"]
+        del workflow["18"]
+        del upscaler["image"]
+        del upscaler["model"]
+        del upscaler["positive"]
+        del upscaler["negative"]
+        del upscaler["vae"]
+
+class NicheComfyUI(BaseModel):
+    def load_model(self, workflow_json_file, update_wf_func_name, **kwargs):
+        comfyui = ComfyUI(random.randint(10000, 50000))
         output_folder = "generation_models/comfyui_helper/ComfyUI/output"
         input_folder = "generation_models/comfyui_helper/ComfyUI/input"
         comfyui_temp_output_folder = "generation_models/comfyui_helper/ComfyUI/temp"
@@ -23,7 +62,7 @@ class NicheStickerMaker(BaseModel):
         def inference_function(*args, **kwargs) -> Image.Image:
             self.cleanup(comfyui, output_folder, input_folder, comfyui_temp_output_folder)
             workflow = json.load(open(workflow_json_file))
-            self.update_workflow(workflow=workflow, **kwargs)
+            eval(update_wf_func_name)(workflow=workflow, **kwargs)
             wf = comfyui.load_workflow(workflow)
             comfyui.connect()
             comfyui.run_workflow(wf)
@@ -51,45 +90,6 @@ class NicheStickerMaker(BaseModel):
                 shutil.rmtree(directory)
             os.makedirs(directory)
 
-    def update_workflow(
-        self,
-        workflow,
-        width=1024,
-        height=1024,
-        steps=20,
-        prompt="a cute cat",
-        negative_prompt="",
-        seed=None,
-        upscale_steps=10,
-        is_upscale=False,
-    ):
-        if not seed:
-            seed = random.randint(0, 1e9)
-        loader = workflow["2"]["inputs"]
-        loader["empty_latent_width"] = width
-        loader["empty_latent_height"] = height
-        loader["positive"] = f"Sticker, {prompt}, svg, solid color background"
-        loader["negative"] = f"nsfw, nude, {negative_prompt}, photo, photography"
-
-        sampler = workflow["4"]["inputs"]
-        sampler["seed"] = seed
-        sampler["steps"] = steps
-
-        upscaler = workflow["11"]["inputs"]
-        if is_upscale:
-            del workflow["5"]
-            del workflow["10"]
-            upscaler["steps"] = upscale_steps
-            upscaler["seed"] = seed
-        else:
-            del workflow["16"]
-            del workflow["17"]
-            del workflow["18"]
-            del upscaler["image"]
-            del upscaler["model"]
-            del upscaler["positive"]
-            del upscaler["negative"]
-            del upscaler["vae"]
 
     def log_and_collect_files(self, directory, prefix=""):
         files = []

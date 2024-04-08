@@ -18,9 +18,10 @@ from generation_models.comfyui_helper.helpers.ComfyUI_BRIA_AI_RMBG import ComfyU
 
 
 class ComfyUI:
-    def __init__(self, server_address):
+    def __init__(self, port):
         self.weights_downloader = WeightsDownloader()
-        self.server_address = server_address
+        self.port = port
+        self.server_address = f"127.0.0.1:{port}"
 
     def start_server(self, output_directory, input_directory):
         self.input_directory = input_directory
@@ -42,7 +43,7 @@ class ComfyUI:
         print("Server running")
 
     def run_server(self, output_directory, input_directory):
-        command = f"cd generation_models/comfyui_helper/ComfyUI/ && python main.py --disable-metadata --verbose"
+        command = f"cd generation_models/comfyui_helper/ComfyUI/ && python main.py --disable-metadata --verbose --port {self.port}"
         print(command)
         server_process = subprocess.Popen(command, shell=True)
         server_process.wait()
