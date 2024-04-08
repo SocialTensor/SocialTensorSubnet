@@ -3,22 +3,20 @@ from .base_model import BaseModel
 import json
 from generation_models import ComfyUI
 import os
-from threading import Thread
 import shutil
 from pathlib import Path
+import random
 
 class NicheStickerMaker(BaseModel):
     def load_model(self, workflow_json_file, **kwargs):
 
         comfyui = ComfyUI("127.0.0.1:8188")
-        output_folder = "tmp/output"
-        input_folder = "tmp/input"
-        comfyui_temp_output_folder = "tmp/comfyui_temp_output"
+        output_folder = "generation_models/comfyui_helper/ComfyUI/output"
+        input_folder = "generation_models/comfyui_helper/ComfyUI/input"
+        comfyui_temp_output_folder = "generation_models/comfyui_helper/ComfyUI/temp"
         os.makedirs(output_folder, exist_ok=True)
         os.makedirs(input_folder, exist_ok=True)
-        comfyui_node_thread = Thread(target=comfyui.start_server, args=(output_folder, input_folder))
-        comfyui_node_thread.start()
-
+        comfyui.start_server(output_folder, input_folder)
         workflow = json.load(open(workflow_json_file))
         comfyui.load_workflow(workflow)
 
@@ -30,18 +28,23 @@ class NicheStickerMaker(BaseModel):
             comfyui.connect()
             comfyui.run_workflow(wf)
             files = []
-            output_directories = [output_folder]
+            output_directories = [output_folder, comfyui_temp_output_folder]
 
             for directory in output_directories:
                 print(f"Contents of {directory}:")
                 files.extend(self.log_and_collect_files(directory))
-
+            print(files)
             image = Image.open(files[0])
             return image
         
         return inference_function
 
+    def __call__(self, *args, **kwargs):
+        image: Image.Image = self.inference_function(*args, **kwargs)
+        return image
+
     def cleanup(self, comfyui, output_folder, input_folder, comfyui_temp_output_folder):
+        print("Cleanup")
         comfyui.clear_queue()
         for directory in [output_folder, input_folder, comfyui_temp_output_folder]:
             if os.path.exists(directory):
@@ -56,10 +59,12 @@ class NicheStickerMaker(BaseModel):
         steps=20,
         prompt="a cute cat",
         negative_prompt="",
-        seed=1,
+        seed=None,
         upscale_steps=10,
         is_upscale=False,
     ):
+        if not seed:
+            seed = random.randint(0, 1e9)
         loader = workflow["2"]["inputs"]
         loader["empty_latent_width"] = width
         loader["empty_latent_height"] = height
