@@ -44,7 +44,7 @@ Gemma7b:
     supporting_pipelines: 
       - "text_generation"
 StickerMaker:
-  target: "generation_models.NicheStickerMaker"
+  target: "generation_models.NicheComfyUI"
   params:
     supporting_pipelines:
       - "txt2img"
