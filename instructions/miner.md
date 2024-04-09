@@ -29,7 +29,7 @@ pip install -e .
 3. Setup prequisites if needed
 - For StickerMaker, find the guide [here](comfyui_category.md)
 - For Gemma7b, find the guide [here](vllm_category.md)
-- For GoJourney, register (here)[https://www.goapi.ai/midjourney-api] and get the `GOJOURNEY_API_KEY`
+- For GoJourney, register [here](https://www.goapi.ai/midjourney-api) and get the `GOJOURNEY_API_KEY`
 
 4. Start the endpoint
 
