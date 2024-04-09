@@ -1,0 +1,4 @@
+[submodule "generation_models/comfyui_helper/ComfyUI"]
+	path = generation_models/comfyui_helper/ComfyUI
+	url = https://github.com/toilaluan/ComfyUI
+	branch = master

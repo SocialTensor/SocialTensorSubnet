@@ -1,6 +1,14 @@
 import requests
 import httpx
 import bittensor as bt
+import torch
+
+try:
+    GPU_DEVICE_NAME = torch.cuda.get_device_name()
+    GPU_DEVICE_COUNT = torch.cuda.device_count()
+except Exception:
+    GPU_DEVICE_NAME = "cpu"
+    GPU_DEVICE_COUNT = 0
 
 def set_info(self):
     # Set information of miner
@@ -12,6 +20,10 @@ def set_info(self):
         "size_preference_factor": self.config.miner.size_preference_factor,
         "min_stake": self.config.miner.min_stake,
         "volume_per_validator": self.volume_per_validator,
+        "device_info": {
+            "gpu_device_name": GPU_DEVICE_NAME,
+            "gpu_device_count": GPU_DEVICE_COUNT,
+        }
     }
     return miner_info
 

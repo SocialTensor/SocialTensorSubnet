@@ -41,5 +41,22 @@ Gemma7b:
   target: ""
   repo_id: "google/gemma-7b-it"
   params:
-    supporting_pipelines: 
+    supporting_pipelines:
       - "text_generation"
+StickerMaker:
+  target: "generation_models.NicheComfyUI"
+  params:
+    supporting_pipelines:
+      - "txt2img"
+    workflow_json_file: "generation_models/comfyui_helper/configs/sticker_maker/workflow.json"
+    update_wf_function: "generation_models.comfyui_helper.helpers.wf_sticker_maker.update_workflow"
+    init_setup_function: "generation_models.comfyui_helper.helpers.wf_sticker_maker.setup"
+
+# FaceToMany:
+#   target: "generation_models.NicheComfyUI"
+#   params:
+#     supporting_pipelines:
+#       - "img2img"
+#     workflow_json_file: "generation_models/comfyui_helper/configs/face_to_many/workflow.json"
+#     update_wf_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.update_workflow"
+#     init_setup_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.setup"

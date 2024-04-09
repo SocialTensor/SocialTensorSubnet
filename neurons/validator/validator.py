@@ -87,7 +87,7 @@ class QueryQueue:
                 if q.empty():
                     continue
                 time_to_sleep = self.time_per_loop * (
-                    batch_size / self.total_uids_remaining
+                    min(batch_size / (self.total_uids_remaining+1), 1)
                 )
                 uids_to_query = []
                 should_rewards = []
@@ -188,7 +188,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.25,
+            "model_incentive_weight": 0.23,
             "reward_url": config.reward_url.RealisticVision,
             "inference_params": {
                 "num_inference_steps": 30,
@@ -232,12 +232,32 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["Gemma7b"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.01,
+            "model_incentive_weight": 0.02,
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Gemma7b,
             "inference_params": {},
         },
+        "StickerMaker": {
+            "supporting_pipelines": MODEL_CONFIGS["StickerMaker"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.03,
+            "timeout": 64,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "reward_url": config.reward_url.StickerMaker,
+            "inference_params": {"is_upscale": False},
+        },
+        # "FaceToMany": {
+        #     "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
+        #         "supporting_pipelines"
+        #     ],
+        #     "model_incentive_weight": 0.00,
+        #     "timeout": 48,
+        #     "synapse_type": ig_subnet.protocol.ImageGenerating,
+        #     "reward_url": config.reward_url.FaceToMany,
+        #     "inference_params": {},
+        # },
     }
     return nicheimage_catalogue
 

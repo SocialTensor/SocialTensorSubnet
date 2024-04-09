@@ -22,3 +22,6 @@ discord-webhook
 timm
 wandb
 pandas
+
+torchsde
+kornia>=0.7.1
