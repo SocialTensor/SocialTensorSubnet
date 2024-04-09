@@ -188,7 +188,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.23,
+            "model_incentive_weight": 0.20,
             "reward_url": config.reward_url.RealisticVision,
             "inference_params": {
                 "num_inference_steps": 30,
@@ -232,7 +232,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["Gemma7b"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.02,
+            "model_incentive_weight": 0.03,
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Gemma7b,
