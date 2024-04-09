@@ -246,7 +246,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.StickerMaker,
-            "inference_params": {},
+            "inference_params": {"is_upscale": False},
         },
         # "FaceToMany": {
         #     "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][

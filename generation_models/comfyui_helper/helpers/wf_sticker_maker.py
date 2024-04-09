@@ -14,7 +14,7 @@ def update_workflow(
     negative_prompt="",
     seed=None,
     upscale_steps=10,
-    is_upscale=True,
+    is_upscale=False,
     **kwargs,
 ):
     if not seed:
