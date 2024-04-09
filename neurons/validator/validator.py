@@ -188,7 +188,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.25,
+            "model_incentive_weight": 0.23,
             "reward_url": config.reward_url.RealisticVision,
             "inference_params": {
                 "num_inference_steps": 30,
@@ -236,6 +236,26 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Gemma7b,
+            "inference_params": {},
+        },
+        "StickerMaker": {
+            "supporting_pipelines": MODEL_CONFIGS["StickerMaker"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.01,
+            "timeout": 48,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "reward_url": config.reward_url.StickerMaker,
+            "inference_params": {},
+        },
+        "FaceToMany": {
+            "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.01,
+            "timeout": 48,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "reward_url": config.reward_url.FaceToMany,
             "inference_params": {},
         },
     }
