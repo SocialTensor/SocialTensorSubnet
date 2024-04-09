@@ -40,7 +40,7 @@ GOJOURNEY_API_KEY=<your-gojourney-api-key> \ # set if you use GoJourney model
 PROCESS_MODE=<your-task-type> \ # set if you use GoJourney model
 pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app \
 --model_name <selected-model-name> \
---num_replicas X --num_gpus Y \
+--num_replicas X --num_gpus Y \ # num_gpus * num_replicas = your_total_gpus_count
 --port 10006 # default port
 ```
 
