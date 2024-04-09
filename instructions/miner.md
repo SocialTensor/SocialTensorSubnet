@@ -12,7 +12,7 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | RealisticVision | 20%                    | 12 |
 | RealitiesEdgeXL | 30%                    | 12 |
 | DreamShaper     | 6%                     | 12 |
-| Gemma7b         | 2%                     | 64 |
+| Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 <!-- | FaceToMany      | 1%                     | 48 | -->
 
