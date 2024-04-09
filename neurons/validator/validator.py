@@ -232,7 +232,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["Gemma7b"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.01,
+            "model_incentive_weight": 0.02,
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Gemma7b,
@@ -242,22 +242,22 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["StickerMaker"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.01,
-            "timeout": 48,
+            "model_incentive_weight": 0.03,
+            "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.StickerMaker,
             "inference_params": {},
         },
-        "FaceToMany": {
-            "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.01,
-            "timeout": 48,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "reward_url": config.reward_url.FaceToMany,
-            "inference_params": {},
-        },
+        # "FaceToMany": {
+        #     "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
+        #         "supporting_pipelines"
+        #     ],
+        #     "model_incentive_weight": 0.00,
+        #     "timeout": 48,
+        #     "synapse_type": ig_subnet.protocol.ImageGenerating,
+        #     "reward_url": config.reward_url.FaceToMany,
+        #     "inference_params": {},
+        # },
     }
     return nicheimage_catalogue
 
