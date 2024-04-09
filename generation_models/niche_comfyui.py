@@ -7,49 +7,22 @@ import shutil
 from pathlib import Path
 import random
 
-def update_wf_sticker_maker(
-    workflow,
-    width=1024,
-    height=1024,
-    steps=20,
-    prompt="a cute cat",
-    negative_prompt="",
-    seed=None,
-    upscale_steps=10,
-    is_upscale=True,
-    **kwargs
-):
-    if not seed:
-        seed = random.randint(0, 1e9)
-    loader = workflow["2"]["inputs"]
-    loader["empty_latent_width"] = width
-    loader["empty_latent_height"] = height
-    loader["positive"] = f"Sticker, {prompt}, svg, solid color background"
-    loader["negative"] = f"nsfw, nude, {negative_prompt}, photo, photography"
 
-    sampler = workflow["4"]["inputs"]
-    sampler["seed"] = seed
-    sampler["steps"] = steps
+def import_from_string(import_str):
+    module_name, class_name = import_str.rsplit(".", 1)
+    print(module_name)
+    module = __import__(module_name, fromlist=[class_name])
+    return getattr(module, class_name)
 
-    upscaler = workflow["11"]["inputs"]
-    if is_upscale:
-        del workflow["5"]
-        del workflow["10"]
-        upscaler["steps"] = upscale_steps
-        upscaler["seed"] = seed
-    else:
-        del workflow["16"]
-        del workflow["17"]
-        del workflow["18"]
-        del upscaler["image"]
-        del upscaler["model"]
-        del upscaler["positive"]
-        del upscaler["negative"]
-        del upscaler["vae"]
 
 class NicheComfyUI(BaseModel):
-    def load_model(self, workflow_json_file, update_wf_func_name, **kwargs):
+    def load_model(
+        self, workflow_json_file, update_wf_function, init_setup_function, **kwargs
+    ):
+        update_wf_function = import_from_string(update_wf_function)
+        init_setup_function = import_from_string(init_setup_function)
         comfyui = ComfyUI(random.randint(10000, 50000))
+        init_setup_function(comfyui, **kwargs)
         output_folder = "generation_models/comfyui_helper/ComfyUI/output"
         input_folder = "generation_models/comfyui_helper/ComfyUI/input"
         comfyui_temp_output_folder = "generation_models/comfyui_helper/ComfyUI/temp"
@@ -60,9 +33,11 @@ class NicheComfyUI(BaseModel):
         comfyui.load_workflow(workflow)
 
         def inference_function(*args, **kwargs) -> Image.Image:
-            self.cleanup(comfyui, output_folder, input_folder, comfyui_temp_output_folder)
+            self.cleanup(
+                comfyui, output_folder, input_folder, comfyui_temp_output_folder
+            )
             workflow = json.load(open(workflow_json_file))
-            eval(update_wf_func_name)(workflow=workflow, **kwargs)
+            update_wf_function(workflow=workflow, input_folder=input_folder, **kwargs)
             wf = comfyui.load_workflow(workflow)
             comfyui.connect()
             comfyui.run_workflow(wf)
@@ -75,7 +50,7 @@ class NicheComfyUI(BaseModel):
             print(files)
             image = Image.open(files[0])
             return image
-        
+
         return inference_function
 
     def __call__(self, *args, **kwargs):
@@ -90,7 +65,6 @@ class NicheComfyUI(BaseModel):
                 shutil.rmtree(directory)
             os.makedirs(directory)
 
-
     def log_and_collect_files(self, directory, prefix=""):
         files = []
         for f in os.listdir(directory):
@@ -104,4 +78,3 @@ class NicheComfyUI(BaseModel):
                 print(f"{prefix}{f}/")
                 files.extend(self.log_and_collect_files(path, prefix=f"{prefix}{f}/"))
         return files
-
