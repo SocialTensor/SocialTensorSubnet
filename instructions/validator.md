@@ -23,3 +23,7 @@ pm2 start python --name "validator_nicheimage" \
 --proxy.port <other_public_port> # Optional, pass if you want allow queries through your validator and get paid
 --subtensor.network <network> \
 ```
+3. (Optional) **Enable Auto Update Validator**
+```
+pm2 start auto_update.sh --name "auto-update"
+```
