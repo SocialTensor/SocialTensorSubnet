@@ -1,17 +1,12 @@
 ## NicheImage - Decentralized Image Generation Network README
 
-### Table of Contents
-1. [Introduction](#introduction)
-2. [Setup Instructions for Miners](#setup-for-miners)
-3. [Setup Instructions for Validators](#setup-for-validators)
-
-<div id='introduction'/>
-
 ### Introduction
 
 NicheImage is a decentralized network that utilizes the Bittensor protocol to enable distributed image generation. This document serves as a guide for setting up and participating in the network, targeting both validators and miners. It includes essential information on project setup, operation, and contribution.
 
 **For more information, please click [here](image_generation_subnet/NicheImage.md)**
+
+#### **Try out the [NicheImage Generation Studio](https://nicheimage.streamlit.app/)**
 #### Incentive Distribution
 - GoJourney: 4%
 - AnimeV3: 34%
