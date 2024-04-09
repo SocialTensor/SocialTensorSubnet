@@ -87,7 +87,7 @@ class QueryQueue:
                 if q.empty():
                     continue
                 time_to_sleep = self.time_per_loop * (
-                    batch_size / self.total_uids_remaining
+                    min(batch_size / (self.total_uids_remaining+1), 1)
                 )
                 uids_to_query = []
                 should_rewards = []
