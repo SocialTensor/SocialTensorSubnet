@@ -19,7 +19,7 @@ For more information, please click [here](image_generation_subnet/NicheImage.md)
 | RealisticVision | 20%                    | Realistic Image Generation using Stable Diffusion 1.5                                                              |
 | RealitiesEdgeXL | 30%                    | Robust General Image Generation using SDXL Turbo Architecture                                                      |
 | DreamShaper     | 6%                     | General Image Generation using Stable Diffusion 1.5, support ImageToImage and ControlNet                           |
-| Gemma7b         | 2%                     | Google Opensourced Text Generation Model for Dataset Synthetic                                                     |
+| Gemma7b         | 3%                     | Google Opensourced Text Generation Model for Dataset Synthetic                                                     |
 | StickerMaker    | 3%                     | Sticker Generation using ComfyUI workflow, [https://replicate.com/fofr/sticker-maker](https://replicate.com/fofr/sticker-maker) |
 <!-- | FaceToMany      | 1%                     | Face Customization Generation using ComfyUI workflow, [https://replicate.com/fofr/face-to-many](https://replicate.com/fofr/face-to-many) | -->
 
