@@ -11,6 +11,7 @@ git clone https://github.com/WASasquatch/was-node-suite-comfyui
 git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus && git checkout 4e898fe
 git clone https://github.com/Fannovel16/comfyui_controlnet_aux && git checkout 6d6f63c
 git clone https://github.com/cubiq/ComfyUI_InstantID
+pip install insightface
 git clone https://github.com/cubiq/ComfyUI_essentials && git checkout c9236fe
 
 cd was-node-suite-comfyui
