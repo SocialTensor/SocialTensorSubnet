@@ -166,3 +166,6 @@ testing/
 temp/
 *.webp
 wandb/*
+
+comfyui/*
+vllm/*
