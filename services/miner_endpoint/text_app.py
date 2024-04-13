@@ -22,7 +22,7 @@ def get_args():
         description="Run the LLM Prompt Generating service"
     )
     parser.add_argument(
-        "--port", type=int, default=10001, help="Port to run the service on"
+        "--port", type=int, default=10006, help="Port to run the service on"
     )
     parser.add_argument(
         "--model_name",
