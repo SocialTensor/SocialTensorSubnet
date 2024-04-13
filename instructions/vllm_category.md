@@ -15,6 +15,6 @@ pip install vllm
 2. Start the API server with your Hugging Face token (ensure access to the model repo at https://huggingface.co/repo_id):
 ```bash
 HF_TOKEN=<your-huggingface-token> python -m vllm.entrypoints.openai.api_server --model repo_id \
---max-logprobs 120
+--max-logprobs 120 \
 --tensor-parallel-size X # optional, set if you have multi-gpu
 ```
