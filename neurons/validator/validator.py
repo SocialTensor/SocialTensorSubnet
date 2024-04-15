@@ -382,6 +382,12 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(
                 f"Received {len(responses)} responses, {len(reward_responses)} to be rewarded"
             )
+            store_thread = threading.Thread(
+                target=self.store_miner_output,
+                args=(self.config.storage_url, responses),
+            )
+            store_thread.start()
+
             if reward_uids:
                 if callable(reward_url):
                     reward_uids, rewards = reward_url(
@@ -408,6 +414,7 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.info(f"Scored responses: {rewards}")
 
                 self.miner_manager.update_scores(reward_uids, rewards)
+            store_thread.join()
 
     def prepare_challenge(self, uids_should_rewards, model_name, pipeline_type):
         synapse_type = self.nicheimage_catalogue[model_name]["synapse_type"]
@@ -439,6 +446,15 @@ class Validator(BaseValidatorNeuron):
                     challenge_url, synapses, backup_func
                 )
         return synapses, batched_uids_should_rewards
+
+    def store_miner_output(self, storage_url, responses: list[bt.Synapse]):
+        for response in responses:
+            if not response.is_success:
+                continue
+            try:
+                response.store_response(storage_url)
+            except Exception as e:
+                bt.logging.error(f"Error in storing response: {e}")
 
     def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
