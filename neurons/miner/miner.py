@@ -46,7 +46,12 @@ class Miner(BaseMinerNeuron):
         synapse.response_dict = self.miner_info
         bt.logging.info(f"Response dict: {self.miner_info}")
         validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
-        self.validator_logs[validator_uid]["request_counter"] -= 1
+        bt.logging.info(
+            f"Request counter for {validator_uid}: {self.validator_logs[validator_uid]['request_counter']}/{self.validator_logs[validator_uid]['max_request']}"
+        )
+        self.validator_logs[validator_uid]["request_counter"] = self.validator_logs[
+            validator_uid
+        ].get("request_counter", 0) - 1
         bt.logging.info(
             f"Request counter for {validator_uid}: {self.validator_logs[validator_uid]['request_counter']}/{self.validator_logs[validator_uid]['max_request']}"
         )
