@@ -96,6 +96,8 @@ class ImageGenerating(bt.Synapse):
             data = {
                 "metadata": {
                     "prompt": self.prompt,
+                    "seed": self.seed,
+                    "model_name": self.model_name,
                 },
                 "output": self.response_dict
             }
