@@ -248,16 +248,16 @@ def initialize_nicheimage_catalogue(config):
             "reward_url": config.reward_url.StickerMaker,
             "inference_params": {"is_upscale": False},
         },
-        # "FaceToMany": {
-        #     "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
-        #         "supporting_pipelines"
-        #     ],
-        #     "model_incentive_weight": 0.00,
-        #     "timeout": 48,
-        #     "synapse_type": ig_subnet.protocol.ImageGenerating,
-        #     "reward_url": config.reward_url.FaceToMany,
-        #     "inference_params": {},
-        # },
+        "FaceToMany": {
+            "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.00,
+            "timeout": 64,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "reward_url": config.reward_url.FaceToMany,
+            "inference_params": {},
+        },
     }
     return nicheimage_catalogue
 
