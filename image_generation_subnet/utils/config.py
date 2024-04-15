@@ -269,6 +269,13 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--challenge.face_image",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="http://nicheimage.nichetensor.com/challenge/face_image",
+        )
+
+        parser.add_argument(
             "--debug_validator",
             action="store_true",
             help="If set, we will run the validator in debug mode.",

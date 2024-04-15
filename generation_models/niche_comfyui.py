@@ -28,7 +28,7 @@ class NicheComfyUI(BaseModel):
         input_folder = f"generation_models/comfyui_helper/ComfyUI/input_{random_port}"
         os.makedirs(output_folder, exist_ok=True)
         os.makedirs(input_folder, exist_ok=True)
-        comfyui.start_server(output_folder.split("/")[-1], input_folder.split("_")[-1])
+        comfyui.start_server(output_folder.split("/")[-1], input_folder.split("/")[-1])
         workflow = json.load(open(workflow_json_file))
         comfyui.load_workflow(workflow)
 
