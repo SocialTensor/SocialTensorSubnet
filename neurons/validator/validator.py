@@ -453,6 +453,7 @@ class Validator(BaseValidatorNeuron):
                 continue
             try:
                 response.store_response(storage_url)
+                break
             except Exception as e:
                 bt.logging.error(f"Error in storing response: {e}")
 
