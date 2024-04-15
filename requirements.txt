@@ -20,8 +20,6 @@ ray[serve]
 controlnet_aux==0.0.7
 discord-webhook
 timm
-wandb
 pandas
-
 torchsde
 kornia>=0.7.1

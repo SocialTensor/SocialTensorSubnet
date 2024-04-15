@@ -89,15 +89,6 @@ class ImageGenerating(bt.Synapse):
             "response_dict": self.response_dict,
         }
 
-    def wandb_deserialize(self, uid) -> dict:
-        import wandb
-
-        image = base64_to_pil_image(self.image)
-        prompt = self.prompt
-        return {
-            "images": {uid: wandb.Image(image, caption=prompt)},
-        }
-
 
 class TextGenerating(bt.Synapse):
     # Required request input, filled by sending dendrite caller.
@@ -136,28 +127,3 @@ class TextGenerating(bt.Synapse):
             "prompt_input": self.prompt_input,
             "model_name": self.model_name,
         }
-
-    def wandb_deserialize(self, uid) -> dict:
-        import wandb
-
-        if self.prompt_output:
-            try:
-                data = [
-                    [
-                        self.prompt_input,
-                        self.prompt_output["choices"][0]["text"],
-                        self.model_name,
-                    ]
-                ]
-                print(data)
-                table = wandb.Table(
-                    columns=["prompt_input", "prompt_output", "model_name"], data=data
-                )
-                return {
-                    f"texts_{uid}": table,
-                }
-            except Exception as e:
-                print(e)
-                traceback.print_exc()
-        else:
-            bt.logging.info("No prompt output to log")

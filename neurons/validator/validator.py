@@ -278,8 +278,6 @@ class Validator(BaseValidatorNeuron):
             list(self.nicheimage_catalogue.keys()),
             time_per_loop=self.config.loop_base_time,
         )
-        if self.config.use_wandb:
-            self.init_wandb()
         try:
             self.validator_proxy = ValidatorProxy(self)
             bt.logging.info("Validator proxy started succesfully")
@@ -331,22 +329,6 @@ class Validator(BaseValidatorNeuron):
             thread.join()
         self.update_scores_on_chain()
         self.save_state()
-        if self.config.use_wandb:
-            try:
-                import wandb
-
-                self.wandb_data["scores"] = {k: v for k, v in enumerate(self.scores)}
-                wandb_uids_info = deepcopy(self.miner_manager.all_uids_info)
-                for k, v in wandb_uids_info.items():
-                    wandb_uids_info[k]["scores"] = (
-                        sum(v["scores"]) / len(v["scores"]) if v["scores"] else 0
-                    )
-                self.wandb_data = {
-                    "all_uids_info": wandb_uids_info,
-                }
-                wandb.log(self.wandb_data)
-            except Exception:
-                pass
         bt.logging.info(
             "Loop completed, uids info:\n",
             str(self.miner_manager.all_uids_info).replace("},", "},\n"),
@@ -388,15 +370,6 @@ class Validator(BaseValidatorNeuron):
                 deserialize=False,
                 timeout=self.nicheimage_catalogue[model_name]["timeout"],
             )
-            if self.config.use_wandb:
-                for uid, response in zip(uids, responses):
-                    try:
-                        import wandb
-
-                        wandb_data = response.wandb_deserialize(uid)
-                        wandb.log(wandb_data)
-                    except Exception:
-                        continue
             reward_responses = [
                 response
                 for response, should_reward in zip(responses, should_rewards)
@@ -518,44 +491,10 @@ class Validator(BaseValidatorNeuron):
             self.step = 0
             bt.logging.info("Could not find previously saved state.", e)
 
-    def init_wandb(self):
-        import wandb
-
-        config = deepcopy(self.config)
-
-        run_name = f"validator-{self.uid}-{ig_subnet.__version__}"
-        config.hotkey = self.wallet.hotkey.ss58_address
-        config.run_name = run_name
-        config.version = ig_subnet.__version__
-        config.type = "validator"
-
-        # Initialize the wandb run for the single project
-        run = wandb.init(
-            name=run_name,
-            project="nicheimage",
-            entity="toilaluan",
-            config=config,
-            dir=config.full_path,
-            reinit=True,
-        )
-
-        # Sign the run to ensure it's from the correct hotkey
-        signature = self.wallet.hotkey.sign(run.id.encode()).hex()
-        config.signature = signature
-        wandb.config.update(config, allow_val_change=True)
-
-        bt.logging.success(
-            f"Started wandb run for project '{run.project}', run '{run.name}'"
-        )
-
 
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
     with Validator() as validator:
         while True:
             bt.logging.info("Validator running...", time.time())
-            try:
-                os.system("rm -rf wandb")
-            except Exception:
-                pass
             time.sleep(360)
