@@ -5,6 +5,7 @@ import typing
 import yaml
 import requests
 import traceback
+import copy
 
 
 MODEL_CONFIG = yaml.load(
@@ -90,11 +91,13 @@ class ImageGenerating(bt.Synapse):
             "response_dict": self.response_dict,
         }
 
-    def store_response(self, storage_url: str):
+    def store_response(self, storage_url: str, uid, validator_uid):
         if self.model_name == "GoJourney":
             storage_url = storage_url + "/upload-go-journey-item"
             data = {
                 "metadata": {
+                    "miner_uid": uid,
+                    "validator_uid": validator_uid,
                     "prompt": self.prompt,
                     "seed": self.seed,
                     "model_name": self.model_name,
@@ -106,6 +109,8 @@ class ImageGenerating(bt.Synapse):
             data = {
                 "image": self.image,
                 "metadata": {
+                    "miner_uid": uid,
+                    "validator_uid": validator_uid,
                     "model_name": self.model_name,
                     "prompt": self.prompt,
                     "seed": self.seed,
@@ -159,12 +164,16 @@ class TextGenerating(bt.Synapse):
             "model_name": self.model_name,
         }
 
-    def store_response(self, storage_url: str):
+    def store_response(self, storage_url: str, uid, validator_uid):
         storage_url = storage_url + "/upload-llm-item"
+        minimized_prompt_output: dict = copy.deepcopy(self.prompt_output)
+        minimized_prompt_output['choices'][0].pop("logprobs")
         data = {
             "prompt_input": self.prompt_input,
-            "prompt_output": self.prompt_output,
+            "prompt_output": minimized_prompt_output,
             "metadata": {
+                "miner_uid": uid,
+                "validator_uid": validator_uid,
                 "model": MODEL_CONFIG[self.model_name].get("repo_id", self.model_name),
                 "model_name": self.model_name,
                 "pipeline_params": self.pipeline_params,
