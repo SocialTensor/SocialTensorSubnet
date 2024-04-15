@@ -27,7 +27,7 @@ class Miner(BaseMinerNeuron):
         bt.logging.info(f"Miner info: {self.miner_info}")
 
     async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
-        if synapse.request_dict:
+        if "get_miner_info" in synapse.request_dict:
             return await self.forward_info(synapse)
         self.num_processing_requests += 1
         self.total_request_in_interval += 1
