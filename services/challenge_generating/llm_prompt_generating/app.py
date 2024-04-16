@@ -32,7 +32,7 @@ class LLMPromptGenerating:
         except:
             prompt = "Tell me an event that happened in the history of the world."
         data = {
-            "prompt": prompt,
+            "prompt_input": prompt,
             "pipeline_params": {
                 "max_tokens": 4096,
                 "logprobs": 100,
@@ -43,5 +43,6 @@ class LLMPromptGenerating:
     def get_twitter_prompt(self):
         prompt = self.twitter_prompt()
         return prompt
+
 
 llm_prompt_generating = LLMPromptGenerating()
