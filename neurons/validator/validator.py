@@ -216,7 +216,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.34,
+            "model_incentive_weight": 0.33,
             "reward_url": config.reward_url.AnimeV3,
             "inference_params": {
                 "num_inference_steps": 25,
@@ -252,7 +252,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.02,
+            "model_incentive_weight": 0.03,
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.FaceToMany,
