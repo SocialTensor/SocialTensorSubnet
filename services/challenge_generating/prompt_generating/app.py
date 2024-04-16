@@ -1,19 +1,10 @@
 from fastapi import FastAPI
 from pydantic import BaseModel, Extra
-import uvicorn
 import argparse
-import threading
-from slowapi.errors import RateLimitExceeded
-from slowapi import _rate_limit_exceeded_handler
 from typing import Optional
-import re
-from ray import serve
-from ray.serve.handle import DeploymentHandle
-from transformers import pipeline, set_seed
-import random
-from functools import partial
-from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limiter
+from transformers import set_seed
 import httpx
+import random
 
 
 class Prompt(BaseModel, extra=Extra.allow):
@@ -47,7 +38,8 @@ class ChallengeImage:
         data: Prompt,
     ):
         data = dict(data)
-        set_seed(data["seed"])
+        seed = random.randint(0, 1e9)
+        set_seed(seed)
         prompt = data["prompt"]
         if not prompt:
             prompt = "an image of "
