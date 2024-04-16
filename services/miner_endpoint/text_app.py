@@ -25,6 +25,9 @@ def get_args():
         "--port", type=int, default=10006, help="Port to run the service on"
     )
     parser.add_argument(
+        "--bind_ip", type=str, default="0.0.0.0", help="IP address to run the service on"
+    )
+    parser.add_argument(
         "--model_name",
         type=str,
         choices=MODEL_CONFIG.keys(),
@@ -74,4 +77,4 @@ if __name__ == "__main__":
     args = get_args()
     llm_prompt_generating = LLMPromptGenerating(args)
 
-    uvicorn.run(llm_prompt_generating.app, host="0.0.0.0", port=args.port)
+    uvicorn.run(llm_prompt_generating.app, host=args.bind_ip, port=args.port)
