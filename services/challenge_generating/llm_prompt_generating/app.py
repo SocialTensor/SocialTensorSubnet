@@ -13,12 +13,6 @@ def get_args():
     parser.add_argument(
         "--port", type=int, default=10001, help="Port to run the service on"
     )
-    parser.add_argument(
-        "--vllm_url",
-        type=str,
-        default="http://localhost:8000",
-        help="URL of the VLLM service",
-    )
     args = parser.parse_args()
     return args
 
