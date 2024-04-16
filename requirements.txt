@@ -24,3 +24,4 @@ pandas
 torchsde
 kornia>=0.7.1
 typesense
+clean-text[gpl]
