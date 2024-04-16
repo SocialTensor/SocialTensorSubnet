@@ -13,15 +13,17 @@ def get_args():
     parser.add_argument(
         "--port", type=int, default=10001, help="Port to run the service on"
     )
+    parser.add_argument(
+        "--workers", type=int, default=1, help="Number of workers to run the service on"
+    )
     args = parser.parse_args()
     return args
 
 
 class LLMPromptGenerating:
-    def __init__(self, args):
+    def __init__(self):
         self.app = FastAPI()
         self.twitter_prompt = TwitterPrompt(max_tokens=1024)
-        self.args = args
         self.app.add_api_route("/", self.generate, methods=["POST"])
 
     async def generate(self):
@@ -42,9 +44,4 @@ class LLMPromptGenerating:
         prompt = self.twitter_prompt()
         return prompt
 
-
-if __name__ == "__main__":
-    args = get_args()
-    llm_prompt_generating = LLMPromptGenerating(args)
-
-    uvicorn.run(llm_prompt_generating.app, host="0.0.0.0", port=args.port)
+llm_prompt_generating = LLMPromptGenerating()
