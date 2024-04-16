@@ -3,7 +3,9 @@ import pydantic
 from generation_models.utils import base64_to_pil_image
 import typing
 import yaml
+import requests
 import traceback
+import copy
 
 
 MODEL_CONFIG = yaml.load(
@@ -89,14 +91,39 @@ class ImageGenerating(bt.Synapse):
             "response_dict": self.response_dict,
         }
 
-    def wandb_deserialize(self, uid) -> dict:
-        import wandb
-
-        image = base64_to_pil_image(self.image)
-        prompt = self.prompt
-        return {
-            "images": {uid: wandb.Image(image, caption=prompt)},
-        }
+    def store_response(self, storage_url: str, uid, validator_uid):
+        if self.model_name == "GoJourney":
+            storage_url = storage_url + "/upload-go-journey-item"
+            data = {
+                "metadata": {
+                    "miner_uid": uid,
+                    "validator_uid": validator_uid,
+                    "prompt": self.prompt,
+                    "seed": self.seed,
+                    "model_name": self.model_name,
+                },
+                "output": self.response_dict
+            }
+        else:
+            storage_url = storage_url + "/upload-base64-item"
+            data = {
+                "image": self.image,
+                "metadata": {
+                    "miner_uid": uid,
+                    "validator_uid": validator_uid,
+                    "model_name": self.model_name,
+                    "prompt": self.prompt,
+                    "seed": self.seed,
+                    "pipeline_type": self.pipeline_type,
+                    "pipeline_params": self.pipeline_params,
+                }
+            }
+        try:
+            response = requests.post(storage_url, json=data)
+            response.raise_for_status()
+        except Exception as e:
+            print(f"Error in storing response: {e}")
+            traceback.print_exc()
 
 
 class TextGenerating(bt.Synapse):
@@ -137,27 +164,24 @@ class TextGenerating(bt.Synapse):
             "model_name": self.model_name,
         }
 
-    def wandb_deserialize(self, uid) -> dict:
-        import wandb
-
-        if self.prompt_output:
-            try:
-                data = [
-                    [
-                        self.prompt_input,
-                        self.prompt_output["choices"][0]["text"],
-                        self.model_name,
-                    ]
-                ]
-                print(data)
-                table = wandb.Table(
-                    columns=["prompt_input", "prompt_output", "model_name"], data=data
-                )
-                return {
-                    f"texts_{uid}": table,
-                }
-            except Exception as e:
-                print(e)
-                traceback.print_exc()
-        else:
-            bt.logging.info("No prompt output to log")
+    def store_response(self, storage_url: str, uid, validator_uid):
+        storage_url = storage_url + "/upload-llm-item"
+        minimized_prompt_output: dict = copy.deepcopy(self.prompt_output)
+        minimized_prompt_output['choices'][0].pop("logprobs")
+        data = {
+            "prompt_input": self.prompt_input,
+            "prompt_output": minimized_prompt_output,
+            "metadata": {
+                "miner_uid": uid,
+                "validator_uid": validator_uid,
+                "model": MODEL_CONFIG[self.model_name].get("repo_id", self.model_name),
+                "model_name": self.model_name,
+                "pipeline_params": self.pipeline_params,
+            }
+        }
+        try:
+            response = requests.post(storage_url, json=data)
+            response.raise_for_status()
+        except Exception as e:
+            print(f"Error in storing response: {e}")
+            traceback.print_exc()

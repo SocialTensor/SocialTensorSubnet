@@ -27,7 +27,7 @@ class Miner(BaseMinerNeuron):
         bt.logging.info(f"Miner info: {self.miner_info}")
 
     async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
-        if synapse.request_dict:
+        if "get_miner_info" in synapse.request_dict:
             return await self.forward_info(synapse)
         self.num_processing_requests += 1
         self.total_request_in_interval += 1
@@ -46,7 +46,12 @@ class Miner(BaseMinerNeuron):
         synapse.response_dict = self.miner_info
         bt.logging.info(f"Response dict: {self.miner_info}")
         validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
-        self.validator_logs[validator_uid]["request_counter"] -= 1
+        bt.logging.info(
+            f"Request counter for {validator_uid}: {self.validator_logs[validator_uid]['request_counter']}/{self.validator_logs[validator_uid]['max_request']}"
+        )
+        self.validator_logs[validator_uid]["request_counter"] = self.validator_logs[
+            validator_uid
+        ].get("request_counter", 0) - 1
         bt.logging.info(
             f"Request counter for {validator_uid}: {self.validator_logs[validator_uid]['request_counter']}/{self.validator_logs[validator_uid]['max_request']}"
         )

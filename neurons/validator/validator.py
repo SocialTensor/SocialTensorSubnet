@@ -87,7 +87,7 @@ class QueryQueue:
                 if q.empty():
                     continue
                 time_to_sleep = self.time_per_loop * (
-                    min(batch_size / (self.total_uids_remaining+1), 1)
+                    min(batch_size / (self.total_uids_remaining + 1), 1)
                 )
                 uids_to_query = []
                 should_rewards = []
@@ -188,7 +188,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.20,
+            "model_incentive_weight": 0.18,
             "reward_url": config.reward_url.RealisticVision,
             "inference_params": {
                 "num_inference_steps": 30,
@@ -248,16 +248,16 @@ def initialize_nicheimage_catalogue(config):
             "reward_url": config.reward_url.StickerMaker,
             "inference_params": {"is_upscale": False},
         },
-        # "FaceToMany": {
-        #     "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
-        #         "supporting_pipelines"
-        #     ],
-        #     "model_incentive_weight": 0.00,
-        #     "timeout": 48,
-        #     "synapse_type": ig_subnet.protocol.ImageGenerating,
-        #     "reward_url": config.reward_url.FaceToMany,
-        #     "inference_params": {},
-        # },
+        "FaceToMany": {
+            "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.02,
+            "timeout": 64,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "reward_url": config.reward_url.FaceToMany,
+            "inference_params": {},
+        },
     }
     return nicheimage_catalogue
 
@@ -278,8 +278,6 @@ class Validator(BaseValidatorNeuron):
             list(self.nicheimage_catalogue.keys()),
             time_per_loop=self.config.loop_base_time,
         )
-        if self.config.use_wandb:
-            self.init_wandb()
         try:
             self.validator_proxy = ValidatorProxy(self)
             bt.logging.info("Validator proxy started succesfully")
@@ -331,22 +329,6 @@ class Validator(BaseValidatorNeuron):
             thread.join()
         self.update_scores_on_chain()
         self.save_state()
-        if self.config.use_wandb:
-            try:
-                import wandb
-
-                self.wandb_data["scores"] = {k: v for k, v in enumerate(self.scores)}
-                wandb_uids_info = deepcopy(self.miner_manager.all_uids_info)
-                for k, v in wandb_uids_info.items():
-                    wandb_uids_info[k]["scores"] = (
-                        sum(v["scores"]) / len(v["scores"]) if v["scores"] else 0
-                    )
-                self.wandb_data = {
-                    "all_uids_info": wandb_uids_info,
-                }
-                wandb.log(self.wandb_data)
-            except Exception:
-                pass
         bt.logging.info(
             "Loop completed, uids info:\n",
             str(self.miner_manager.all_uids_info).replace("},", "},\n"),
@@ -388,15 +370,6 @@ class Validator(BaseValidatorNeuron):
                 deserialize=False,
                 timeout=self.nicheimage_catalogue[model_name]["timeout"],
             )
-            if self.config.use_wandb:
-                for uid, response in zip(uids, responses):
-                    try:
-                        import wandb
-
-                        wandb_data = response.wandb_deserialize(uid)
-                        wandb.log(wandb_data)
-                    except Exception:
-                        continue
             reward_responses = [
                 response
                 for response, should_reward in zip(responses, should_rewards)
@@ -409,6 +382,13 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(
                 f"Received {len(responses)} responses, {len(reward_responses)} to be rewarded"
             )
+            store_thread = threading.Thread(
+                target=self.store_miner_output,
+                args=(self.config.storage_url, responses, uids, self.uid),
+                daemon=True,
+            )
+            store_thread.start()
+
             if reward_uids:
                 if callable(reward_url):
                     reward_uids, rewards = reward_url(
@@ -435,10 +415,18 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.info(f"Scored responses: {rewards}")
 
                 self.miner_manager.update_scores(reward_uids, rewards)
+            store_thread.join()
 
     def prepare_challenge(self, uids_should_rewards, model_name, pipeline_type):
         synapse_type = self.nicheimage_catalogue[model_name]["synapse_type"]
-        batch_size = 4
+        model_miner_count = len(
+            [
+                uid
+                for uid, info in self.miner_manager.all_uids_info.items()
+                if info["model_name"] == model_name
+            ]
+        )
+        batch_size = min(4, 1 + model_miner_count // 4)
         random.shuffle(uids_should_rewards)
         batched_uids_should_rewards = [
             uids_should_rewards[i * batch_size : (i + 1) * batch_size]
@@ -466,6 +454,18 @@ class Validator(BaseValidatorNeuron):
                     challenge_url, synapses, backup_func
                 )
         return synapses, batched_uids_should_rewards
+
+    def store_miner_output(
+        self, storage_url, responses: list[bt.Synapse], uids, validator_uid
+    ):
+        for uid, response in enumerate(responses):
+            if not response.is_success:
+                continue
+            try:
+                response.store_response(storage_url, uid, validator_uid)
+                break
+            except Exception as e:
+                bt.logging.error(f"Error in storing response: {e}")
 
     def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
@@ -518,44 +518,10 @@ class Validator(BaseValidatorNeuron):
             self.step = 0
             bt.logging.info("Could not find previously saved state.", e)
 
-    def init_wandb(self):
-        import wandb
-
-        config = deepcopy(self.config)
-
-        run_name = f"validator-{self.uid}-{ig_subnet.__version__}"
-        config.hotkey = self.wallet.hotkey.ss58_address
-        config.run_name = run_name
-        config.version = ig_subnet.__version__
-        config.type = "validator"
-
-        # Initialize the wandb run for the single project
-        run = wandb.init(
-            name=run_name,
-            project="nicheimage",
-            entity="toilaluan",
-            config=config,
-            dir=config.full_path,
-            reinit=True,
-        )
-
-        # Sign the run to ensure it's from the correct hotkey
-        signature = self.wallet.hotkey.sign(run.id.encode()).hex()
-        config.signature = signature
-        wandb.config.update(config, allow_val_change=True)
-
-        bt.logging.success(
-            f"Started wandb run for project '{run.project}', run '{run.name}'"
-        )
-
 
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
     with Validator() as validator:
         while True:
             bt.logging.info("Validator running...", time.time())
-            try:
-                os.system("rm -rf wandb")
-            except Exception:
-                pass
             time.sleep(360)

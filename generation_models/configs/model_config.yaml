@@ -52,11 +52,11 @@ StickerMaker:
     update_wf_function: "generation_models.comfyui_helper.helpers.wf_sticker_maker.update_workflow"
     init_setup_function: "generation_models.comfyui_helper.helpers.wf_sticker_maker.setup"
 
-# FaceToMany:
-#   target: "generation_models.NicheComfyUI"
-#   params:
-#     supporting_pipelines:
-#       - "img2img"
-#     workflow_json_file: "generation_models/comfyui_helper/configs/face_to_many/workflow.json"
-#     update_wf_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.update_workflow"
-#     init_setup_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.setup"
+FaceToMany:
+  target: "generation_models.NicheComfyUI"
+  params:
+    supporting_pipelines:
+      - "img2img"
+    workflow_json_file: "generation_models/comfyui_helper/configs/face_to_many/workflow.json"
+    update_wf_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.update_workflow"
+    init_setup_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.setup"

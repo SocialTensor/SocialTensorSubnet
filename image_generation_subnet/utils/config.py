@@ -166,10 +166,10 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--use_wandb",
-            action="store_true",
-            help="If set, we will use wandb for logging.",
-            default=False,
+            "--storage_url",
+            type=str,
+            help="The url to store the image.",
+            default="http://nichestorage.nichetensor.com:10000",
         )
 
         parser.add_argument(

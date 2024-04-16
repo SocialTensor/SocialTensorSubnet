@@ -43,7 +43,7 @@ class ComfyUI:
         print("Server running")
 
     def run_server(self, output_directory, input_directory):
-        command = f". comfyui/bin/activate && cd generation_models/comfyui_helper/ComfyUI/ && python main.py --disable-metadata --verbose --port {self.port}"
+        command = f". comfyui/bin/activate && cd generation_models/comfyui_helper/ComfyUI/ && python main.py --port {self.port} --output-directory {output_directory} --input-directory {input_directory}"
         print(command)
         server_process = subprocess.Popen(command, shell=True)
         server_process.wait()

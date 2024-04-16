@@ -2,6 +2,8 @@ import bittensor as bt
 from image_generation_subnet.protocol import ImageGenerating
 import torch
 from image_generation_subnet.utils.volume_setting import get_volume_per_validator
+import requests
+from threading import Thread
 
 
 class MinerManager:
@@ -56,6 +58,8 @@ class MinerManager:
             miner_state["reward_scale"] = max(
                 min(miner_state["total_volume"] ** 0.5 / 1000**0.5, 1), 0
             )
+            miner_state["device_info"] = info.get("device_info", {})
+
             volume_per_validator = get_volume_per_validator(
                 self.validator.metagraph,
                 miner_state["total_volume"],
@@ -81,6 +85,8 @@ class MinerManager:
             int(k): v for k, v in self.all_uids_info.items() if isinstance(k, int)
         }
         bt.logging.info(f"Model distribution: {model_distribution}")
+        thread = Thread(target=self.store_miner_info, daemon=True)
+        thread.start()
 
     def get_miner_uids(self, model_name: str):
         available_uids = [
@@ -110,3 +116,15 @@ class MinerManager:
             if tensor_sum > 0:
                 model_specific_weights = model_specific_weights / tensor_sum
         return model_specific_weights
+
+    def store_miner_info(self):
+        try:
+            requests.post(
+                self.validator.config.storage_url + "/store_miner_info",
+                json={
+                    "uid": self.validator.uid,
+                    "info": self.all_uids_info,
+                },
+            )
+        except Exception as e:
+            bt.logging.error(f"Failed to store miner info: {e}")

@@ -15,13 +15,13 @@ For more information, please click [here](image_generation_subnet/NicheImage.md)
 | Category        | Incentive Distribution | Description                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | GoJourney       | 4%                     | MidJourney Image Generation                                                                                        |
-| AnimeV3         | 34%                    | Anime Style SDXL Image Generation                                                                                  |
-| RealisticVision | 20%                    | Realistic Image Generation using Stable Diffusion 1.5                                                              |
+| AnimeV3         | 33%                    | Anime Style SDXL Image Generation                                                                                  |
+| RealisticVision | 18%                    | Realistic Image Generation using Stable Diffusion 1.5                                                              |
 | RealitiesEdgeXL | 30%                    | Robust General Image Generation using SDXL Turbo Architecture                                                      |
 | DreamShaper     | 6%                     | General Image Generation using Stable Diffusion 1.5, support ImageToImage and ControlNet                           |
 | Gemma7b         | 3%                     | Google Opensourced Text Generation Model for Dataset Synthetic                                                     |
 | StickerMaker    | 3%                     | Sticker Generation using ComfyUI workflow, [https://replicate.com/fofr/sticker-maker](https://replicate.com/fofr/sticker-maker) |
-<!-- | FaceToMany      | 1%                     | Face Customization Generation using ComfyUI workflow, [https://replicate.com/fofr/face-to-many](https://replicate.com/fofr/face-to-many) | -->
+| FaceToMany      | 3%                     | Face Customization Generation using ComfyUI workflow, [https://replicate.com/fofr/face-to-many](https://replicate.com/fofr/face-to-many) |
 
 ### Key Features
 - Designed to serve as a decentralized image generation network, incentivizing miners to scale up their computational resources. This allows a miner to contribute up to thousands of generations per minute to the network if they have sufficient GPU resources.

@@ -8,13 +8,13 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | GoJourney       | 4%                     | 12 |
-| AnimeV3         | 34%                    | 12 |
-| RealisticVision | 20%                    | 12 |
+| AnimeV3         | 33%                    | 12 |
+| RealisticVision | 18%                    | 12 |
 | RealitiesEdgeXL | 30%                    | 12 |
 | DreamShaper     | 6%                     | 12 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
-<!-- | FaceToMany      | 1%                     | 48 | -->
+| FaceToMany      | 3%                     | 64 |
 
 ## Step by Step Guide
 1. Git clone and install requirements
@@ -27,7 +27,7 @@ pip install -e .
 ```
 2. Select miner based on incentive distribution and subnet state at https://nicheimage.streamlit.app/
 3. Setup prequisites if needed
-- For StickerMaker, find the guide [here](comfyui_category.md)
+- For StickerMaker & FaceToMany, find the guide [here](comfyui_category.md)
 - For Gemma7b, find the guide [here](vllm_category.md)
 - For GoJourney, register [here](https://www.goapi.ai/midjourney-api) and get the `GOJOURNEY_API_KEY`
 
