@@ -169,7 +169,7 @@ def add_args(cls, parser):
             "--storage_url",
             type=str,
             help="The url to store the image.",
-            default="http://storage.nichetensor.com:10000",
+            default="http://nichestorage.nichetensor.com:10000",
         )
 
         parser.add_argument(
@@ -266,13 +266,6 @@ def add_args(cls, parser):
             type=str,
             help="The endpoint to send generate requests to.",
             default="http://nicheimage.nichetensor.com/challenge/llm_prompt",
-        )
-
-        parser.add_argument(
-            "--challenge.face_image",
-            type=str,
-            help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/face_image",
         )
 
         parser.add_argument(

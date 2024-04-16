@@ -131,7 +131,7 @@ def initialize_challenge_urls(config):
             "backup": [get_backup_prompt],
         },
         "img2img": {
-            "main": [config.challenge.prompt, config.challenge.face_image],
+            "main": [config.challenge.prompt, config.challenge.image],
             "backup": [get_backup_prompt, get_backup_image],
         },
         "controlnet_txt2img": {
