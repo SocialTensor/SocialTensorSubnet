@@ -87,7 +87,7 @@ class QueryQueue:
                 if q.empty():
                     continue
                 time_to_sleep = self.time_per_loop * (
-                    min(batch_size / (self.total_uids_remaining+1), 1)
+                    min(batch_size / (self.total_uids_remaining + 1), 1)
                 )
                 uids_to_query = []
                 should_rewards = []
@@ -188,7 +188,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.20,
+            "model_incentive_weight": 0.18,
             "reward_url": config.reward_url.RealisticVision,
             "inference_params": {
                 "num_inference_steps": 30,
@@ -252,7 +252,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.02,
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.FaceToMany,
@@ -385,6 +385,7 @@ class Validator(BaseValidatorNeuron):
             store_thread = threading.Thread(
                 target=self.store_miner_output,
                 args=(self.config.storage_url, responses, uids, self.uid),
+                daemon=True,
             )
             store_thread.start()
 
@@ -418,7 +419,14 @@ class Validator(BaseValidatorNeuron):
 
     def prepare_challenge(self, uids_should_rewards, model_name, pipeline_type):
         synapse_type = self.nicheimage_catalogue[model_name]["synapse_type"]
-        batch_size = 4
+        model_miner_count = len(
+            [
+                uid
+                for uid, info in self.miner_manager.all_uids_info.items()
+                if info["model_name"] == model_name
+            ]
+        )
+        batch_size = min(4, 1 + model_miner_count // 4)
         random.shuffle(uids_should_rewards)
         batched_uids_should_rewards = [
             uids_should_rewards[i * batch_size : (i + 1) * batch_size]
@@ -447,7 +455,9 @@ class Validator(BaseValidatorNeuron):
                 )
         return synapses, batched_uids_should_rewards
 
-    def store_miner_output(self, storage_url, responses: list[bt.Synapse], uids, validator_uid):
+    def store_miner_output(
+        self, storage_url, responses: list[bt.Synapse], uids, validator_uid
+    ):
         for uid, response in enumerate(responses):
             if not response.is_success:
                 continue
