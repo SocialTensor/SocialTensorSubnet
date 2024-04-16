@@ -24,6 +24,9 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=10006)
     parser.add_argument(
+        "--bind_ip", type=str, default="0.0.0.0", help="IP address to run the service on"
+    )
+    parser.add_argument(
         "--model_name",
         type=str,
         default="RealisticVision",
@@ -78,6 +81,6 @@ if __name__ == "__main__":
     app = MinerEndpoint(model_handle)
     uvicorn.run(
         app.app,
-        host="0.0.0.0",
+        host=args.bind_ip,
         port=args.port,
     )
