@@ -8,13 +8,13 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | GoJourney       | 4%                     | 12 |
-| AnimeV3         | 34%                    | 12 |
+| AnimeV3         | 33%                    | 12 |
 | RealisticVision | 18%                    | 12 |
 | RealitiesEdgeXL | 30%                    | 12 |
 | DreamShaper     | 6%                     | 12 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
-| FaceToMany      | 2%                     | 64 |
+| FaceToMany      | 3%                     | 64 |
 
 ## Step by Step Guide
 1. Git clone and install requirements
