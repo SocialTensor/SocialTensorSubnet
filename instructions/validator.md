@@ -11,6 +11,7 @@ cd NicheImage
 python -m venv main_env
 source main_env/bin/activate
 pip install -e .
+pip uninstall uvloop -y
 ```
 
 2. Start Validate
