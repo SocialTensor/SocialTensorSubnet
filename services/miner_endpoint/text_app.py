@@ -52,9 +52,12 @@ class LLMPromptGenerating:
         self.app.add_api_route("/info", self.info, methods=["GET"])
 
     async def generate(self, data: dict):
-        response = httpx.post(
-            f"{self.args.vllm_url}/v1/completions", json=data, timeout=data["timeout"]
-        )
+        async with httpx.AsyncClient() as httpx_client:
+            response = await httpx_client.post(
+                f"{self.args.vllm_url}/v1/completions",
+                json=data,
+                timeout=data["timeout"],
+            )
         response.raise_for_status()
         response: dict = response.json()
         return {
