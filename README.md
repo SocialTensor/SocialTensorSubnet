@@ -15,7 +15,7 @@ For more information, please click [here](image_generation_subnet/NicheImage.md)
 | Category        | Incentive Distribution | Description                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | GoJourney       | 4%                     | MidJourney Image Generation                                                                                        |
-| AnimeV3         | 34%                    | Anime Style SDXL Image Generation                                                                                  |
+| AnimeV3         | 33%                    | Anime Style SDXL Image Generation                                                                                  |
 | RealisticVision | 18%                    | Realistic Image Generation using Stable Diffusion 1.5                                                              |
 | RealitiesEdgeXL | 30%                    | Robust General Image Generation using SDXL Turbo Architecture                                                      |
 | DreamShaper     | 6%                     | General Image Generation using Stable Diffusion 1.5, support ImageToImage and ControlNet                           |
