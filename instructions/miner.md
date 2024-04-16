@@ -24,6 +24,7 @@ cd NicheImage
 python -m venv main_env
 source main_env/bin/activate
 pip install -e .
+pip uninstall uvloop -y
 ```
 2. Select miner based on incentive distribution and subnet state at https://nicheimage.streamlit.app/
 3. Setup prequisites if needed
