@@ -68,7 +68,7 @@ class ValidatorProxy:
             except InvalidSignature:
                 raise Exception("Invalid signature")
 
-        return verify_credentials
+        self.verify_credentials = verify_credentials
 
     def start_server(self):
         self.executor = ThreadPoolExecutor(max_workers=1)
@@ -84,6 +84,7 @@ class ValidatorProxy:
             return public_key_bytes
         except Exception as e:
             print("Exception occured in authenticating token", e, flush=True)
+            print(traceback.print_exc(), flush=True)
             raise HTTPException(
                 status_code=401, detail="Error getting authentication token"
             )
@@ -112,7 +113,6 @@ class ValidatorProxy:
         payload = data.get("payload")
         if "recheck" in payload:
             bt.logging.info("Rechecking validators")
-            self.verify_credentials = await self.get_credentials()
             return {"message": "done"}
         bt.logging.info("Received an organic request!")
         if "seed" not in payload:
