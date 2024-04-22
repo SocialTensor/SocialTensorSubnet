@@ -144,11 +144,12 @@ class ValidatorProxy:
             bt.logging.info(
                 f"Received response from miner {uid}, status: {response.is_success}"
             )
-            Thread(
+            reward_thread = Thread(
                 self.organic_reward,
                 args=(synapse, response, uid, should_reward, reward_url, timeout),
                 daemon=True,
-            ).start()
+            )
+            reward_thread.start()
 
             if response.is_success:
                 output = response
