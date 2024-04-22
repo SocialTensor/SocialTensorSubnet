@@ -139,7 +139,7 @@ class ValidatorProxy:
             bt.logging.info(f"Sending request to axon: {axon}")
             response = await self.dendrite.forward(
                 [axon], synapse, deserialize=False, timeout=timeout, run_async=True
-            )
+            )[0]
             bt.logging.info(
                 f"Received response from miner {uid}, status: {response.is_success}"
             )
