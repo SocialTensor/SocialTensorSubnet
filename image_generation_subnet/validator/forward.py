@@ -5,7 +5,7 @@ from typing import List
 from math import pow
 from functools import wraps
 from tqdm import tqdm
-
+import httpx
 
 def retry(**kwargs):
     module = kwargs.get("module", "unknown")
@@ -64,7 +64,7 @@ def get_challenge(url: str, synapses: List[ImageGenerating], backup_func: callab
     return synapses
 
 
-def get_reward(
+async def get_reward(
     url: str,
     base_synapse: ImageGenerating,
     synapses: List[ImageGenerating],
@@ -82,7 +82,8 @@ def get_reward(
             "miner_data": [synapse.deserialize() for synapse in valid_synapses],
             "base_data": base_synapse.deserialize_input(),
         }
-        response = requests.post(url, json=data)
+        async with httpx.AsyncClient(timeout=httpx.Timeout(60)) as client:
+            response = await client.post(url, json=data)
         if response.status_code != 200:
             raise Exception(f"Error in get_reward: {response.json()}")
         valid_rewards = response.json()["rewards"]

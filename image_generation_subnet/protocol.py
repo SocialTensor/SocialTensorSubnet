@@ -91,6 +91,13 @@ class ImageGenerating(bt.Synapse):
             "response_dict": self.response_dict,
         }
 
+    def deserialize_response(self):
+        return {
+            "image": self.image,
+            "response_dict": self.response_dict,
+        }
+        
+
     def store_response(self, storage_url: str, uid, validator_uid):
         if self.model_name == "GoJourney":
             storage_url = storage_url + "/upload-go-journey-item"
@@ -160,6 +167,15 @@ class TextGenerating(bt.Synapse):
 
         return {
             "prompt_output": self.prompt_output,
+            "prompt_input": self.prompt_input,
+            "model_name": self.model_name,
+        }
+
+    def deserialize_response(self):
+        minimized_prompt_output: dict = copy.deepcopy(self.prompt_output)
+        minimized_prompt_output['choices'][0].pop("logprobs")
+        return {
+            "prompt_output": minimized_prompt_output,
             "prompt_input": self.prompt_input,
             "model_name": self.model_name,
         }
