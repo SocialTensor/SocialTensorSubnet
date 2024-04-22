@@ -14,7 +14,7 @@ from image_generation_subnet.protocol import ImageGenerating
 import traceback
 import httpx
 from starlette.concurrency import run_in_threadpool
-from threading import Thread
+import threading
 
 
 class ValidatorProxy:
@@ -144,10 +144,9 @@ class ValidatorProxy:
             bt.logging.info(
                 f"Received response from miner {uid}, status: {response.is_success}"
             )
-            reward_thread = Thread(
-                self.organic_reward,
+            reward_thread = threading.Thread(
+                target=self.organic_reward,
                 args=(synapse, response, uid, should_reward, reward_url, timeout),
-                daemon=True,
             )
             reward_thread.start()
 
