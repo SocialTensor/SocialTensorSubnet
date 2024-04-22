@@ -316,12 +316,14 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(
                 f"Querying {len(uids)} uids for model {model_name}, sleep_per_batch: {sleep_per_batch}"
             )
+
             thread = threading.Thread(
                 target=self.async_query_and_reward,
                 args=(model_name, uids, should_rewards),
             )
             threads.append(thread)
             thread.start()
+            
             bt.logging.info(f"Sleeping for {sleep_per_batch} seconds between batches")
             time.sleep(sleep_per_batch)
 

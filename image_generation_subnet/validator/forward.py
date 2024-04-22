@@ -7,6 +7,7 @@ from functools import wraps
 from tqdm import tqdm
 import httpx
 
+
 def retry(**kwargs):
     module = kwargs.get("module", "unknown")
 
@@ -43,13 +44,16 @@ def skip(**kwargs):
     return decorator
 
 
-def get_challenge(url: str, synapses: List[ImageGenerating], backup_func: callable) -> List[ImageGenerating]:
+def get_challenge(
+    url: str, synapses: List[ImageGenerating], backup_func: callable
+) -> List[ImageGenerating]:
     for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
         if not synapse:
             continue
         try:
             data = synapse.deserialize()
-            response = requests.post(url, json=data)
+            with httpx.Client(timeout=httpx.Timeout(60)) as client:
+                response = client.post(url, json=data)
             if response.status_code != 200:
                 challenge = backup_func()
             else:
@@ -64,7 +68,7 @@ def get_challenge(url: str, synapses: List[ImageGenerating], backup_func: callab
     return synapses
 
 
-async def get_reward(
+def get_reward(
     url: str,
     base_synapse: ImageGenerating,
     synapses: List[ImageGenerating],
@@ -82,8 +86,8 @@ async def get_reward(
             "miner_data": [synapse.deserialize() for synapse in valid_synapses],
             "base_data": base_synapse.deserialize_input(),
         }
-        async with httpx.AsyncClient(timeout=httpx.Timeout(60)) as client:
-            response = await client.post(url, json=data)
+        with httpx.Client(timeout=httpx.Timeout(60)) as client:
+            response = client.post(url, json=data)
         if response.status_code != 200:
             raise Exception(f"Error in get_reward: {response.json()}")
         valid_rewards = response.json()["rewards"]

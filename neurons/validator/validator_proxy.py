@@ -87,7 +87,9 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    async def organic_reward(self, synapse, response, uid, should_reward, reward_url, timeout):
+    def organic_reward(
+        self, synapse, response, uid, should_reward, reward_url, timeout
+    ):
         if (
             random.random() < self.validator.config.proxy.checking_probability
             or should_reward
@@ -98,7 +100,7 @@ class ValidatorProxy:
                 (
                     uids,
                     rewards,
-                ) = await image_generation_subnet.validator.get_reward(
+                ) = image_generation_subnet.validator.get_reward(
                     reward_url, synapse, [response], [uid], timeout
                 )
             bt.logging.info(
@@ -136,20 +138,16 @@ class ValidatorProxy:
             axon = metagraph.axons[uid]
             bt.logging.info(f"Sending request to axon: {axon}")
             response = await self.dendrite.forward(
-                [axon],
-                synapse,
-                deserialize=False,
-                timeout=timeout,
-                run_async=True
+                [axon], synapse, deserialize=False, timeout=timeout, run_async=True
             )
             bt.logging.info(
                 f"Received response from miner {uid}, status: {response.is_success}"
             )
-            asyncio.create_task(
-                self.organic_reward(
-                    synapse, response, uid, should_reward, reward_url, timeout
-                )
-            )
+            Thread(
+                self.organic_reward,
+                args=(synapse, response, uid, should_reward, reward_url, timeout),
+                daemon=True,
+            ).start()
 
             if response.is_success:
                 output = response
@@ -165,6 +163,6 @@ class ValidatorProxy:
             self.proxy_counter.update(is_success=False)
             self.proxy_counter.save()
             return HTTPException(status_code=500, detail="No valid response received")
-        
+
     async def get_self(self):
         return self
