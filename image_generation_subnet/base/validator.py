@@ -123,9 +123,7 @@ class BaseValidatorNeuron(BaseNeuron):
             try:
                 if self.config.proxy.port:
                     try:
-                        self.validator_proxy.verify_credentials = (
-                            self.validator_proxy.get_credentials()
-                        )
+                        self.validator_proxy.get_credentials()
                         bt.logging.info(
                             "Validator proxy ping to proxy-client successfully"
                         )

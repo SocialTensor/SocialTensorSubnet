@@ -23,7 +23,7 @@ class ValidatorProxy:
         validator,
     ):
         self.validator = validator
-        self.verify_credentials = self.get_credentials()
+        self.get_credentials()
         self.miner_request_counter = {}
         self.dendrite = bt.dendrite(wallet=validator.wallet)
         self.app = FastAPI()
@@ -40,9 +40,9 @@ class ValidatorProxy:
         if self.validator.config.proxy.port:
             self.start_server()
 
-    async def get_credentials(self):
-        async with httpx.AsyncClient(timeout=httpx.Timeout(30)) as client:
-            response = await client.post(
+    def get_credentials(self):
+        with httpx.Client(timeout=httpx.Timeout(30)) as client:
+            response = client.post(
                 f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
                 json={
                     "postfix": (
@@ -51,8 +51,6 @@ class ValidatorProxy:
                         else ""
                     ),
                     "uid": self.validator.uid,
-                    "all_uid_info": self.validator.miner_manager.all_uids_info,
-                    "SHA": "",
                 },
             )
         response.raise_for_status()
@@ -113,6 +111,7 @@ class ValidatorProxy:
         payload = data.get("payload")
         if "recheck" in payload:
             bt.logging.info("Rechecking validators")
+            self.get_credentials()
             return {"message": "done"}
         bt.logging.info("Received an organic request!")
         if "seed" not in payload:
