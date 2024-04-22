@@ -137,10 +137,10 @@ class ValidatorProxy:
             )
             axon = metagraph.axons[uid]
             bt.logging.info(f"Sending request to axon: {axon}")
-            with bt.dendrite(wallet=self.validator.wallet) as d:
-                response = await d.forward(
-                    [axon], synapse, deserialize=False, timeout=timeout, run_async=True
-                )[0]
+            responses = await self.dendrite.forward(
+                [axon], synapse, deserialize=False, timeout=timeout, run_async=True
+            )
+            response = responses[0]
             bt.logging.info(
                 f"Received response from miner {uid}, status: {response.is_success}"
             )
