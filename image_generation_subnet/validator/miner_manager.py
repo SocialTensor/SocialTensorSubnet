@@ -4,6 +4,7 @@ import torch
 from image_generation_subnet.utils.volume_setting import get_volume_per_validator
 import requests
 from threading import Thread
+import image_generation_subnet as ig_subnet
 
 
 class MinerManager:
@@ -124,6 +125,7 @@ class MinerManager:
                 json={
                     "uid": self.validator.uid,
                     "info": self.all_uids_info,
+                    "version": ig_subnet.__version__,
                 },
             )
         except Exception as e:
