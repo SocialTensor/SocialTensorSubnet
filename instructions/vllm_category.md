@@ -3,7 +3,8 @@
 Find the model name and repo_id for the model you want to mine with
 | Model name | repo_id |
 |------------|---------|
-| Gemma7B | `google/gemma-7b-it` |
+| Gemma7b | `google/gemma-7b-it` |
+| Llama3_70b | `casperhansen/llama-3-70b-instruct-awq` |
 
 To start mining with this model, follow these steps:
 1. Create a new Python environment for `vLLM`:
@@ -16,5 +17,6 @@ pip install vllm
 ```bash
 HF_TOKEN=<your-huggingface-token> python -m vllm.entrypoints.openai.api_server --model repo_id \
 --max-logprobs 120 \
+--quantization awq \ # apply for Llama3_70b only
 --tensor-parallel-size X # optional, set if you have multi-gpu
 ```
