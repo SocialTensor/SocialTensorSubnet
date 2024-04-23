@@ -21,3 +21,4 @@ timm
 pandas
 typesense
 clean-text[gpl]
+jinja2
