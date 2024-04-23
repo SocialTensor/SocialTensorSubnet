@@ -44,14 +44,14 @@ def get_args():
 class LLMPromptGenerating:
     def __init__(self, args):
         self.app = FastAPI()
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            MODEL_CONFIG[args.model_name]["repo_id"]
-        )
+        self.repo_id = MODEL_CONFIG[args.model_name]["repo_id"]
+        self.tokenizer = AutoTokenizer.from_pretrained(self.repo_id)
         self.args = args
         self.app.add_api_route("/generate", self.generate, methods=["POST"])
         self.app.add_api_route("/info", self.info, methods=["GET"])
 
     async def generate(self, data: dict):
+        data["model"] = self.repo_id
         async with httpx.AsyncClient() as httpx_client:
             response = await httpx_client.post(
                 f"{self.args.vllm_url}/v1/completions",
