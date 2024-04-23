@@ -87,7 +87,7 @@ def get_reward(
             "miner_data": [synapse.deserialize() for synapse in valid_synapses],
             "base_data": base_synapse.deserialize_input(),
         }
-        with httpx.Client(timeout=httpx.Timeout(60)) as client:
+        with httpx.Client(timeout=httpx.Timeout(120, connect=8)) as client:
             response = client.post(url, json=data)
         if response.status_code != 200:
             raise Exception(f"Error in get_reward: {response.json()}")
