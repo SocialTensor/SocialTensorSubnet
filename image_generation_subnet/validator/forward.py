@@ -74,6 +74,7 @@ def get_reward(
     synapses: List[ImageGenerating],
     uids: List[int],
     timeout: float,
+    miner_manager,
 ) -> List[float]:
     valid_uids = [uid for uid, response in zip(uids, synapses) if response.is_success]
     invalid_uids = [
@@ -103,6 +104,13 @@ def get_reward(
         valid_rewards = []
 
     total_rewards = valid_rewards + [0] * len(invalid_uids)
+
+    # Scale Reward based on Miner Volume
+    for i, uid in enumerate(total_uids):
+        if total_rewards[i] > 0:
+            total_rewards[i] = total_rewards[i] * (
+                0.8 + 0.2 * miner_manager.all_uids_info[uid]["reward_scale"]
+            )
 
     return total_uids, total_rewards
 
