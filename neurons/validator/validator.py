@@ -201,7 +201,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.30,
+            "model_incentive_weight": 0.29,
             "reward_url": config.reward_url.RealitiesEdgeXL,
             "inference_params": {
                 "num_inference_steps": 7,
@@ -216,7 +216,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.33,
+            "model_incentive_weight": 0.31,
             "reward_url": config.reward_url.AnimeV3,
             "inference_params": {
                 "num_inference_steps": 25,
@@ -256,6 +256,16 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.FaceToMany,
+            "inference_params": {},
+        },
+        "Llama3_70b": {
+            "supporting_pipelines": MODEL_CONFIGS["Llama3_70b"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.04,
+            "timeout": 128,
+            "synapse_type": ig_subnet.protocol.TextGenerating,
+            "reward_url": config.reward_url.Llama3_70b,
             "inference_params": {},
         },
     }
@@ -316,12 +326,14 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(
                 f"Querying {len(uids)} uids for model {model_name}, sleep_per_batch: {sleep_per_batch}"
             )
+
             thread = threading.Thread(
                 target=self.async_query_and_reward,
                 args=(model_name, uids, should_rewards),
             )
             threads.append(thread)
             thread.start()
+
             bt.logging.info(f"Sleeping for {sleep_per_batch} seconds between batches")
             time.sleep(sleep_per_batch)
 
@@ -401,16 +413,8 @@ class Validator(BaseValidatorNeuron):
                         reward_responses,
                         reward_uids,
                         self.nicheimage_catalogue[model_name].get("timeout", 12),
+                        self.miner_manager,
                     )
-
-                # Scale Reward based on Miner Volume
-                for i, uid in enumerate(reward_uids):
-                    if rewards[i] > 0:
-                        rewards[i] = rewards[i] * (
-                            0.8
-                            + 0.2
-                            * self.miner_manager.all_uids_info[uid]["reward_scale"]
-                        )
 
                 bt.logging.info(f"Scored responses: {rewards}")
 

@@ -245,6 +245,13 @@ def add_args(cls, parser):
             help="The endpoint to get the reward for FaceToMany.",
             default="http://nicheimage.nichetensor.com/reward/FaceToMany",
         )
+
+        parser.add_argument(
+            "--reward_url.Llama3_70b",
+            type=str,
+            help="The endpoint to get the reward for FaceToMany.",
+            default="http://nicheimage.nichetensor.com/reward/Llama3_70b",
+        )
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(

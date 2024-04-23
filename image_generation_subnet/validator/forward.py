@@ -5,6 +5,7 @@ from typing import List
 from math import pow
 from functools import wraps
 from tqdm import tqdm
+import httpx
 
 
 def retry(**kwargs):
@@ -43,13 +44,16 @@ def skip(**kwargs):
     return decorator
 
 
-def get_challenge(url: str, synapses: List[ImageGenerating], backup_func: callable) -> List[ImageGenerating]:
+def get_challenge(
+    url: str, synapses: List[ImageGenerating], backup_func: callable
+) -> List[ImageGenerating]:
     for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
         if not synapse:
             continue
         try:
             data = synapse.deserialize()
-            response = requests.post(url, json=data)
+            with httpx.Client(timeout=httpx.Timeout(60)) as client:
+                response = client.post(url, json=data)
             if response.status_code != 200:
                 challenge = backup_func()
             else:
@@ -70,6 +74,7 @@ def get_reward(
     synapses: List[ImageGenerating],
     uids: List[int],
     timeout: float,
+    miner_manager,
 ) -> List[float]:
     valid_uids = [uid for uid, response in zip(uids, synapses) if response.is_success]
     invalid_uids = [
@@ -82,7 +87,8 @@ def get_reward(
             "miner_data": [synapse.deserialize() for synapse in valid_synapses],
             "base_data": base_synapse.deserialize_input(),
         }
-        response = requests.post(url, json=data)
+        with httpx.Client(timeout=httpx.Timeout(120, connect=8)) as client:
+            response = client.post(url, json=data)
         if response.status_code != 200:
             raise Exception(f"Error in get_reward: {response.json()}")
         valid_rewards = response.json()["rewards"]
@@ -98,6 +104,13 @@ def get_reward(
         valid_rewards = []
 
     total_rewards = valid_rewards + [0] * len(invalid_uids)
+
+    # Scale Reward based on Miner Volume
+    for i, uid in enumerate(total_uids):
+        if total_rewards[i] > 0:
+            total_rewards[i] = total_rewards[i] * (
+                0.8 + 0.2 * miner_manager.all_uids_info[uid]["reward_scale"]
+            )
 
     return total_uids, total_rewards
 
