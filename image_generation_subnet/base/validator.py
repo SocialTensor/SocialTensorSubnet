@@ -134,7 +134,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
                 # Run forward.
                 try:
-                    self.loop.run_until_complete(self.forward())
+                    self.forward()
                 except Exception as err:
                     print_exception(type(err), err, err.__traceback__)
 

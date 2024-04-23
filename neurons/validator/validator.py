@@ -18,8 +18,6 @@ from image_generation_subnet.validator.offline_challenge import (
     get_backup_prompt,
     get_backup_llm_prompt,
 )
-from starlette.concurrency import run_in_threadpool
-import asyncio
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -292,7 +290,7 @@ class Validator(BaseValidatorNeuron):
             else:
                 bt.logging.warning("Share validator info to owner failed")
 
-    async def forward(self):
+    def forward(self):
         """
         Validator forward pass. Consists of:
         - Querying all miners to get their model_name
@@ -306,7 +304,6 @@ class Validator(BaseValidatorNeuron):
         async_batch_size = self.config.async_batch_size
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         threads = []
-        tasks = []
         loop_start = time.time()
         self.miner_manager.update_miners_identity()
         self.query_queue.update_queue(self.miner_manager.all_uids_info)
@@ -319,18 +316,19 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(
                 f"Querying {len(uids)} uids for model {model_name}, sleep_per_batch: {sleep_per_batch}"
             )
-            task = asyncio.create_task(
-                run_in_threadpool(
-                    self.async_query_and_reward, model_name, uids, should_rewards
-                )
+
+            thread = threading.Thread(
+                target=self.async_query_and_reward,
+                args=(model_name, uids, should_rewards),
             )
-            tasks.append(task)
+            threads.append(thread)
+            thread.start()
             
             bt.logging.info(f"Sleeping for {sleep_per_batch} seconds between batches")
             time.sleep(sleep_per_batch)
 
-        for task in tasks:
-            await task
+        for thread in threads:
+            thread.join()
         self.update_scores_on_chain()
         self.save_state()
         bt.logging.info(
