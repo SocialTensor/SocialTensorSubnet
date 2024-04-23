@@ -43,6 +43,14 @@ Gemma7b:
   params:
     supporting_pipelines:
       - "text_generation"
+
+Llama3_70b:
+  target: ""
+  repo_id: "casperhansen/llama-3-70b-instruct-awq"
+  params:
+    supporting_pipelines:
+      - "text_generation"
+
 StickerMaker:
   target: "generation_models.NicheComfyUI"
   params:
