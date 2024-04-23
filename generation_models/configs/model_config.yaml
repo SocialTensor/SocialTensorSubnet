@@ -46,7 +46,7 @@ Gemma7b:
 
 Llama3_70b:
   target: ""
-  repo_id: "meta-llama/Meta-Llama-3-70B-Instruct"
+  repo_id: "casperhansen/llama-3-8b-instruct-awq"
   params:
     supporting_pipelines:
       - "text_generation"
