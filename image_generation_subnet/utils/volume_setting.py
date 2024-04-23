@@ -23,7 +23,7 @@ def get_volume_per_validator(
             )
         )
         valid_uids = all_uids
-        valid_stakes = all_stakes
+        valid_stakes = [0] * len(all_stakes)
         min_stake = 0
 
     valid_stakes = torch.tensor(valid_stakes) + 1e-4
