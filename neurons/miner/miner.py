@@ -97,9 +97,7 @@ class Miner(BaseMinerNeuron):
             validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
             stake = self.metagraph.stake[validator_uid].item()
 
-            if image_generation_subnet.miner.check_min_stake(
-                stake, validator_uid, self.config.miner.min_stake
-            ):
+            if validator_uid not in self.volume_per_validator:
                 bt.logging.trace(
                     f"Blacklisting {validator_uid}-validator has {stake} stake"
                 )
