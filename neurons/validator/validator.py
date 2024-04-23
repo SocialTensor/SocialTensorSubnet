@@ -403,16 +403,8 @@ class Validator(BaseValidatorNeuron):
                         reward_responses,
                         reward_uids,
                         self.nicheimage_catalogue[model_name].get("timeout", 12),
+                        self.miner_manager,
                     )
-
-                # Scale Reward based on Miner Volume
-                for i, uid in enumerate(reward_uids):
-                    if rewards[i] > 0:
-                        rewards[i] = rewards[i] * (
-                            0.8
-                            + 0.2
-                            * self.miner_manager.all_uids_info[uid]["reward_scale"]
-                        )
 
                 bt.logging.info(f"Scored responses: {rewards}")
 

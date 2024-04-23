@@ -101,7 +101,7 @@ class ValidatorProxy:
                     uids,
                     rewards,
                 ) = image_generation_subnet.validator.get_reward(
-                    reward_url, synapse, [response], [uid], timeout
+                    reward_url, synapse, [response], [uid], timeout, self.validator.miner_manager
                 )
             bt.logging.info(
                 f"Proxy: Updating scores of miners {uids} with rewards {rewards}, should_reward: {should_reward}"
