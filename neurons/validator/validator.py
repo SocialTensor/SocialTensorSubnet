@@ -417,6 +417,13 @@ class Validator(BaseValidatorNeuron):
                         self.miner_manager,
                     )
 
+                    # Scale Reward based on Miner Volume
+                for i, uid in enumerate(reward_uids):
+                    if rewards[i] > 0:
+                        rewards[i] = rewards[i] * (
+                            0.6 + 0.4 * self.miner_manager.all_uids_info[uid]["reward_scale"]
+                        )
+
                 bt.logging.info(f"Scored responses: {rewards}")
 
                 self.miner_manager.update_scores(reward_uids, rewards)

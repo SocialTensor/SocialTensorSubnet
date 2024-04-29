@@ -105,13 +105,6 @@ def get_reward(
 
     total_rewards = valid_rewards + [0] * len(invalid_uids)
 
-    # Scale Reward based on Miner Volume
-    for i, uid in enumerate(total_uids):
-        if total_rewards[i] > 0:
-            total_rewards[i] = total_rewards[i] * (
-                0.8 + 0.2 * miner_manager.all_uids_info[uid]["reward_scale"]
-            )
-
     return total_uids, total_rewards
 
 
