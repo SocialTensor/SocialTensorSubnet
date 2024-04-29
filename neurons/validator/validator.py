@@ -168,31 +168,32 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "DreamShaper": {
+        "DreamShaperXL": {
             "model_incentive_weight": 0.06,
-            "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
+            "supporting_pipelines": MODEL_CONFIGS["DreamShaperXL"]["params"][
                 "supporting_pipelines"
             ],
             "reward_url": config.reward_url.DreamShaper,
             "inference_params": {
-                "num_inference_steps": 30,
-                "width": 512,
-                "height": 768,
-                "guidance_scale": 7,
-                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+                "num_inference_steps": 8,
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 2,
             },
             "timeout": 12,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "RealisticVision": {
-            "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
+        "JuggernautXL": {
+            "supporting_pipelines": MODEL_CONFIGS["JuggernautXL"]["params"][
                 "supporting_pipelines"
             ],
             "model_incentive_weight": 0.18,
             "reward_url": config.reward_url.RealisticVision,
             "inference_params": {
                 "num_inference_steps": 30,
-                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 6,
             },
             "timeout": 12,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
