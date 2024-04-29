@@ -96,6 +96,8 @@ class NicheStableDiffusionXL(BaseModel):
         def inference_function(*args, **kwargs):
             conditional_image: Image.Image = self.process_conditional_image(**kwargs)
             face_info = app.get(cv2.cvtColor(np.array(conditional_image), cv2.COLOR_RGB2BGR))
+            if len(face_info) == 0:
+                return [Image.new("RGB", (512, 512), (255, 255, 255))]
             face_info = sorted(face_info, key=lambda x:(x['bbox'][2]-x['bbox'][0])*(x['bbox'][3]-x['bbox'][1]))[-1]  # only use the maximum face
             face_emb = face_info['embedding']
             face_kps = draw_kps(conditional_image, face_info['kps'])
