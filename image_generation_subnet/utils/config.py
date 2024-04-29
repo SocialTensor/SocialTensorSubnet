@@ -252,6 +252,20 @@ def add_args(cls, parser):
             help="The endpoint to get the reward for FaceToMany.",
             default="http://nicheimage.nichetensor.com/reward/Llama3_70b",
         )
+
+        parser.add_argument(
+            "--reward_url.DreamShaperXL",
+            type=str,
+            help="",
+            default="http://nicheimage.nichetensor.com/reward/DreamShaperXL",
+        )
+
+        parser.add_argument(
+            "--reward_url.JuggernautXL",
+            type=str,
+            help="",
+            default="http://nicheimage.nichetensor.com/reward/JuggernautXL",
+        )
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(
