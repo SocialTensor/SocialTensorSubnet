@@ -22,3 +22,5 @@ pandas
 typesense
 clean-text[gpl]
 jinja2
+insightface
+onnxruntime-gpu
