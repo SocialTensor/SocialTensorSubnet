@@ -134,7 +134,7 @@ def initialize_challenge_urls(config):
             "main": [config.challenge.prompt, config.challenge.image],
             "backup": [get_backup_prompt, get_backup_image],
         },
-        "controlnet_txt2img": {
+        "instantid": {
             "main": [
                 config.challenge.prompt,
                 config.challenge.image,

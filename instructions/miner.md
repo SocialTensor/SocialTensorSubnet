@@ -9,9 +9,9 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | GoJourney       | 4%                     | 12 |
 | AnimeV3         | 33%                    | 12 |
-| RealisticVision | 18%                    | 12 |
+| JuggernautXL | 18%                    | 12 |
 | RealitiesEdgeXL | 30%                    | 12 |
-| DreamShaper     | 6%                     | 12 |
+| DreamShaperXL     | 6%                     | 12 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | FaceToMany      | 3%                     | 64 |
@@ -25,6 +25,8 @@ python -m venv main_env
 source main_env/bin/activate
 pip install -e .
 pip uninstall uvloop -y
+git submodule update --init --recursive
+. generation_models/custom_pipelines/scripts/download_antelopev2.sh
 ```
 2. Select miner based on incentive distribution and subnet state at https://nicheimage.streamlit.app/
 3. Setup prequisites if needed
