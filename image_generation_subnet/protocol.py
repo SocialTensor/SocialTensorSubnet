@@ -77,6 +77,10 @@ class ImageGenerating(bt.Synapse):
         for k, v in self.pipeline_params.items():
             if k == "num_inference_steps":
                 self.pipeline_params[k] = min(50, v)
+            if k == "width":
+                self.pipeline_params[k] = min(1536, v)
+            if k == "height":
+                self.pipeline_params[k] = min(1536, v)
         self.pipeline_params = self.pipeline_params
 
     def deserialize(self) -> dict:
@@ -96,7 +100,6 @@ class ImageGenerating(bt.Synapse):
             "image": self.image,
             "response_dict": self.response_dict,
         }
-        
 
     def store_response(self, storage_url: str, uid, validator_uid):
         if self.model_name == "GoJourney":
@@ -155,7 +158,13 @@ class TextGenerating(bt.Synapse):
         }
         deserialized_input.update(self.pipeline_params)
         return deserialized_input
-
+    
+    def limit_params(self):
+        for k, v in self.pipeline_params.items():
+            if k == "max_tokens":
+                self.pipeline_params[k] = min(4096, v)
+        self.pipeline_params = self.pipeline_params
+        
     def deserialize(self) -> dict:
         """
         Deserialize the prompt output. This method retrieves the response from

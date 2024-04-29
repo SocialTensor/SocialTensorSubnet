@@ -122,6 +122,7 @@ class ValidatorProxy:
         model_config = self.validator.nicheimage_catalogue[model_name]
         synapse_cls = model_config["synapse_type"]
         synapse = synapse_cls(**payload)
+        synapse.limit_params()
 
         timeout = model_config["timeout"]
         reward_url = model_config["reward_url"]
