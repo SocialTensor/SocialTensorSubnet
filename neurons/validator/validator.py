@@ -541,7 +541,7 @@ class Validator(BaseValidatorNeuron):
                         "RealisticVision": 0.0,
                         "DreamShaper": 0.0,
                     }
-                print(f"Using special incentive distribution: {incentive_distribution}")
+                bt.logging.info(f"Using special incentive distribution: {incentive_distribution}")
                 model_specific_weights = (
                     model_specific_weights
                     * incentive_distribution[model_name]
