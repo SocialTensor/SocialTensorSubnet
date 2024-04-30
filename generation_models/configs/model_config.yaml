@@ -1,11 +1,3 @@
-RealisticVision:
-  target: generation_models.NicheStableDiffusion
-  params:
-    checkpoint_file: "checkpoints/RealisticVision.safetensors"
-    download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-    scheduler: "dpm++2m"
-    supporting_pipelines:
-      - "txt2img"
 AnimeV3:
   target: generation_models.NicheStableDiffusionXL
   params:
@@ -22,16 +14,6 @@ RealitiesEdgeXL:
     scheduler: "dpm++2m_karras"
     supporting_pipelines:
       - "txt2img"
-DreamShaper:
-  target: generation_models.NicheStableDiffusion
-  params:
-    checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
-    download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-    scheduler: "dpm++2m_karras"
-    supporting_pipelines:
-      - "txt2img"
-      - "img2img"
-      - "controlnet_txt2img"
 GoJourney:
   target: generation_models.NicheGoJourney
   params:
@@ -68,3 +50,39 @@ FaceToMany:
     workflow_json_file: "generation_models/comfyui_helper/configs/face_to_many/workflow.json"
     update_wf_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.update_workflow"
     init_setup_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.setup"
+DreamShaperXL:
+  target: generation_models.NicheStableDiffusionXL
+  params:
+    checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
+    download_url: "https://civitai.com/api/download/models/351306"
+    scheduler: "dpm++sde_karras"
+    supporting_pipelines:
+      - "txt2img"
+      - "img2img"
+      - "instantid"
+JuggernautXL:
+  target: generation_models.NicheStableDiffusionXL
+  params:
+    checkpoint_file: "checkpoints/JuggernautXL.safetensors"
+    download_url: "https://civitai.com/api/download/models/456194"
+    scheduler: "dpm++2m_karras"
+    supporting_pipelines:
+      - "txt2img"
+
+RealisticVision:
+  target: generation_models.NicheStableDiffusion
+  params:
+    checkpoint_file: "checkpoints/RealisticVision.safetensors"
+    download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
+    scheduler: "dpm++2m"
+    supporting_pipelines:
+      - "txt2img"
+
+DreamShaper:
+  target: generation_models.NicheStableDiffusion
+  params:
+    checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
+    download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"
+    scheduler: "dpm++2m_karras"
+    supporting_pipelines:
+      - "txt2img"

@@ -12,7 +12,6 @@ from ray import serve
 from ray.serve.handle import DeploymentHandle
 from functools import partial
 from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
-from discord_webhook import AsyncDiscordWebhook
 from services.rewarding.notice import notice_discord
 import random
 import asyncio
@@ -90,12 +89,6 @@ class RewardApp:
         self.app.state.limiter = limiter
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
         self.allowed_ips = []
-        if args.webhook_url:
-            self.webhook = AsyncDiscordWebhook(
-                url=args.webhook_url, username=args.model_name
-            )
-        else:
-            self.webhook = None
 
         if not self.args.disable_secure:
             self.allowed_ips_thread = threading.Thread(
@@ -118,15 +111,6 @@ class RewardApp:
         rewards = self.rewarder.get_reward(validator_image, miner_images)
         rewards = [float(reward) for reward in rewards]
         print(rewards, flush=True)
-        content = f"{str(rewards)}\n{str(dict(base_data))}"
-        if self.webhook and random.random() < self.args.notice_prob:
-            try:
-                miner_images = [base64_to_pil_image(image) for image in miner_images]
-                all_images = [base64_to_pil_image(validator_image)] + miner_images
-                asyncio.create_task(notice_discord(all_images, self.webhook, content))
-                print("Noticed discord")
-            except Exception as e:
-                print("Exception while noticing discord" + str(e), flush=True)
         return {
             "rewards": rewards,
         }

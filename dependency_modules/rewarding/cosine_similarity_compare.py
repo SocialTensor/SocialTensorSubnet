@@ -6,7 +6,14 @@ import torch
 from typing import List
 from generation_models.utils import base64_to_pil_image
 import imagehash
+from io import BytesIO
+import copy
 
+def pil_convert(image: Image.Image, format: str) -> Image.Image:
+    image_stream = BytesIO()
+    image.save(image_stream, format=format)
+    image = Image.open(image_stream)
+    return image
 
 class CosineSimilarityReward(nn.Module):
     def __init__(
@@ -50,6 +57,11 @@ class CosineSimilarityReward(nn.Module):
                 try:
                     if not isinstance(miner_image, Image.Image):
                         miner_image = base64_to_pil_image(miner_image)
+                    miner_image_format = miner_image.format
+                    temp_validator_image = copy.deepcopy(validator_image)
+                    # convert validator image to the same format as miner image
+                    temp_validator_image = pil_convert(temp_validator_image, miner_image_format)
+                    
                 except Exception:
                     print("Corrupted miner image", flush=True)
                     reward = False

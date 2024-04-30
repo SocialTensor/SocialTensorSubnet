@@ -134,7 +134,7 @@ def initialize_challenge_urls(config):
             "main": [config.challenge.prompt, config.challenge.image],
             "backup": [get_backup_prompt, get_backup_image],
         },
-        "controlnet_txt2img": {
+        "instantid": {
             "main": [
                 config.challenge.prompt,
                 config.challenge.image,
@@ -168,31 +168,32 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "DreamShaper": {
+        "DreamShaperXL": {
             "model_incentive_weight": 0.06,
-            "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
+            "supporting_pipelines": MODEL_CONFIGS["DreamShaperXL"]["params"][
                 "supporting_pipelines"
             ],
-            "reward_url": config.reward_url.DreamShaper,
+            "reward_url": config.reward_url.DreamShaperXL,
             "inference_params": {
-                "num_inference_steps": 30,
-                "width": 512,
-                "height": 768,
-                "guidance_scale": 7,
-                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+                "num_inference_steps": 8,
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 2,
             },
-            "timeout": 12,
+            "timeout": 16,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "RealisticVision": {
-            "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
+        "JuggernautXL": {
+            "supporting_pipelines": MODEL_CONFIGS["JuggernautXL"]["params"][
                 "supporting_pipelines"
             ],
             "model_incentive_weight": 0.18,
-            "reward_url": config.reward_url.RealisticVision,
+            "reward_url": config.reward_url.JuggernautXL,
             "inference_params": {
                 "num_inference_steps": 30,
-                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 6,
             },
             "timeout": 12,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
@@ -267,6 +268,35 @@ def initialize_nicheimage_catalogue(config):
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Llama3_70b,
             "inference_params": {},
+        },
+        "DreamShaper": {
+            "model_incentive_weight": 0.0,
+            "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
+                "supporting_pipelines"
+            ],
+            "reward_url": config.reward_url.DreamShaper,
+            "inference_params": {
+                "num_inference_steps": 30,
+                "width": 512,
+                "height": 768,
+                "guidance_scale": 7,
+                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+            },
+            "timeout": 12,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "RealisticVision": {
+            "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.0,
+            "reward_url": config.reward_url.RealisticVision,
+            "inference_params": {
+                "num_inference_steps": 30,
+                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+            },
+            "timeout": 12,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
     }
     return nicheimage_catalogue
@@ -416,6 +446,13 @@ class Validator(BaseValidatorNeuron):
                         self.miner_manager,
                     )
 
+                    # Scale Reward based on Miner Volume
+                for i, uid in enumerate(reward_uids):
+                    if rewards[i] > 0:
+                        rewards[i] = rewards[i] * (
+                            0.6 + 0.4 * self.miner_manager.all_uids_info[uid]["reward_scale"]
+                        )
+
                 bt.logging.info(f"Scored responses: {rewards}")
 
                 self.miner_manager.update_scores(reward_uids, rewards)
@@ -479,10 +516,41 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
-            model_specific_weights = (
-                model_specific_weights
-                * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
-            )
+            from datetime import datetime
+            target_time_1 = datetime(2024, 5, 1, 14, 0)
+            target_time_2 = datetime(2024, 5, 2, 14, 0)
+            if model_name in ["DreamShaperXL", "JuggernautXL", "RealisticVision", "DreamShaper"]:
+                if datetime.utcnow() < target_time_1:
+                    incentive_distribution = {
+                        "DreamShaperXL": 0.00,
+                        "JuggernautXL": 0.00,
+                        "RealisticVision": 0.18,
+                        "DreamShaper": 0.06,
+                    }
+                elif datetime.utcnow() < target_time_2 and datetime.utcnow() > target_time_1:
+                    incentive_distribution = {
+                        "DreamShaperXL": 0.005,
+                        "JuggernautXL": 0.005,
+                        "RealisticVision": 0.175,
+                        "DreamShaper": 0.055,
+                    }
+                else:
+                    incentive_distribution = {
+                        "DreamShaperXL": 0.06,
+                        "JuggernautXL": 0.18,
+                        "RealisticVision": 0.0,
+                        "DreamShaper": 0.0,
+                    }
+                bt.logging.info(f"Using special incentive distribution: {incentive_distribution}")
+                model_specific_weights = (
+                    model_specific_weights
+                    * incentive_distribution[model_name]
+                )
+            else:
+                model_specific_weights = (
+                    model_specific_weights
+                    * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
+                )
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )

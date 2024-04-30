@@ -35,6 +35,7 @@ class Miner(BaseMinerNeuron):
             bt.logging.info(
                 f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
             )
+            synapse.limit_params()
             synapse = await image_generation_subnet.miner.generate(self, synapse)
             self.num_processing_requests -= 1
         except Exception as e:
@@ -66,6 +67,7 @@ class Miner(BaseMinerNeuron):
             bt.logging.info(
                 f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
             )
+            synapse.limit_params()
             synapse = await image_generation_subnet.miner.generate(self, synapse)
             self.num_processing_requests -= 1
         except Exception as e:
