@@ -269,6 +269,35 @@ def initialize_nicheimage_catalogue(config):
             "reward_url": config.reward_url.Llama3_70b,
             "inference_params": {},
         },
+        "DreamShaper": {
+            "model_incentive_weight": 0.06,
+            "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
+                "supporting_pipelines"
+            ],
+            "reward_url": config.reward_url.DreamShaper,
+            "inference_params": {
+                "num_inference_steps": 30,
+                "width": 512,
+                "height": 768,
+                "guidance_scale": 7,
+                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+            },
+            "timeout": 12,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "RealisticVision": {
+            "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.18,
+            "reward_url": config.reward_url.RealisticVision,
+            "inference_params": {
+                "num_inference_steps": 30,
+                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
+            },
+            "timeout": 12,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
     }
     return nicheimage_catalogue
 
@@ -487,10 +516,32 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
-            model_specific_weights = (
-                model_specific_weights
-                * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
-            )
+            import datetime
+            target_time = datetime(2024, 5, 2, 14, 0)
+            if model_name in ["DreamShaperXL", "JuggernautXL", "RealisticVision", "DreamShaper"]:
+                if datetime.utcnow() < target_time:
+                    incentive_distribution = {
+                        "DreamShaperXL": 0.01,
+                        "JuggernautXL": 0.01,
+                        "RealisticVision": 0.17,
+                        "DreamShaper": 0.05,
+                    }
+                else:
+                    incentive_distribution = {
+                        "DreamShaperXL": 0.06,
+                        "JuggernautXL": 0.18,
+                        "RealisticVision": 0.0,
+                        "DreamShaper": 0.0,
+                    }
+                model_specific_weights = (
+                    model_specific_weights
+                    * incentive_distribution[model_name]
+                )
+            else:
+                model_specific_weights = (
+                    model_specific_weights
+                    * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
+                )
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )
