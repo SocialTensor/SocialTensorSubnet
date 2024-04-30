@@ -516,15 +516,23 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
-            import datetime
-            target_time = datetime(2024, 5, 2, 14, 0)
+            from datetime import datetime
+            target_time_1 = datetime(2024, 5, 1, 14, 0)
+            target_time_2 = datetime(2024, 5, 2, 14, 0)
             if model_name in ["DreamShaperXL", "JuggernautXL", "RealisticVision", "DreamShaper"]:
-                if datetime.utcnow() < target_time:
+                if datetime.utcnow() < target_time_1:
                     incentive_distribution = {
-                        "DreamShaperXL": 0.01,
-                        "JuggernautXL": 0.01,
-                        "RealisticVision": 0.17,
-                        "DreamShaper": 0.05,
+                        "DreamShaperXL": 0.00,
+                        "JuggernautXL": 0.00,
+                        "RealisticVision": 0.18,
+                        "DreamShaper": 0.06,
+                    }
+                elif datetime.utcnow() < target_time_2 and datetime.utcnow() > target_time_1:
+                    incentive_distribution = {
+                        "DreamShaperXL": 0.005,
+                        "JuggernautXL": 0.005,
+                        "RealisticVision": 0.175,
+                        "DreamShaper": 0.055,
                     }
                 else:
                     incentive_distribution = {
@@ -533,6 +541,7 @@ class Validator(BaseValidatorNeuron):
                         "RealisticVision": 0.0,
                         "DreamShaper": 0.0,
                     }
+                print(f"Using special incentive distribution: {incentive_distribution}")
                 model_specific_weights = (
                     model_specific_weights
                     * incentive_distribution[model_name]
