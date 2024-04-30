@@ -173,7 +173,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["DreamShaperXL"]["params"][
                 "supporting_pipelines"
             ],
-            "reward_url": config.reward_url.DreamShaper,
+            "reward_url": config.reward_url.DreamShaperXL,
             "inference_params": {
                 "num_inference_steps": 8,
                 "width": 1024,
@@ -188,7 +188,7 @@ def initialize_nicheimage_catalogue(config):
                 "supporting_pipelines"
             ],
             "model_incentive_weight": 0.18,
-            "reward_url": config.reward_url.RealisticVision,
+            "reward_url": config.reward_url.JuggernautXL,
             "inference_params": {
                 "num_inference_steps": 30,
                 "width": 1024,
