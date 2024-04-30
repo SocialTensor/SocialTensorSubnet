@@ -83,8 +83,6 @@ def base64_to_pil_image(base64_image):
     image = base64.b64decode(base64_image)
     image = BytesIO(image)
     image = PIL.Image.open(image)
-    image = np.array(image)
-    image = PIL.Image.fromarray(image).convert("RGB")
     return image
 
 
