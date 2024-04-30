@@ -98,16 +98,21 @@ class NicheStableDiffusionXL(BaseModel):
         pipe.load_ip_adapter_instantid(face_adapter)
 
         def inference_function(*args, **kwargs):
-            conditional_image: Image.Image = self.process_conditional_image(**kwargs)
+            conditional_image: Image.Image = self.process_conditional_image(resolution=512, **kwargs)
             face_info = app.get(cv2.cvtColor(np.array(conditional_image), cv2.COLOR_RGB2BGR))
+            controlnet_conditioning_scale = kwargs.get("controlnet_conditioning_scale", 0.8)
+            ip_adapter_scale = kwargs.get("ip_adapter_scale", 0.8)
             if len(face_info) == 0:
-                print("No face detected", flush=True)
-                return None
+                print("No face detected in the image")
+                conditional_image = Image.open("assets/images/image.png")
+                face_info = app.get(cv2.cvtColor(np.array(conditional_image), cv2.COLOR_RGB2BGR))
+                ip_adapter_scale = 0
+                controlnet_conditioning_scale = 0
             face_info = sorted(face_info, key=lambda x:(x['bbox'][2]-x['bbox'][0])*(x['bbox'][3]-x['bbox'][1]))[-1]  # only use the maximum face
             face_emb = face_info['embedding']
             face_kps = draw_kps(conditional_image, face_info['kps'])
             if kwargs.get("kps_conditional_image"):
-                conditional_image: Image.Image = self.process_conditional_image(key="kps_conditional_image", **kwargs)
+                conditional_image: Image.Image = self.process_conditional_image(key="kps_conditional_image", resolution=512, **kwargs)
                 face_info = app.get(cv2.cvtColor(np.array(conditional_image), cv2.COLOR_RGB2BGR))
                 face_info = sorted(face_info, key=lambda x:(x['bbox'][2]-x['bbox'][0])*(x['bbox'][3]-x['bbox'][1]))[-1]  # only use the maximum face
                 face_kps = draw_kps(conditional_image, face_info['kps'])
@@ -116,6 +121,8 @@ class NicheStableDiffusionXL(BaseModel):
                 {
                     "image_embeds": face_emb,
                     "image": face_kps,
+                    "controlnet_conditioning_scale": controlnet_conditioning_scale,
+                    "ip_adapter_scale": ip_adapter_scale,
                 }
             )
             images = pipe(*args, **kwargs)
