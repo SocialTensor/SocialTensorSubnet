@@ -29,7 +29,7 @@ For more information, please click [here](image_generation_subnet/NicheImage.md)
 - Miners commit to a model type and generation volume.
 - Miner's volume is distributed to validators based on the amount of TAO staked, with a minimum quota for validators.
 - **Incentivized volume rewarding mechanism**: The reward formula incorporates the volume of requests handled, calculated as follows:
-  - `new_reward = (matching_result - time_penalty) * (0.8 + 0.2 * volume_scale)`
+  - `new_reward = (matching_result - time_penalty) * (0.6 + 0.4 * volume_scale)`
   - `matching_result` is 0 or 1 based on the similarity matching result with the reproduction of the validator.
   - `time_penalty = 0.4 * (processing_time / timeout)**3`
   - `volume_scale = max(min(total_volume**0.5 / 1000**0.5, 1), 0)`
