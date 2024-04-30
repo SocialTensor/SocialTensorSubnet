@@ -86,11 +86,12 @@ def base64_to_pil_image(base64_image):
     return image
 
 
-def pil_image_to_base64(image: Image.Image) -> str:
+def pil_image_to_base64(image: Image.Image, format="JPEG") -> str:
+    if format not in ["JPEG", "PNG"]:
+        format = "JPEG"
     image_stream = io.BytesIO()
-    image.save(image_stream, format="JPEG")
+    image.save(image_stream, format=format)
     base64_image = base64.b64encode(image_stream.getvalue()).decode("utf-8")
-
     return base64_image
 
 
