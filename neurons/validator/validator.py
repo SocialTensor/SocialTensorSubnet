@@ -180,7 +180,7 @@ def initialize_nicheimage_catalogue(config):
                 "height": 1024,
                 "guidance_scale": 2,
             },
-            "timeout": 12,
+            "timeout": 16,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
         "JuggernautXL": {
@@ -270,7 +270,7 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
         },
         "DreamShaper": {
-            "model_incentive_weight": 0.06,
+            "model_incentive_weight": 0.0,
             "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
                 "supporting_pipelines"
             ],
@@ -289,7 +289,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.18,
+            "model_incentive_weight": 0.0,
             "reward_url": config.reward_url.RealisticVision,
             "inference_params": {
                 "num_inference_steps": 30,
