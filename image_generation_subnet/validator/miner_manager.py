@@ -5,12 +5,11 @@ from image_generation_subnet.utils.volume_setting import get_volume_per_validato
 import requests
 from threading import Thread
 import image_generation_subnet as ig_subnet
-from neurons.validator.validator import Validator
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
 
 class MinerManager:
-    def __init__(self, validator: Validator):
+    def __init__(self, validator):
         self.validator = validator
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
         self.all_uids_info = {
