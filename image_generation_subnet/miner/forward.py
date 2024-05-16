@@ -23,7 +23,11 @@ def set_info(self):
             "count": GPU_DEVICE_COUNT,
         }
     }
-    miner_info_str = f"{response["model_name"]}:{self.config.miner.total_volume}:{str(miner_info["device_info"])}"
+    miner_info_str = "{}|{}|{}".format(
+        miner_info["model_name"],
+        miner_info["total_volume"],
+        compress_dict(miner_info["device_info"]),
+    )
     return miner_info, miner_info_str
 
 
