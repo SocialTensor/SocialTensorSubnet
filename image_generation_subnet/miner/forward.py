@@ -18,14 +18,12 @@ def set_info(self):
     miner_info = {
         "model_name": response["model_name"],
         "total_volume": self.config.miner.total_volume,
-        "min_stake": self.config.miner.min_stake,
         "device_info": {
-            "gpu_device_name": GPU_DEVICE_NAME,
-            "gpu_device_count": GPU_DEVICE_COUNT,
+            "name": GPU_DEVICE_NAME,
+            "count": GPU_DEVICE_COUNT,
         }
     }
-    miner_info_str = compress_dict(miner_info)
-    assert miner_info == decompress_dict(miner_info_str)
+    miner_info_str = f"{response["model_name"]}|{self.config.miner.total_volume}|{str(miner_info["device_info"])}"
     return miner_info, miner_info_str
 
 
