@@ -24,7 +24,7 @@ class Miner(BaseMinerNeuron):
         self.miner_info = image_generation_subnet.miner.set_info(self)
         self.subtensor.commit(
             wallet=self.wallet,
-            uid=23,
+            netuid=23,
             data=str(self.miner_info)
         )
         self.num_processing_requests = 0
