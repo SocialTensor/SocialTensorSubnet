@@ -17,9 +17,7 @@ def set_info(self):
     miner_info = {
         "model_name": response["model_name"],
         "total_volume": self.config.miner.total_volume,
-        "size_preference_factor": self.config.miner.size_preference_factor,
         "min_stake": self.config.miner.min_stake,
-        "volume_per_validator": self.volume_per_validator,
         "device_info": {
             "gpu_device_name": GPU_DEVICE_NAME,
             "gpu_device_count": GPU_DEVICE_COUNT,
