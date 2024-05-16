@@ -21,11 +21,11 @@ class Miner(BaseMinerNeuron):
                 self.config.miner.min_stake,
             )
         )
-        self.miner_info = image_generation_subnet.miner.set_info(self)
+        self.miner_info, miner_info_str = image_generation_subnet.miner.set_info(self)
         self.subtensor.commit(
             wallet=self.wallet,
             netuid=23,
-            data=str(self.miner_info)
+            data=miner_info_str,
         )
         self.num_processing_requests = 0
         self.total_request_in_interval = 0

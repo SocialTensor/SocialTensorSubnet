@@ -22,7 +22,8 @@ class MinerManager:
             try:
                 result = self.validator.subtensor.get_commitment(23, uid)
                 # convert str to dict
-                result = eval(result)
+                result: dict = ig_subnet.utils.commit_on_chain.decompress_dict(result)
+                
             except Exception as e:
                 bt.logging.warning(f"Failed to get commitment for {uid}: {e}")
                 result = {}

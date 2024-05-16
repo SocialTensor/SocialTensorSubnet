@@ -2,6 +2,7 @@ import requests
 import httpx
 import bittensor as bt
 import torch
+from image_generation_subnet.utils.commit_on_chain import compress_dict, decompress_dict
 
 try:
     GPU_DEVICE_NAME = torch.cuda.get_device_name()
@@ -23,7 +24,9 @@ def set_info(self):
             "gpu_device_count": GPU_DEVICE_COUNT,
         }
     }
-    return miner_info
+    miner_info_str = compress_dict(miner_info)
+    assert miner_info == decompress_dict(miner_info_str)
+    return miner_info, miner_info_str
 
 
 async def generate(self, synapse: bt.Synapse) -> bt.Synapse:
