@@ -1,5 +1,3 @@
-Here's the README with added emojis and color:
-
 <div align="center">
 
 # 🎨 NicheImage - Decentralized Image Generation Network 🌐
