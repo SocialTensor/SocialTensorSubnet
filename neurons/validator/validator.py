@@ -289,26 +289,41 @@ class Validator(BaseValidatorNeuron):
             list(self.nicheimage_catalogue.keys()),
             time_per_loop=self.config.loop_base_time,
         )
-        try:
-            self.validator_proxy = ValidatorProxy(self)
-            bt.logging.info("Validator proxy started succesfully")
-        except Exception:
-            if self.config.proxy.port:
+        if self.config.proxy.port:
+            try:
+                self.validator_proxy = ValidatorProxy(self)
+                bt.logging.info("Validator proxy started succesfully")
+            except Exception:
                 bt.logging.warning(
                     "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
                     + traceback.format_exc()
                 )
-            else:
-                bt.logging.warning("Share validator info to owner failed")
 
     def forward(self):
         """
-        Validator forward pass. Consists of:
-        - Querying all miners to get their model_name
-        - Forwarding requests to miners
-        - Calculating rewards based on responses
-        - Updating scores based on rewards
-        - Saving the state
+        Validator synthetic forward pass. Consists of:
+        - Querying all miners to get their model_name and total_volume
+        - Create serving queue, here is pseudo code:
+            ```
+                synthentic_queue = Queue()
+                for uid, total_volume_this_validator in all_uids_info:
+                    for _ in range(total_volume_this_validator*0.8):
+                        synthentic_queue.put(uid)
+                shuffle(synthentic_queue)
+
+                organic_queue = Queue()
+                for uid, total_volume_this_validator in all_uids_info:
+                    for _ in range(total_volume_this_validator*0.2):
+                        organic_queue.put(uid)
+                shuffle(organic_queue)
+            ```
+        - Forwarding requests to miners in multiple thread to ensure total time is around 600 seconds. In each thread, we do:
+            - Calculating rewards if needed
+            - Updating scores based on rewards
+            - Saving the state
+        - Normalize weights based on incentive_distribution
+        - SET WEIGHTS!
+        - Sleep for 600 seconds if needed
         """
 
         bt.logging.info("Updating available models & uids")

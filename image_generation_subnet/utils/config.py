@@ -187,13 +187,6 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--proxy.miner_score_threshold",
-            type=float,
-            help="Threshold for filtering out miners before sampling selecting",
-            default=0.1,
-        )
-
-        parser.add_argument(
             "--proxy.checking_probability",
             type=float,
             help="Probability of checking if a miner is valid",
@@ -292,10 +285,9 @@ def add_args(cls, parser):
         parser.add_argument(
             "--share_response",
             action="store_true",
-            help="If set, we will run the validator in debug mode.",
+            help="If set, validator will share miners' response to owner endpoint.",
             default=False,
         )
-        # TODO: add more challenge endpoints for categories
 
     else:
         parser.add_argument(
