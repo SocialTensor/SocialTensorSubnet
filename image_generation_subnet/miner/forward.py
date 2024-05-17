@@ -2,7 +2,6 @@ import requests
 import httpx
 import bittensor as bt
 import torch
-from image_generation_subnet.utils.commit_on_chain import compress_dict, decompress_dict
 
 try:
     GPU_DEVICE_NAME = torch.cuda.get_device_name()
