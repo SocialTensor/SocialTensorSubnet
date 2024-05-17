@@ -5,8 +5,6 @@ from image_generation_subnet.utils.volume_setting import get_volume_per_validato
 import requests
 from threading import Thread
 import image_generation_subnet as ig_subnet
-import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError
 
 class MinerManager:
     def __init__(self, validator):
