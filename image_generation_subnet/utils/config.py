@@ -290,23 +290,9 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--debug_validator",
+            "--share_response",
             action="store_true",
             help="If set, we will run the validator in debug mode.",
-            default=False,
-        )
-
-        parser.add_argument(
-            "--proxy.only_proxy_quota",
-            action="store_true",
-            help="If set, we will only use the proxy quota.",
-            default=False,
-        )
-
-        parser.add_argument(
-            "--only_organic",
-            action="store_true",
-            help="If set, we will only use organic requests.",
             default=False,
         )
         # TODO: add more challenge endpoints for categories
