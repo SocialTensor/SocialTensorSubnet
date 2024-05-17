@@ -14,9 +14,7 @@ MODEL_CONFIG = yaml.load(
 
 
 class Information(bt.Synapse):
-    request_dict: dict = {
-        "get_miner_info": True,
-    }
+    request_dict: dict = {}
     response_dict: dict = {}
 
 
