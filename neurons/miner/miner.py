@@ -3,7 +3,7 @@ from typing import Tuple, TypeVar
 import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
-from image_generation_subnet.protocol import ImageGenerating, TextGenerating
+from image_generation_subnet.protocol import ImageGenerating, TextGenerating, Information
 import traceback
 
 T = TypeVar("T", bound=bt.Synapse)
@@ -28,7 +28,7 @@ class Miner(BaseMinerNeuron):
 
     async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
         if "get_miner_info" in synapse.request_dict:
-            return await self.forward_info(synapse)
+            return await self.forward_info_legacy(synapse)
         self.num_processing_requests += 1
         self.total_request_in_interval += 1
         try:
@@ -43,7 +43,7 @@ class Miner(BaseMinerNeuron):
             self.num_processing_requests -= 1
         return synapse
 
-    async def forward_info(self, synapse: ImageGenerating) -> ImageGenerating:
+    async def forward_info_legacy(self, synapse: ImageGenerating) -> ImageGenerating:
         synapse.response_dict = self.miner_info
         bt.logging.info(f"Response dict: {self.miner_info}")
         validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
@@ -60,7 +60,7 @@ class Miner(BaseMinerNeuron):
 
     async def forward_text(self, synapse: TextGenerating) -> TextGenerating:
         if synapse.request_dict:
-            return await self.forward_info(synapse)
+            return await self.forward_info_legacy(synapse)
         self.num_processing_requests += 1
         self.total_request_in_interval += 1
         try:
@@ -74,6 +74,13 @@ class Miner(BaseMinerNeuron):
             bt.logging.warning(f"Error in forward_text: {e}")
             self.num_processing_requests -= 1
         return synapse
+
+    async def forward_info(self, synapse: Information) -> Information:
+        synapse.response_dict = self.miner_info
+        return synapse
+
+    async def blacklist_info(self, synapse: Information) -> Tuple[bool, str]:
+        return False, "All passed!"
 
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")

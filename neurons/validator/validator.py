@@ -269,35 +269,6 @@ def initialize_nicheimage_catalogue(config):
             "reward_url": config.reward_url.Llama3_70b,
             "inference_params": {},
         },
-        "DreamShaper": {
-            "model_incentive_weight": 0.0,
-            "supporting_pipelines": MODEL_CONFIGS["DreamShaper"]["params"][
-                "supporting_pipelines"
-            ],
-            "reward_url": config.reward_url.DreamShaper,
-            "inference_params": {
-                "num_inference_steps": 30,
-                "width": 512,
-                "height": 768,
-                "guidance_scale": 7,
-                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
-            },
-            "timeout": 12,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "RealisticVision": {
-            "supporting_pipelines": MODEL_CONFIGS["RealisticVision"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.0,
-            "reward_url": config.reward_url.RealisticVision,
-            "inference_params": {
-                "num_inference_steps": 30,
-                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
-            },
-            "timeout": 12,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
     }
     return nicheimage_catalogue
 
@@ -318,26 +289,41 @@ class Validator(BaseValidatorNeuron):
             list(self.nicheimage_catalogue.keys()),
             time_per_loop=self.config.loop_base_time,
         )
-        try:
-            self.validator_proxy = ValidatorProxy(self)
-            bt.logging.info("Validator proxy started succesfully")
-        except Exception:
-            if self.config.proxy.port:
+        if self.config.proxy.port:
+            try:
+                self.validator_proxy = ValidatorProxy(self)
+                bt.logging.info("Validator proxy started succesfully")
+            except Exception:
                 bt.logging.warning(
                     "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
                     + traceback.format_exc()
                 )
-            else:
-                bt.logging.warning("Share validator info to owner failed")
 
     def forward(self):
         """
-        Validator forward pass. Consists of:
-        - Querying all miners to get their model_name
-        - Forwarding requests to miners
-        - Calculating rewards based on responses
-        - Updating scores based on rewards
-        - Saving the state
+        Validator synthetic forward pass. Consists of:
+        - Querying all miners to get their model_name and total_volume
+        - Create serving queue, here is pseudo code:
+            ```
+                synthentic_queue = Queue()
+                for uid, total_volume_this_validator in all_uids_info:
+                    for _ in range(total_volume_this_validator*0.8):
+                        synthentic_queue.put(uid)
+                shuffle(synthentic_queue)
+
+                organic_queue = Queue()
+                for uid, total_volume_this_validator in all_uids_info:
+                    for _ in range(total_volume_this_validator*0.2):
+                        organic_queue.put(uid)
+                shuffle(organic_queue)
+            ```
+        - Forwarding requests to miners in multiple thread to ensure total time is around 600 seconds. In each thread, we do:
+            - Calculating rewards if needed
+            - Updating scores based on rewards
+            - Saving the state
+        - Normalize weights based on incentive_distribution
+        - SET WEIGHTS!
+        - Sleep for 600 seconds if needed
         """
 
         bt.logging.info("Updating available models & uids")
@@ -499,6 +485,9 @@ class Validator(BaseValidatorNeuron):
     def store_miner_output(
         self, storage_url, responses: list[bt.Synapse], uids, validator_uid
     ):
+        if not self.config.share_response:
+            return
+        
         for uid, response in enumerate(responses):
             if not response.is_success:
                 continue
@@ -516,41 +505,10 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
-            from datetime import datetime
-            target_time_1 = datetime(2024, 5, 1, 14, 0)
-            target_time_2 = datetime(2024, 5, 2, 14, 0)
-            if model_name in ["DreamShaperXL", "JuggernautXL", "RealisticVision", "DreamShaper"]:
-                if datetime.utcnow() < target_time_1:
-                    incentive_distribution = {
-                        "DreamShaperXL": 0.00,
-                        "JuggernautXL": 0.00,
-                        "RealisticVision": 0.18,
-                        "DreamShaper": 0.06,
-                    }
-                elif datetime.utcnow() < target_time_2 and datetime.utcnow() > target_time_1:
-                    incentive_distribution = {
-                        "DreamShaperXL": 0.005,
-                        "JuggernautXL": 0.005,
-                        "RealisticVision": 0.175,
-                        "DreamShaper": 0.055,
-                    }
-                else:
-                    incentive_distribution = {
-                        "DreamShaperXL": 0.06,
-                        "JuggernautXL": 0.18,
-                        "RealisticVision": 0.0,
-                        "DreamShaper": 0.0,
-                    }
-                bt.logging.info(f"Using special incentive distribution: {incentive_distribution}")
-                model_specific_weights = (
-                    model_specific_weights
-                    * incentive_distribution[model_name]
-                )
-            else:
-                model_specific_weights = (
-                    model_specific_weights
-                    * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
-                )
+            model_specific_weights = (
+                model_specific_weights
+                * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
+            )
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )

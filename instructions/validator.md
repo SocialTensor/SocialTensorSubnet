@@ -22,6 +22,7 @@ pm2 start python --name "validator_nicheimage" \
 --wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> \
 --axon.port <your_public_port> \
 --proxy.port <other_public_port> # Optional, pass if you want allow queries through your validator and get paid
+--share_response # Optional, sharing miner's response and get paid, require a good bandwidth
 --subtensor.network <network> \
 ```
 3. (Optional) **Enable Auto Update Validator**

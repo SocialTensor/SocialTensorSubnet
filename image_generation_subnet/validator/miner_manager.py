@@ -1,11 +1,10 @@
 import bittensor as bt
-from image_generation_subnet.protocol import ImageGenerating
+from image_generation_subnet.protocol import ImageGenerating, Information
 import torch
 from image_generation_subnet.utils.volume_setting import get_volume_per_validator
 import requests
 from threading import Thread
 import image_generation_subnet as ig_subnet
-
 
 class MinerManager:
     def __init__(self, validator):
@@ -14,7 +13,7 @@ class MinerManager:
         self.all_uids_info = {
             uid: {"scores": [], "model_name": ""} for uid in self.all_uids
         }
-
+    
     def get_miner_info(self):
         """
         1. Query model_name of available uids
@@ -22,9 +21,8 @@ class MinerManager:
         self.all_uids = [int(uid) for uid in self.validator.metagraph.uids]
         uid_to_axon = dict(zip(self.all_uids, self.validator.metagraph.axons))
         query_axons = [uid_to_axon[int(uid)] for uid in self.all_uids]
-        synapse = ImageGenerating()
-        synapse.request_dict = {"get_miner_info": True}
-        bt.logging.info("Requesting miner info")
+        synapse = Information()
+        bt.logging.info("Requesting miner info using synapse Information")
         responses = self.validator.dendrite.query(
             query_axons,
             synapse,
@@ -35,6 +33,24 @@ class MinerManager:
             uid: response.response_dict
             for uid, response in zip(self.all_uids, responses)
         }
+        remaining_uids = [uid for uid, info in responses.items() if not info]
+
+        if remaining_uids:
+            bt.logging.warning(f"Querying legacy for {len(remaining_uids)} remaining uids.")
+            remaining_axons = [uid_to_axon[uid] for uid in remaining_uids]
+            synapse = ImageGenerating()
+            synapse.request_dict = {"get_miner_info": True}
+            responses_legacy = self.validator.dendrite.query(
+                remaining_axons,
+                synapse,
+                deserialize=False,
+                timeout=10,
+            )
+            responses_legacy = {
+                uid: response.response_dict
+                for uid, response in zip(remaining_uids, responses_legacy)
+            }
+            responses.update(responses_legacy)
         return responses
 
     def update_miners_identity(self):
