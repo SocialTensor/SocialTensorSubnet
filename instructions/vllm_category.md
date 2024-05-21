@@ -11,7 +11,7 @@ To start mining with this model, follow these steps:
 ```bash
 python -m venv vllm
 source vllm/bin/activate
-pip install vllm
+pip install vllm==0.4.1
 ```
 2. Start the API server with your Hugging Face token (ensure access to the model repo at https://huggingface.co/repo_id):
 ```bash
