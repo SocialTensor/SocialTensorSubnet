@@ -1,8 +1,6 @@
-<div align="center">
+
 
 # 🎨 NicheImage - Decentralized Image Generation Network 🌐
-
-</div>
 
 ## Introduction
 
