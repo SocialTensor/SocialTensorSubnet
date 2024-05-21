@@ -34,7 +34,14 @@ class CosineSimilarityReward(nn.Module):
         image_vec = self.model(self.transforms(miner_image).unsqueeze(0).cuda())
         cosine_similarity = F.cosine_similarity(validator_vec, image_vec)
         if binary:
-            return float(cosine_similarity.item() > self.threshold)
+            if cosine_similarity.item() > self.threshold:
+                reward = 1.0
+            elif cosine_similarity.item() > 0.4:
+                reward = cosine_similarity.item()
+            else:
+                reward = 0.0
+            return reward
+        
         return float(cosine_similarity.item())
 
     def get_reward(
