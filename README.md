@@ -9,7 +9,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 
 - 📚 [Documentation](https://docs.nichetensor.com) (API, Roadmap, Technical Descriptions)
 - 🤖 [Taobot](https://interact.tao.bot/niche-image)
-- 📊 [Subnet statistics](https://nicheimage.streamlit.app/)
+- 📊 [Subnet statistics & Playground](https://nicheimage.streamlit.app/)
 
 ### Incentive Distribution
 
