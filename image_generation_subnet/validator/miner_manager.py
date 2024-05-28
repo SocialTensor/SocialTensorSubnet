@@ -51,6 +51,7 @@ class MinerManager:
                 for uid, response in zip(remaining_uids, responses_legacy)
             }
             responses.update(responses_legacy)
+        responses = {k: v for k, v in responses.items() if v}
         return responses
 
     def update_miners_identity(self):
