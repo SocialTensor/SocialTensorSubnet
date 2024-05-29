@@ -82,10 +82,10 @@ class MinerManager:
                 self.validator.metagraph,
                 miner_state["total_volume"],
                 1.03,
-                miner_state["min_stake"],
+                10000,
                 False,
             )
-            miner_state["rate_limit"] = volume_per_validator[self.validator.uid]
+            miner_state["rate_limit"] = volume_per_validator.get(self.validator.uid, 2)
             bt.logging.info(f"Rate limit for {uid}: {miner_state['rate_limit']}")
             if miner_state["model_name"] == model_name:
                 continue
