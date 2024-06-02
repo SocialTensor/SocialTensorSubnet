@@ -117,6 +117,7 @@ def get_reward_dalle(
     def check_prompt_image_similarity(image, prompt, similarity_threshold):
         sim = calculate_image_similarity(image, prompt) > similarity_threshold
         print(f"CLIP Similarity: {sim}")
+        return sim > similarity_threshold
     for synapse in synapses:
         response = synapse.response_dict
         url = response["url"]
@@ -126,8 +127,8 @@ def get_reward_dalle(
         size_str = f"{image.width}x{image.height}"
 
         if check_size(size_str) and check_regex(url) and check_prompt_image_similarity(image, prompt, similarity_threshold):
+            rewards.append(1)
+        else:
             rewards.append(0)
-            continue
-        rewards.append(1)
 
     return uids, rewards
