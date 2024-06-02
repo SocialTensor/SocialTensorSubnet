@@ -99,7 +99,7 @@ def calculate_image_similarity(image, description, max_length: int = 77):
     return torch.cosine_similarity(image_embedding, text_embedding, dim=1).item()
 
 
-def dalle_score(
+def get_reward_dalle(
     base_synapse: ImageGenerating,
     synapses: list[ImageGenerating],
     uids: list,

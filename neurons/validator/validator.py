@@ -269,6 +269,16 @@ def initialize_nicheimage_catalogue(config):
             "reward_url": config.reward_url.Llama3_70b,
             "inference_params": {},
         },
+        "DallE": {
+            "supporting_pipelines": MODEL_CONFIGS["DallE"]["params"][
+                "supporting_pipelines"
+            ],
+            "reward_url": ig_subnet.validator.get_reward_dalle,
+            "timeout": 12,
+            "inference_params": {},
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "model_incentive_weight": 0.00,
+        }
     }
     return nicheimage_catalogue
 
