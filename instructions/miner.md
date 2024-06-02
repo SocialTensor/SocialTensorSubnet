@@ -70,3 +70,28 @@ pm2 start python --name "miner" \
 --miner.total_volume <your-generation-volume> # default is 40. Change based on your model timeout value and GPU capacity
 --miner.max_concurrent_requests <your-max-concurrent-requests> # default is 4. Change based on your model timeout value and GPU capacity
 ```
+
+
+## Benchmark Your Setup
+
+You can benchmark your setup by running the following command:
+```bash
+python tests/benchmark_sdxl.py \
+--max_concurrent_requests <your-max-concurrent-requests> \ # should equal to your miner.max_concurrent_requests
+--n_times <number-of-iterations> \ # n_times * max_concurrent_requests should be less than or equal to your miner.total_volume
+--model_name <selected-model-name>
+```
+This script will run the miner with the specified number of concurrent requests and measure the average latency and throughput.
+
+**Output**
+- Console Print:
+    - report (dict): A dictionary with keys are status_code. Values are list of latencies for each request. Example: `{200: [0.1, 0.2, 0.3], 408: [12, 12, 12]}`
+- Plot latency histogram:
+    - x-axis: latency in seconds
+    - y-axis: number of requests
+
+Example Plot
+
+![w ControlNet Latency Histogram](tests/w_controlnet_benchmark.png)
+
+![w/o ControlNet Latency Histogram](tests/wo_controlnet_benchmark.png)
