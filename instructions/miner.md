@@ -91,7 +91,7 @@ This script will run the miner with the specified number of concurrent requests 
     - y-axis: number of requests
 
 Example Plot
-
-![w ControlNet Latency Histogram](tests/w_controlnet_benchmark.png)
-
-![w/o ControlNet Latency Histogram](tests/wo_controlnet_benchmark.png)
+- [with ControlNet] RealitiesEdgeXL model with 3 concurrent requests and 100 iterations
+![w ControlNet Latency Histogram](../tests/w_controlnet_benchmark.png)
+- [without ControlNet] RealitiesEdgeXL model with 3 concurrent requests and 100 iterations
+![w/o ControlNet Latency Histogram](../tests/wo_controlnet_benchmark.png)
