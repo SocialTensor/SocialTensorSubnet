@@ -40,6 +40,7 @@ git submodule update --init --recursive
 ```bash
 source main_env/bin/activate
 GOJOURNEY_API_KEY=<your-gojourney-api-key> \ # set if you use GoJourney model
+RAY_SERVE_QUEUE_LENGTH_RESPONSE_DEADLINE_S=1.0 \
 PROCESS_MODE=<your-task-type> \ # set if you use GoJourney model
 pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app \
 --model_name <selected-model-name> \
