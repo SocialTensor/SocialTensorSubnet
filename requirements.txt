@@ -17,7 +17,7 @@ gitpython==3.1.40
 httpx==0.26.0
 ray[serve]==2.23.0
 controlnet_aux==0.0.9
-timm==0.6.7
+timm==1.0.3
 pandas
 typesense
 clean-text[gpl]
