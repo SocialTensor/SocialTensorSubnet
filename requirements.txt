@@ -24,3 +24,4 @@ clean-text[gpl]
 jinja2
 insightface
 onnxruntime-gpu
+openai
