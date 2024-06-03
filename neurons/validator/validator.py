@@ -152,6 +152,10 @@ def initialize_challenge_urls(config):
             "main": [config.challenge.llm_prompt],
             "backup": [get_backup_llm_prompt],
         },
+        "controlnet": {
+            "main": [config.challenge.prompt, config.challenge.image],
+            "backup": [get_backup_prompt, get_backup_image],
+        },
     }
     return challenge_urls
 
