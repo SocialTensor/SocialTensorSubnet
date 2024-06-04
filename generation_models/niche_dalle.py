@@ -61,6 +61,7 @@ class NicheDallE(BaseModel):
                 "url": response_obj.data[0].url,
                 "revised_prompt": response_obj.data[0].revised_prompt
             }
+            print(data, flush=True)
             return data
 
         return inference_function
