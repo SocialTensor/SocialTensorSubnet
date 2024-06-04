@@ -82,7 +82,7 @@ def get_reward_GoJourney(
             rewards.append(0)
     return uids, rewards
 
-def calculate_image_similarity(image, description, max_length: int = 77):
+def calculate_image_similarity(image, description, max_length: int = 77, scale_factor: float = 0.4):
     """Calculate the cosine similarity between a description and an image."""
     # Truncate the description
     inputs = processor(
@@ -96,14 +96,14 @@ def calculate_image_similarity(image, description, max_length: int = 77):
     image_embedding = model.get_image_features(**inputs)
 
     # Calculate cosine similarity
-    return torch.cosine_similarity(image_embedding, text_embedding, dim=1).item()
+    return torch.cosine_similarity(image_embedding, text_embedding, dim=1).item() / scale_factor
 
 
 def get_reward_dalle(
     base_synapse: ImageGenerating,
     synapses: list[ImageGenerating],
     uids: list,
-    similarity_threshold=0.23,
+    similarity_threshold=0.4,
     *args,
     **kwargs, 
 ) -> float:
@@ -114,7 +114,7 @@ def get_reward_dalle(
         return size in ["1792x1024", "1024x1792"]
     def check_regex(url):
         return re.match(URL_REGEX, url)
-    def check_prompt_image_similarity(image, prompt, similarity_threshold = 0.23):
+    def check_prompt_image_similarity(image, prompt, similarity_threshold = 0.4):
         try:
             sim = calculate_image_similarity(image, prompt)
             print(f"CLIP Similarity: {sim}")
