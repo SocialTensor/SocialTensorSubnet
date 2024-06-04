@@ -103,7 +103,7 @@ def get_reward_dalle(
     base_synapse: ImageGenerating,
     synapses: list[ImageGenerating],
     uids: list,
-    similarity_threshold=0.6,
+    similarity_threshold=0.5,
     *args,
     **kwargs, 
 ) -> float:
@@ -127,7 +127,7 @@ def get_reward_dalle(
             print(f"CLIP Similarity: {sim}")
             if sim > similarity_threshold:
                 max_reward = 1
-            elif 0.4 < sim < similarity_threshold:
+            elif 0.35 < sim < similarity_threshold:
                 max_reward = 0.7
             else:
                 max_reward = 0.0
