@@ -7,14 +7,17 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
+| RealitiesEdgeXL | 29%                    | 12 |
+| AnimeV3         | 27%                    | 12 |
+| JuggernautXL | 17%                    | 12 |
+| DreamShaperXL     | 6%                     | 16 |
 | GoJourney       | 4%                     | 12 |
-| AnimeV3         | 33%                    | 12 |
-| JuggernautXL | 18%                    | 12 |
-| RealitiesEdgeXL | 30%                    | 12 |
-| DreamShaperXL     | 6%                     | 12 |
+| Llama3_70b         | 4%                     | 128 |
+| DallE    | 4%                     | 32 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | FaceToMany      | 3%                     | 64 |
+
 
 ## Step by Step Guide
 1. Git clone and install requirements
@@ -37,9 +40,12 @@ git submodule update --init --recursive
 4. Start the endpoint
 
 **For Image Generation Category**
+- Important notes
+    - For the DallE model, you need to set `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
 ```bash
 source main_env/bin/activate
 GOJOURNEY_API_KEY=<your-gojourney-api-key> \ # set if you use GoJourney model
+OPENAI_API_KEY=<your-openai-api-key> \ # set if you use DallE model
 RAY_SERVE_QUEUE_LENGTH_RESPONSE_DEADLINE_S=1.0 \
 PROCESS_MODE=<your-task-type> \ # set if you use GoJourney model
 pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app \
