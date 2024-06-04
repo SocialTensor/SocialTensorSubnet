@@ -519,10 +519,26 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
-            model_specific_weights = (
-                model_specific_weights
-                * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
-            )
+            
+            # Smoothing update incentive
+            from datetime import datetime
+            temp_incentive_weight = {}
+            if datetime.utcnow() < datetime.datetime(2024, 6, 6, 0, 0, 0):
+                temp_incentive_weight = {
+                    "DallE": 0.01,
+                    "AnimeV3": 0.30,
+                }
+
+            if model_name in temp_incentive_weight:
+                bt.logging.info(f"Using temp_incentive_weight: {temp_incentive_weight} for {model_name}")
+                model_specific_weights = (
+                    model_specific_weights * temp_incentive_weight[model_name]
+                )
+            else:
+                model_specific_weights = (
+                    model_specific_weights
+                    * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
+                )
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )
