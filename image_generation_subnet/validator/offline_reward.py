@@ -114,21 +114,31 @@ def get_reward_dalle(
         return size in ["1792x1024", "1024x1792"]
     def check_regex(url):
         return re.match(URL_REGEX, url)
-    def check_prompt_image_similarity(image, prompt, similarity_threshold):
-        sim = calculate_image_similarity(image, prompt) > similarity_threshold
-        print(f"CLIP Similarity: {sim}")
+    def check_prompt_image_similarity(image, prompt, similarity_threshold = 0.23):
+        try:
+            sim = calculate_image_similarity(image, prompt)
+            print(f"CLIP Similarity: {sim}")
+        except Exception as e:
+            bt.logging.warning(f"Error in check_prompt_image_similarity: {e}")
+            sim = 0
         return sim > similarity_threshold
     for synapse in synapses:
-        response = synapse.response_dict
-        url = response["url"]
-        revised_prompt = response["revised_prompt"]
-        prompt = base_synapse.prompt
-        image: Image.Image = load_image(url)
-        size_str = f"{image.width}x{image.height}"
+        try:
+            print(synapse.response_dict)
+            print(synapse.prompt)
+            response = synapse.response_dict
+            url = response.get("url", "")
+            revised_prompt = response.get("revised_prompt", "")
+            prompt = base_synapse.prompt
+            image: Image.Image = load_image(url)
+            size_str = f"{image.width}x{image.height}"
 
-        if check_size(size_str) and check_regex(url) and check_prompt_image_similarity(image, prompt, similarity_threshold):
-            rewards.append(1)
-        else:
+            if check_size(size_str) and check_regex(url) and check_prompt_image_similarity(image, prompt, similarity_threshold):
+                rewards.append(1)
+            else:
+                rewards.append(0)
+        except Exception as e:
+            bt.logging.warning(f"Error in get_reward_dalle: {e}")
             rewards.append(0)
 
     return uids, rewards

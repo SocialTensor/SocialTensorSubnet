@@ -221,7 +221,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.31,
+            "model_incentive_weight": 0.27,
             "reward_url": config.reward_url.AnimeV3,
             "inference_params": {
                 "num_inference_steps": 25,
@@ -278,10 +278,10 @@ def initialize_nicheimage_catalogue(config):
                 "supporting_pipelines"
             ],
             "reward_url": ig_subnet.validator.get_reward_dalle,
-            "timeout": 12,
+            "timeout": 36,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.04,
         }
     }
     return nicheimage_catalogue
