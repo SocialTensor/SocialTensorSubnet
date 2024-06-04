@@ -7,14 +7,17 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
+| RealitiesEdgeXL | 29%                    | 12 |
+| AnimeV3         | 27%                    | 12 |
+| JuggernautXL | 17%                    | 12 |
+| DreamShaperXL     | 6%                     | 16 |
 | GoJourney       | 4%                     | 12 |
-| AnimeV3         | 33%                    | 12 |
-| JuggernautXL | 18%                    | 12 |
-| RealitiesEdgeXL | 30%                    | 12 |
-| DreamShaperXL     | 6%                     | 12 |
+| Llama3_70b         | 4%                     | 128 |
+| DallE    | 4%                     | 32 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | FaceToMany      | 3%                     | 64 |
+
 
 ## Step by Step Guide
 1. Git clone and install requirements
@@ -37,9 +40,13 @@ git submodule update --init --recursive
 4. Start the endpoint
 
 **For Image Generation Category**
+- Important notes
+    - For the DallE model, you need to set `--num_gpus 0` and `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
 ```bash
 source main_env/bin/activate
 GOJOURNEY_API_KEY=<your-gojourney-api-key> \ # set if you use GoJourney model
+OPENAI_API_KEY=<your-openai-api-key> \ # set if you use DallE model
+RAY_SERVE_QUEUE_LENGTH_RESPONSE_DEADLINE_S=1.0 \
 PROCESS_MODE=<your-task-type> \ # set if you use GoJourney model
 pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app \
 --model_name <selected-model-name> \
@@ -69,3 +76,28 @@ pm2 start python --name "miner" \
 --miner.total_volume <your-generation-volume> # default is 40. Change based on your model timeout value and GPU capacity
 --miner.max_concurrent_requests <your-max-concurrent-requests> # default is 4. Change based on your model timeout value and GPU capacity
 ```
+
+
+## Benchmark Your Setup
+
+You can benchmark your setup by running the following command:
+```bash
+python tests/benchmark_sdxl.py \
+--max_concurrent_requests <your-max-concurrent-requests> \ # should equal to your miner.max_concurrent_requests
+--n_times <number-of-iterations> \ # n_times * max_concurrent_requests should be less than or equal to your miner.total_volume
+--model_name <selected-model-name>
+```
+This script will run the miner with the specified number of concurrent requests and measure the average latency and throughput.
+
+**Output**
+- Console Print:
+    - report (dict): A dictionary with keys are status_code. Values are list of latencies for each request. Example: `{200: [0.1, 0.2, 0.3], 408: [12, 12, 12]}`
+- Plot latency histogram:
+    - x-axis: latency in seconds
+    - y-axis: number of requests
+
+Example Plot
+- [with ControlNet] RealitiesEdgeXL model with 3 concurrent requests and 100 iterations
+![w ControlNet Latency Histogram](../tests/w_controlnet_benchmark.png)
+- [without ControlNet] RealitiesEdgeXL model with 3 concurrent requests and 100 iterations
+![w/o ControlNet Latency Histogram](../tests/wo_controlnet_benchmark.png)

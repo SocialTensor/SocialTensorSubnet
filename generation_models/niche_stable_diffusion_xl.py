@@ -20,7 +20,6 @@ class NicheStableDiffusionXL(BaseModel):
             checkpoint_file,
             use_safetensors=True,
             torch_dtype=torch.float16,
-            load_safety_checker=False,
         )
         scheduler_name = kwargs.get("scheduler", "euler_a")
         txt2img_pipe.scheduler = set_scheduler(
@@ -31,10 +30,13 @@ class NicheStableDiffusionXL(BaseModel):
 
         img2img_pipe = self.load_img2img(txt2img_pipe.components, supporting_pipelines)
         instant_id_pipe = self.load_instantid_pipeline(txt2img_pipe.components, supporting_pipelines)
+        controlnet_pipe = self.load_controlnet_pipeline(txt2img_pipe.components, supporting_pipelines)
+
         pipelines = {
             "txt2img": txt2img_pipe,
             "img2img": img2img_pipe,
             "instantid": instant_id_pipe,
+            "controlnet": controlnet_pipe,
         }
 
         def inference_function(*args, **kwargs) -> Image.Image:
@@ -93,9 +95,9 @@ class NicheStableDiffusionXL(BaseModel):
         face_adapter = "checkpoints/InstantID/ip-adapter.bin"
         controlnet = diffusers.ControlNetModel.from_pretrained(controlnet_path, torch_dtype=torch.float16, local_files_only=True)
         pipe = StableDiffusionXLInstantIDPipeline(**components, controlnet=controlnet)
-        pipe.set_ip_adapter_scale(0)
         pipe.to("cuda")
         pipe.load_ip_adapter_instantid(face_adapter)
+        pipe.set_ip_adapter_scale(0)
 
         def inference_function(*args, **kwargs):
             conditional_image: Image.Image = self.process_conditional_image(resolution=512, **kwargs)
@@ -108,6 +110,7 @@ class NicheStableDiffusionXL(BaseModel):
                 face_info = app.get(cv2.cvtColor(np.array(conditional_image), cv2.COLOR_RGB2BGR))
                 ip_adapter_scale = 0.0
                 controlnet_conditioning_scale = 0.0
+            pipe.set_ip_adapter_scale(ip_adapter_scale)
             face_info = sorted(face_info, key=lambda x:(x['bbox'][2]-x['bbox'][0])*(x['bbox'][3]-x['bbox'][1]))[-1]  # only use the maximum face
             face_emb = face_info['embedding']
             face_kps = draw_kps(conditional_image, face_info['kps'])
@@ -134,6 +137,59 @@ class NicheStableDiffusionXL(BaseModel):
     def process_conditional_image(self, key="conditional_image", **kwargs) -> Image.Image:
         conditional_image = kwargs[key]
         conditional_image = base64_to_pil_image(conditional_image)
-        resolution = kwargs.get("resolution", 768)
+        resolution = kwargs.get("resolution", 1024)
         conditional_image = resize_for_condition_image(conditional_image, resolution)
         return conditional_image
+
+    def padding_to_square(self, image: Image.Image, color = (0,0,0,0)) -> Image.Image:
+        width, height = image.size
+        if width == height:
+            return image
+        if width > height:
+            new_image = Image.new("RGB", (width, width), color)
+            new_image.paste(image, (0, (width - height) // 2))
+        else:
+            new_image = Image.new("RGB", (height, height), color)
+            new_image.paste(image, ((height - width) // 2, 0))
+        return new_image
+
+    def load_controlnet_pipeline(self, components, supporting_pipelines) -> callable:
+        if "controlnet" not in supporting_pipelines:
+            return None
+        from controlnet_aux import CannyDetector, AnylineDetector
+        anyline = AnylineDetector.from_pretrained(
+            "TheMistoAI/MistoLine", filename="MTEED.pth", subfolder="Anyline"
+        ).to("cuda")
+
+        controlnet = diffusers.ControlNetModel.from_pretrained(
+            "TheMistoAI/MistoLine",
+            torch_dtype=torch.float16,
+            revision="refs/pr/3",
+            variant="fp16",
+        )
+
+        canny = CannyDetector()
+
+        controlnet_pipe = diffusers.StableDiffusionXLControlNetPipeline(
+            controlnet=controlnet,
+            **components,
+        )
+
+        controlnet_pipe.to("cuda")
+
+        def inference_function(*args, **kwargs):
+            conditional_image = self.process_conditional_image(**kwargs)
+            if not kwargs.get("processed", False):
+                conditional_image = anyline(conditional_image, detect_resolution=1280, guassian_sigma=kwargs.get("guassian_sigma", 2.0), intensity_threshold=kwargs.get("intensity_threshold", 3.0))
+            conditional_image = self.padding_to_square(conditional_image)
+            conditional_image = conditional_image.resize((1024, 1024))
+            kwargs.update(
+                {
+                    "image": conditional_image,
+                    "width": 1024,
+                    "height": 1024
+                }
+            )
+            return controlnet_pipe(*args, **kwargs)
+
+        return inference_function

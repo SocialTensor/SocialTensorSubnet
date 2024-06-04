@@ -16,7 +16,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | Category        | Incentive Distribution | Description                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | 🧭 GoJourney       | 4%                     | API based - MidJourney Image Generation                                                                                        |
-| 🌀 AnimeV3         | 31%                    | SDXL Architecture                                                                                  |
+| 🌀 AnimeV3         | 27%                    | SDXL Architecture                                                                                  |
 | ⚔️ JuggernautXL | 17%                    | SDXL Architecture                                                            |
 | 🏞️ RealitiesEdgeXL | 29%                    | SDXL Turbo Architecture                                                      |
 | 🌙 DreamShaperXL     | 6%                     | SDXL Architecture                           |
@@ -24,6 +24,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | 🦙 Llama3_70b      | 4%                     | Transformer LLM|
 | 👥 FaceToMany      | 3%                     | ComfyUI workflow, [FaceToMany](https://replicate.com/fofr/face-to-many) |
 | 🏷️ StickerMaker    | 3%                     | ComfyUI workflow, [StickerMaker](https://replicate.com/fofr/sticker-maker) |
+| DallE    | 4%                     | [OpenAI's Dall-E 3](https://openai.com/index/dall-e-3/) |
 
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.

@@ -18,6 +18,7 @@ from image_generation_subnet.validator.offline_challenge import (
     get_backup_prompt,
     get_backup_llm_prompt,
 )
+from datetime import datetime
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -152,6 +153,10 @@ def initialize_challenge_urls(config):
             "main": [config.challenge.llm_prompt],
             "backup": [get_backup_llm_prompt],
         },
+        "controlnet": {
+            "main": [config.challenge.prompt, config.challenge.image],
+            "backup": [get_backup_prompt, get_backup_image],
+        },
     }
     return challenge_urls
 
@@ -217,7 +222,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.31,
+            "model_incentive_weight": 0.27,
             "reward_url": config.reward_url.AnimeV3,
             "inference_params": {
                 "num_inference_steps": 25,
@@ -269,6 +274,16 @@ def initialize_nicheimage_catalogue(config):
             "reward_url": config.reward_url.Llama3_70b,
             "inference_params": {},
         },
+        "DallE": {
+            "supporting_pipelines": MODEL_CONFIGS["DallE"]["params"][
+                "supporting_pipelines"
+            ],
+            "reward_url": ig_subnet.validator.get_reward_dalle,
+            "timeout": 36,
+            "inference_params": {},
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "model_incentive_weight": 0.04,
+        }
     }
     return nicheimage_catalogue
 
@@ -377,9 +392,12 @@ class Validator(BaseValidatorNeuron):
         should_rewards: list[int],
     ):
         dendrite = bt.dendrite(self.wallet)
-        pipeline_type = random.choice(
-            self.nicheimage_catalogue[model_name]["supporting_pipelines"]
-        )
+        if model_name == "RealitiesEdgeXL" and datetime.utcnow() < datetime(2024, 6, 12, 0, 0, 0):
+            pipeline_type = "txt2img"
+        else:
+            pipeline_type = random.choice(
+                self.nicheimage_catalogue[model_name]["supporting_pipelines"]
+            )
         reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
         uids_should_rewards = list(zip(uids, should_rewards))
         synapses, batched_uids_should_rewards = self.prepare_challenge(
@@ -505,10 +523,25 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
-            model_specific_weights = (
-                model_specific_weights
-                * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
-            )
+            
+            # Smoothing update incentive
+            temp_incentive_weight = {}
+            if datetime.utcnow() < datetime(2024, 6, 6, 0, 0, 0):
+                temp_incentive_weight = {
+                    "DallE": 0.01,
+                    "AnimeV3": 0.30,
+                }
+
+            if model_name in temp_incentive_weight:
+                bt.logging.info(f"Using temp_incentive_weight: {temp_incentive_weight} for {model_name}")
+                model_specific_weights = (
+                    model_specific_weights * temp_incentive_weight[model_name]
+                )
+            else:
+                model_specific_weights = (
+                    model_specific_weights
+                    * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
+                )
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )

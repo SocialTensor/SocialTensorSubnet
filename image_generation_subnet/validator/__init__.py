@@ -3,10 +3,9 @@ from .forward import (
     get_challenge,
     add_time_penalty,
 )
-from .offline_reward import get_reward_GoJourney
+from .offline_reward import get_reward_GoJourney, get_reward_dalle
 from .miner_manager import MinerManager
 from .offline_challenge import get_promptGoJouney
-
 
 __all__ = [
     "get_reward",
@@ -15,4 +14,5 @@ __all__ = [
     "get_reward_GoJourney",
     "MinerManager",
     "get_promptGoJouney",
+    "get_reward_dalle",
 ]

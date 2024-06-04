@@ -14,6 +14,7 @@ RealitiesEdgeXL:
     scheduler: "dpm++2m_karras"
     supporting_pipelines:
       - "txt2img"
+      - "controlnet"
 GoJourney:
   target: generation_models.NicheGoJourney
   params:
@@ -69,20 +70,8 @@ JuggernautXL:
     supporting_pipelines:
       - "txt2img"
 
-RealisticVision:
-  target: generation_models.NicheStableDiffusion
+DallE:
+  target: generation_models.NicheDallE
   params:
-    checkpoint_file: "checkpoints/RealisticVision.safetensors"
-    download_url: "https://civitai.com/api/download/models/130072?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-    scheduler: "dpm++2m"
-    supporting_pipelines:
-      - "txt2img"
-
-DreamShaper:
-  target: generation_models.NicheStableDiffusion
-  params:
-    checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
-    download_url: "https://civitai.com/api/download/models/128713?type=Model&format=SafeTensor&size=pruned&fp=fp16"
-    scheduler: "dpm++2m_karras"
     supporting_pipelines:
       - "txt2img"
