@@ -523,7 +523,7 @@ class Validator(BaseValidatorNeuron):
             # Smoothing update incentive
             from datetime import datetime
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime.datetime(2024, 6, 6, 0, 0, 0):
+            if datetime.utcnow() < datetime(2024, 6, 6, 0, 0, 0):
                 temp_incentive_weight = {
                     "DallE": 0.01,
                     "AnimeV3": 0.30,
