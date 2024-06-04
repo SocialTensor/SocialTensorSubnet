@@ -18,6 +18,7 @@ from image_generation_subnet.validator.offline_challenge import (
     get_backup_prompt,
     get_backup_llm_prompt,
 )
+from datetime import datetime
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -391,9 +392,12 @@ class Validator(BaseValidatorNeuron):
         should_rewards: list[int],
     ):
         dendrite = bt.dendrite(self.wallet)
-        pipeline_type = random.choice(
-            self.nicheimage_catalogue[model_name]["supporting_pipelines"]
-        )
+        if model_name == "RealitiesEdgeXL" and datetime.utcnow() < datetime(2024, 6, 12, 0, 0, 0):
+            pipeline_type = "txt2img"
+        else:
+            pipeline_type = random.choice(
+                self.nicheimage_catalogue[model_name]["supporting_pipelines"]
+            )
         reward_url = self.nicheimage_catalogue[model_name]["reward_url"]
         uids_should_rewards = list(zip(uids, should_rewards))
         synapses, batched_uids_should_rewards = self.prepare_challenge(
@@ -521,7 +525,6 @@ class Validator(BaseValidatorNeuron):
             )
             
             # Smoothing update incentive
-            from datetime import datetime
             temp_incentive_weight = {}
             if datetime.utcnow() < datetime(2024, 6, 6, 0, 0, 0):
                 temp_incentive_weight = {
