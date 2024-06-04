@@ -41,7 +41,7 @@ git submodule update --init --recursive
 
 **For Image Generation Category**
 - Important notes
-    - For the DallE model, you need to set `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
+    - For the DallE model, you need to set `--num_gpus 0` and `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
 ```bash
 source main_env/bin/activate
 GOJOURNEY_API_KEY=<your-gojourney-api-key> \ # set if you use GoJourney model
