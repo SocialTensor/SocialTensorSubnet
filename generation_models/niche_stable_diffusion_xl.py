@@ -179,11 +179,10 @@ class NicheStableDiffusionXL(BaseModel):
 
         def inference_function(*args, **kwargs):
             conditional_image = self.process_conditional_image(**kwargs)
+            if not kwargs.get("processed", False):
+                conditional_image = anyline(conditional_image, detect_resolution=1280, guassian_sigma=kwargs.get("guassian_sigma", 2.0), intensity_threshold=kwargs.get("intensity_threshold", 3.0))
             conditional_image = self.padding_to_square(conditional_image)
             conditional_image = conditional_image.resize((1024, 1024))
-            if not kwargs.get("processed", False):
-                conditional_image = anyline(conditional_image)
-            conditional_image.save("tests/conditional_image.png")
             kwargs.update(
                 {
                     "image": conditional_image,
