@@ -46,6 +46,12 @@ parser = argparse.ArgumentParser(description='Benchmark SDXL')
 parser.add_argument('--n_times', type=int, default=10, help='Number of times to benchmark')
 parser.add_argument("--model_name", type=str, default="RealitiesEdgeXL", help="Model name")
 parser.add_argument("--max_concurrent_requests", type=int, default=1, help="Number of concurrent requests")
+parser.add_argument(
+            "--generate_endpoint",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="http://127.0.0.1:10006/generate",
+        )
 args = parser.parse_args()
 
 model_catalogue = get_catalogue()
@@ -61,9 +67,7 @@ synapse.seed = random.randint(0, 1000000)
 synapse.pipeline_params = model_catalogue[args.model_name]["inference_params"]
 synapse.conditional_image = pil_image_to_base64(Image.open("assets/images/image.png"))
 
-
-
-def benchmark_sdxl(n_times, model_name, n_concurrent_requests):
+def benchmark_sdxl(n_times, model_name, n_concurrent_requests, generate_endpoint):
     # report times, status codes
     import time
     def _post(synapse: ImageGenerating):
@@ -73,7 +77,7 @@ def benchmark_sdxl(n_times, model_name, n_concurrent_requests):
         print(synapse.pipeline_type)
         start = time.time()
         try:
-            response = requests.post("http://localhost:10006/generate", json=synapse.deserialize_input(), timeout=timeout)
+            response = requests.post(generate_endpoint, json=synapse.deserialize_input(), timeout=timeout)
         except requests.exceptions.ReadTimeout:
             return 408, timeout
         end = time.time()
@@ -95,5 +99,5 @@ def benchmark_sdxl(n_times, model_name, n_concurrent_requests):
     return reports
 
 if __name__ == "__main__":
-    reports = benchmark_sdxl(args.n_times, args.model_name, args.max_concurrent_requests)
+    reports = benchmark_sdxl(args.n_times, args.model_name, args.max_concurrent_requests, args.generate_endpoint)
     plot_report(reports)
