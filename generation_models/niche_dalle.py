@@ -1,17 +1,14 @@
 from .base_model import BaseModel
-import openai
-import torch
-import os
 import random
-from openai import OpenAI
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from openai import OpenAI, AsyncOpenAI
 from image_generation_subnet.utils.moderation_model import Moderation
+import asyncio
 
 
 class NicheDallE(BaseModel):
     def __init__(self, *args, **kwargs):
         self.inference_function = self.load_model(*args, **kwargs)
-        self.client = OpenAI()
+        self.client = AsyncOpenAI()
         self.moderation = Moderation()
 
     def load_model(self, *args, **kwargs):
@@ -41,13 +38,16 @@ class NicheDallE(BaseModel):
                 size = kwargs.get("size", random.choice(supporting_sizes))
                 if size not in supporting_sizes:
                     size = random.choice(supporting_sizes)
-                response_obj = self.client.images.generate(
-                    model="dall-e-3",
-                    prompt=prompt,
-                    n=1,
-                    size=size,
-                    response_format="url",
-                    style=style,
+                loop = asyncio.get_event_loop()
+                response_obj = loop.run_until_complete(
+                    self.client.images.generate(
+                        model="dall-e-3",
+                        prompt=prompt,
+                        n=1,
+                        size=size,
+                        response_format="url",
+                        style=style,
+                    )
                 )
                 data = {
                     "url": response_obj.data[0].url,
