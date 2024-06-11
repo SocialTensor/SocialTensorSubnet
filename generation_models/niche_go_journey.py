@@ -32,7 +32,7 @@ class NicheGoJourney(BaseModel):
             }
             with httpx.Client() as client:
                 imagine_response = client.post(
-                    imagine_endpoint, headers=headers, json=data
+                    imagine_endpoint, headers=headers, json=data, timeout=32
                 )
                 imagine_response = imagine_response.json()
                 print(imagine_response, flush=True)
