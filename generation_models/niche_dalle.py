@@ -4,6 +4,8 @@ from openai import OpenAI, AsyncOpenAI
 from image_generation_subnet.utils.moderation_model import Moderation
 import asyncio
 
+SAFE_TEMPLATE = "please remove not safe for work contents and revise this input prompt to a safe for work prompt.\n Input prompt: {}"
+
 
 class NicheDallE(BaseModel):
     def __init__(self, *args, **kwargs):
@@ -18,6 +20,12 @@ class NicheDallE(BaseModel):
     def __call__(self, *args, **kwargs):
         return self.inference_function(*args, **kwargs)
 
+    async def check_safety(self, prompt):
+        response = await self.client.moderations.create(input=prompt)
+        output = response.results[0]
+        is_flagged = output.flagged
+        return is_flagged
+
     def load_imagine(self, *args, **kwargs):
         supporting_sizes = ["1792x1024", "1024x1792"]
 
@@ -30,8 +38,18 @@ class NicheDallE(BaseModel):
                 data = {
                     "url": "",
                     "revised_prompt": "",
+                    "flagged": (True, response),
                 }
             else:
+                print("Prompt is safe for work - Offline Moderation")
+                is_openai_flagged = asyncio.get_event_loop().run_until_complete(
+                    self.check_safety(prompt)
+                )
+                if is_openai_flagged:
+                    prompt = SAFE_TEMPLATE.format(prompt)
+                    print(f"Adding safe prompt template: {prompt}")
+                else:
+                    print("Prompt is safe for work - OpenAI Moderation")
                 style = kwargs.get("style", "natural")
                 if style not in ["vivid", "natural"]:
                     style = "natural"
@@ -39,20 +57,32 @@ class NicheDallE(BaseModel):
                 if size not in supporting_sizes:
                     size = random.choice(supporting_sizes)
                 loop = asyncio.get_event_loop()
-                response_obj = loop.run_until_complete(
-                    self.client.images.generate(
-                        model="dall-e-3",
-                        prompt=prompt,
-                        n=1,
-                        size=size,
-                        response_format="url",
-                        style=style,
+
+                def _generate(prompt, size, style):
+                    response_obj = loop.run_until_complete(
+                        self.client.images.generate(
+                            model="dall-e-3",
+                            prompt=prompt,
+                            n=1,
+                            size=size,
+                            response_format="url",
+                            style=style,
+                        )
                     )
-                )
-                data = {
-                    "url": response_obj.data[0].url,
-                    "revised_prompt": response_obj.data[0].revised_prompt,
-                }
+                    data = {
+                        "url": response_obj.data[0].url,
+                        "revised_prompt": response_obj.data[0].revised_prompt,
+                    }
+                    return data
+
+                try:
+                    data = _generate(prompt, size, style)
+                except Exception as e:
+                    print(f"Error: {e}")
+                    prompt = SAFE_TEMPLATE.format(prompt)
+                    print(f"Retrying with safe prompt: {prompt}")
+                    data = _generate(prompt, size, style)
+
             print(data, flush=True)
             return data
 
