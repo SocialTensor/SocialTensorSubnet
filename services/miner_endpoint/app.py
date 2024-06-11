@@ -13,6 +13,7 @@ MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
 )
 
+
 class RequestCancelledMiddleware:
     def __init__(self, app):
         self.app = app
@@ -31,7 +32,7 @@ class RequestCancelledMiddleware:
                 message = await receive()
                 if message["type"] == "http.disconnect":
                     handler_task.cancel()
-                    return sentinel # Break the loop
+                    return sentinel  # Break the loop
 
                 # Puts the message in the queue
                 await queue.put(message)
@@ -45,6 +46,7 @@ class RequestCancelledMiddleware:
         except asyncio.CancelledError:
             print("Cancelling request due to disconnect")
 
+
 class Prompt(BaseModel, extra=Extra.allow):
     prompt: str
     seed: int
@@ -56,7 +58,10 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=10006)
     parser.add_argument(
-        "--bind_ip", type=str, default="0.0.0.0", help="IP address to run the service on"
+        "--bind_ip",
+        type=str,
+        default="0.0.0.0",
+        help="IP address to run the service on",
     )
     parser.add_argument(
         "--model_name",
@@ -64,6 +69,7 @@ def get_args():
         default="RealisticVision",
     )
     parser.add_argument("--num_gpus", type=float, default=1.0)
+    parser.add_argument("--num_cpus", type=float, default=1.0)
     parser.add_argument("--num_replicas", type=int, default=1)
     args = parser.parse_args()
     return args
@@ -100,7 +106,7 @@ if __name__ == "__main__":
         ModelDeployment,
         name="deployment",
         num_replicas=args.num_replicas,
-        ray_actor_options={"num_gpus": args.num_gpus},
+        ray_actor_options={"num_gpus": args.num_gpus, "num_cpus": args.num_cpus},
         max_ongoing_requests=1,
     )
     serve.run(
