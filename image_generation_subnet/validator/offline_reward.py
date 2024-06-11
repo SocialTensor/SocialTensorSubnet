@@ -6,27 +6,35 @@ from diffusers.utils import load_image
 from PIL import Image
 from transformers import CLIPProcessor, CLIPModel
 import torch
+from image_generation_subnet.utils.moderation_model import Moderation
 
 URL_REGEX = (
-    r'https://(?:oaidalleapiprodscus|dalleprodsec)\.blob\.core\.windows\.net/private/org-[\w-]+/'
-    r'user-[\w-]+/img-[\w-]+\.(?:png|jpg)\?'
-    r'st=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z&'
-    r'se=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z&'
-    r'(?:sp=\w+&)?'
-    r'sv=\d{4}-\d{2}-\d{2}&'
-    r'sr=\w+&'
-    r'rscd=\w+&'
-    r'rsct=\w+/[\w-]+&'
-    r'skoid=[\w-]+&'
-    r'sktid=[\w-]+&'
-    r'skt=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z&'
-    r'ske=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z&'
-    r'sks=\w+&'
-    r'skv=\d{4}-\d{2}-\d{2}&'
-    r'sig=[\w/%+=]+'
+    r"https://(?:oaidalleapiprodscus|dalleprodsec)\.blob\.core\.windows\.net/private/org-[\w-]+/"
+    r"user-[\w-]+/img-[\w-]+\.(?:png|jpg)\?"
+    r"st=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z&"
+    r"se=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z&"
+    r"(?:sp=\w+&)?"
+    r"sv=\d{4}-\d{2}-\d{2}&"
+    r"sr=\w+&"
+    r"rscd=\w+&"
+    r"rsct=\w+/[\w-]+&"
+    r"skoid=[\w-]+&"
+    r"sktid=[\w-]+&"
+    r"skt=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z&"
+    r"ske=\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}Z&"
+    r"sks=\w+&"
+    r"skv=\d{4}-\d{2}-\d{2}&"
+    r"sig=[\w/%+=]+"
 )
+
+# Dall E
 model = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
 processor = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
+
+# Moderation
+
+moderation_model = None
+
 
 def fetch_GoJourney(task_id):
     endpoint = "https://api.midjourneyapi.xyz/mj/v2/fetch"
@@ -82,17 +90,24 @@ def get_reward_GoJourney(
             rewards.append(0)
     return uids, rewards
 
+
 def calculate_image_similarity(image, description, max_length: int = 77):
     """Calculate the cosine similarity between a description and an image."""
     # Truncate the description
     inputs = processor(
-        text=description, images=None, return_tensors="pt",
-        padding=True, truncation=True, max_length=max_length,
+        text=description,
+        images=None,
+        return_tensors="pt",
+        padding=True,
+        truncation=True,
+        max_length=max_length,
     )
     text_embedding = model.get_text_features(**inputs)
 
     # Process the image
-    inputs = processor(text=None, images=image, return_tensors="pt", padding=True, truncation=True)
+    inputs = processor(
+        text=None, images=image, return_tensors="pt", padding=True, truncation=True
+    )
     image_embedding = model.get_image_features(**inputs)
 
     # Calculate cosine similarity
@@ -105,15 +120,28 @@ def get_reward_dalle(
     uids: list,
     similarity_threshold=0.25,
     *args,
-    **kwargs, 
+    **kwargs,
 ) -> float:
     """Calculate the image score based on similarity and size."""
+    global moderation_model
+    if moderation_model is None:
+        moderation_model = Moderation()
+
     rewards = []
     prompt = base_synapse.prompt
+
+    flagged, response = moderation_model(prompt)
+    if flagged:
+        print(prompt)
+        print(response)
+        return uids, [1] * len(synapses)
+
     def check_size(size):
         return size in ["1792x1024", "1024x1792"]
+
     def check_regex(url):
         return re.match(URL_REGEX, url)
+
     for synapse in synapses:
         try:
             print(synapse.response_dict)
