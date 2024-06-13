@@ -6,7 +6,7 @@ from .utils import (
 )
 import os
 import torch
-
+import inspect
 
 class NicheStableDiffusionV3(BaseModel):
     def load_model(self, repo_id, supporting_pipelines, **kwargs):
@@ -24,12 +24,12 @@ class NicheStableDiffusionV3(BaseModel):
         def inference_function(*args, **kwargs) -> Image.Image:
             pipeline_type = kwargs["pipeline_type"]
             pipeline = pipelines.get(pipeline_type)
-            kwargs.pop("seed", None)
-            kwargs.pop("pipeline_type", None)
-            kwargs.pop("pipeline_params", None)
+            parameters = [param.name for param in inspect.signature(pipeline).parameters.values()]
+            valid_kwargs = {key: kwargs[key] for key in kwargs if key in parameters}
+            
             if not pipeline:
                 raise ValueError(f"Pipeline type {pipeline_type} is not supported")
-            return pipeline(*args, **kwargs).images[0]
+            return pipeline(*args, **valid_kwargs).images[0]
 
         return inference_function
 
