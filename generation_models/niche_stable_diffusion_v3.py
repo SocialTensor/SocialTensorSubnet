@@ -24,7 +24,6 @@ class NicheStableDiffusionV3(BaseModel):
         def inference_function(*args, **kwargs) -> Image.Image:
             pipeline_type = kwargs["pipeline_type"]
             pipeline = pipelines.get(pipeline_type)
-            print("ARGS: ", args, kwargs)
             kwargs.pop("seed", None)
             kwargs.pop("pipeline_type", None)
             kwargs.pop("pipeline_params", None)
