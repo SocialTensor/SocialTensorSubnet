@@ -283,6 +283,21 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "model_incentive_weight": 0.04,
+        },
+        "StableDiffusionV3": {
+            "supporting_pipelines": MODEL_CONFIGS["StableDiffusionV3"]["params"][
+                "supporting_pipelines"
+            ],
+            "reward_url": config.reward_url.StableDiffusionV3,
+            "timeout": 36,
+            "inference_params": {
+                "num_inference_steps": 30,
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 7,
+            },
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "model_incentive_weight": 0.04,
         }
     }
     return nicheimage_catalogue
