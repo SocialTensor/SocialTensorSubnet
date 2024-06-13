@@ -12,7 +12,7 @@ class NicheStableDiffusionV3(BaseModel):
     def load_model(self, repo_id, supporting_pipelines, **kwargs):
         txt2img_pipe = diffusers.StableDiffusion3Pipeline.from_pretrained(repo_id, torch_dtype=torch.float16)
         txt2img_pipe.to("cuda")
-        scheduler_name = kwargs.get("scheduler", "euler_a")
+        scheduler_name = kwargs.get("scheduler", "fm_euler")
         txt2img_pipe.scheduler = set_scheduler(
             scheduler_name, txt2img_pipe.scheduler.config
         )
