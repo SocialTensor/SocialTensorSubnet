@@ -4,7 +4,7 @@ cd generation_models/comfyui_helper/ComfyUI/custom_nodes
 git clone https://github.com/ltdrdata/ComfyUI-Manager
 git clone https://github.com/ZHO-ZHO-ZHO/ComfyUI-BRIA_AI-RMBG
 git clone https://github.com/ssitu/ComfyUI_UltimateSDUpscale --recursive
-git clone https://github.com/jags111/efficiency-nodes-comfyui
+git clone https://github.com/jags111/efficiency-nodes-comfyui && cd efficiency_nodes_comfyui && git checkout a5422d6599971881b5fc80d0496ca3a8b6108267 && cd ..
 git clone https://github.com/WASasquatch/was-node-suite-comfyui
 
 git clone https://github.com/cubiq/ComfyUI_IPAdapter_plus && git checkout 4e898fe
