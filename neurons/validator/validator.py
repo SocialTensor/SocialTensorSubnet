@@ -297,7 +297,7 @@ def initialize_nicheimage_catalogue(config):
                 "guidance_scale": 7,
             },
             "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "model_incentive_weight": 0.04,
+            "model_incentive_weight": 0.0,
         }
     }
     return nicheimage_catalogue
