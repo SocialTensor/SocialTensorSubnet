@@ -1,5 +1,13 @@
-curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.6.0/pget_linux_x86_64" && chmod +x /usr/local/bin/pget
-
+if [ "$(id -u)" -ne 0 ]; then
+  # If not root, use sudo
+  sudo curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.6.0/pget_linux_x86_64"
+  sudo chmod +x /usr/local/bin/pget
+  sudo chown $(whoami) /run/pget.pid
+else
+  # If root, run the commands directly
+  curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.6.0/pget_linux_x86_64"
+  chmod +x /usr/local/bin/pget
+fi
 cd generation_models/comfyui_helper/ComfyUI/custom_nodes
 git clone https://github.com/ltdrdata/ComfyUI-Manager
 git clone https://github.com/ZHO-ZHO-ZHO/ComfyUI-BRIA_AI-RMBG
