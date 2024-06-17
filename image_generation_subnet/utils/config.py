@@ -259,6 +259,12 @@ def add_args(cls, parser):
             help="",
             default="http://nicheimage.nichetensor.com/reward/JuggernautXL",
         )
+        parser.add_argument(
+            "--reward_url.StableDiffusionV3",
+            type=str,
+            help="",
+            default="http://nicheimage.nichetensor.com/reward/StableDiffusionV3",
+        )
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(

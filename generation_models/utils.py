@@ -3,6 +3,7 @@ from diffusers import (
     EulerAncestralDiscreteScheduler,
     DPMSolverMultistepScheduler,
     LCMScheduler,
+    FlowMatchEulerDiscreteScheduler
 )
 from io import BytesIO
 import base64
@@ -55,6 +56,8 @@ def set_scheduler(scheduler_name: str, config):
         scheduler = EulerDiscreteScheduler.from_config(config)
     elif scheduler_name == "euler_a":
         scheduler = EulerAncestralDiscreteScheduler.from_config(config)
+    elif scheduler_name == 'fm_euler':
+        scheduler = FlowMatchEulerDiscreteScheduler.from_config(config)
     elif scheduler_name == "dpm++2m_karras":
         scheduler = DPMSolverMultistepScheduler.from_config(
             config, use_karras_sigmas=True
@@ -122,6 +125,9 @@ def resize_for_condition_image(input_image: Image, resolution: int):
 
 
 def download_checkpoint(download_url, checkpoint_file):
+    if "civitai_token" in download_url:
+        download_url = download_url.format(civitai_token=os.environ.get("CIVITAI_TOKEN"))
+    print(download_url)
     folder, filename = os.path.split(checkpoint_file)
     os.makedirs(folder, exist_ok=True)
     with requests.get(download_url, stream=True) as response:
