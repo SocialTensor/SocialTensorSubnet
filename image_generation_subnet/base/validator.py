@@ -264,7 +264,7 @@ class BaseValidatorNeuron(BaseNeuron):
         if self.block - self.last_commit_weights_block < commit_reveal_weights_interval and self.allow_commit_weights:
             bt.logging.warning(f"Maybe too soon to reveal. Current block is {self.block}, commited at {self.last_commit_weights_block}, tempo is {commit_reveal_weights_interval}")
             return False
-        return False
+        return True
 
     def set_weights(self):
         """
