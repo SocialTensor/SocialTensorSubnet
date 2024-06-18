@@ -232,7 +232,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def reveal_weights(self):
         success, message = self.subtensor.reveal_weights(
-            **self.last_commit_weights_info
+            **self.last_commit_weights_info,
             wait_for_finalization=False,
             version_key=self.spec_version,
         )
