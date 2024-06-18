@@ -305,7 +305,7 @@ class BaseValidatorNeuron(BaseNeuron):
             wallet=self.wallet,
             netuid=self.config.netuid,
             uids=processed_weight_uids,
-            salt=self.latest_salt,
+            salt=salt,
             weights=processed_weights,
             wait_for_finalization=False,
             version_key=self.spec_version,
