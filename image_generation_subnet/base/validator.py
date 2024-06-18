@@ -295,18 +295,26 @@ class BaseValidatorNeuron(BaseNeuron):
             subtensor=self.subtensor,
             metagraph=self.metagraph,
         )
+        processed_weight_uids = processed_weight_uids.tolist()
+        processed_weights = processed_weights.tolist()
+        salt = [random.randint(0, 1000) for _ in range(3)]
+
         bt.logging.trace("processed_weights", processed_weights)
         bt.logging.trace("processed_weight_uids", processed_weight_uids)
+        bt.logging.trace("salt", salt)
 
-        salt = [random.randint(0, 1000) for _ in range(3)]
+
+        commit_data = {
+            "wallet": self.wallet,
+            "netuid": self.config.netuid,
+            "uids": processed_weight_uids,
+            "salt": salt,
+            "weights": processed_weights
+        }
 
         # Set the weights on chain via our subtensor connection.
         success, message = self.subtensor.commit_weights(
-            wallet=self.wallet,
-            netuid=self.config.netuid,
-            uids=processed_weight_uids,
-            salt=salt,
-            weights=processed_weights,
+            **commit_data,
             wait_for_finalization=False,
             version_key=self.spec_version,
         )
@@ -314,13 +322,7 @@ class BaseValidatorNeuron(BaseNeuron):
         if success:
             bt.logging.success(f"Committed new weights! Salt:{salt}, Block: {self.block}")
             self.need_reveal = True # commit weights successfully, wait for reveal after blocks
-            self.last_commit_weights_info = {
-                "wallet": self.wallet,
-                "netuid": self.config.netuid,
-                "uids": copy.deepcopy(processed_weight_uids),
-                "salt": copy.deepcopy(salt),
-                "weights": copy.deepcopy(processed_weights)
-            }
+            self.last_commit_weights_info = copy.deepcopy(commit_data)
             self.last_commit_weights_block = self.block
 
     def resync_metagraph(self):
