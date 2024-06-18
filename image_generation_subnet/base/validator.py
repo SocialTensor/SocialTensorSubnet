@@ -40,7 +40,7 @@ class BaseValidatorNeuron(BaseNeuron):
         super().__init__(config=config)
 
         # Init commit, reveal weights variable
-        self.last_commit_weights_block = self.block
+        self.last_commit_weights_block = self.block - 1000
         self.last_reveal_success = True
         self.need_reveal = False
         self.allow_commit_weights = True
