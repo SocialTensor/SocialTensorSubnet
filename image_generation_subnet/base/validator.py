@@ -17,7 +17,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-
+import random
 import copy
 import torch
 import asyncio
@@ -37,6 +37,12 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def __init__(self, config=None):
         super().__init__(config=config)
+
+        # Init commit, reveal weights variable
+        self.last_commit_weights_block = self.block
+        self.last_reveal_success = True
+        self.need_reveal = False
+        self.allow_commit_weights = True
 
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
@@ -207,9 +213,61 @@ class BaseValidatorNeuron(BaseNeuron):
             self.is_running = False
             bt.logging.debug("Stopped")
 
+    def sync(self):
+        """
+        Wrapper for synchronizing the state of the network for the given miner or validator.
+        """
+        # Ensure miner or validator hotkey is still registered on the network.
+        self.check_registered()
+
+        if self.should_sync_metagraph():
+            self.resync_metagraph()
+
+        if self.should_reveal_last_weights():
+            self.reveal_weights()
+        
+        if self.should_set_weights():
+            self.set_weights()
+
+
+    def reveal_weights(self):
+        success, message = self.subtensor.reveal_weights(
+            **self.last_commit_weights_info
+            wait_for_finalization=False,
+            version_key=self.spec_version,
+        )
+        if success:
+            self.allow_commit_weights = True
+            self.need_reveal = False
+        else:
+            self.allow_commit_weights = False
+            self.need_reveal = True
+
+    def should_reveal_last_weights(self):
+        """
+        Check
+        1. revealed the last commit weights
+        2. reveal interval
+        """
+        if not self.need_reveal:
+            bt.logging.warning("Haven't set new weights since last time")
+            return False
+        commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
+        if self.block - self.last_commit_weights_block < commit_reveal_weights_interval:
+            bt.logging.warning(f"Too soon to reveal. Current block is {self.block}, commited at {self.last_commit_weights_block}, tempo is {commit_reveal_weights_interval}")
+            return False
+        return True
+
+    def should_commit_new_weights(self):
+        commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
+        if self.block - self.last_commit_weights_block < commit_reveal_weights_interval and self.allow_commit_weights:
+            bt.logging.warning(f"Maybe too soon to reveal. Current block is {self.block}, commited at {self.last_commit_weights_block}, tempo is {commit_reveal_weights_interval}")
+            return False
+        return False
+
     def set_weights(self):
         """
-        Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
+        set hashed weights
         """
 
         # Check if self.scores contains any NaN values and log a warning if it does.
@@ -239,17 +297,30 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.trace("processed_weights", processed_weights)
         bt.logging.trace("processed_weight_uids", processed_weight_uids)
 
+        salt = [random.randint(0, 1000) for _ in range(3)]
+
         # Set the weights on chain via our subtensor connection.
-        self.subtensor.set_weights(
+        success, message = self.subtensor.commit_weights(
             wallet=self.wallet,
             netuid=self.config.netuid,
             uids=processed_weight_uids,
+            salt=self.latest_salt,
             weights=processed_weights,
             wait_for_finalization=False,
             version_key=self.spec_version,
         )
 
-        bt.logging.info(f"Set weights: {processed_weights}")
+        if success:
+            bt.logging.success(f"Committed new weights! Salt:{salt}, Block: {self.block}")
+            self.need_reveal = True # commit weights successfully, wait for reveal after blocks
+            self.last_commit_weights_info = {
+                "wallet": self.wallet,
+                "netuid": self.config.netuid,
+                "uids": copy.deepcopy(processed_weight_uids),
+                "salt": copy.deepcopy(salt),
+                "weights": copy.deepcopy(processed_weights)
+            }
+            self.last_commit_weights_block = self.block
 
     def resync_metagraph(self):
         """Resyncs the metagraph and updates the hotkeys and moving averages based on the new metagraph."""
