@@ -23,6 +23,7 @@ import torch
 import asyncio
 import threading
 import bittensor as bt
+import numpy as np
 
 from typing import List
 from traceback import print_exception
@@ -282,14 +283,14 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.trace("raw_weights", raw_weights)
         bt.logging.trace("top10 values", raw_weights.sort()[0])
         bt.logging.trace("top10 uids", raw_weights.sort()[1])
-
+        raw_weights = np.array(raw_weights)
         # Process the raw weights to final_weights via subtensor limitations.
         (
             processed_weight_uids,
             processed_weights,
         ) = bt.utils.weight_utils.process_weights_for_netuid(
-            uids=torch.from_numpy(self.metagraph.uids),
-            weights=raw_weights.to("cpu"),
+            uids=self.metagraph.uids,
+            weights=raw_weights,
             netuid=self.config.netuid,
             subtensor=self.subtensor,
             metagraph=self.metagraph,
