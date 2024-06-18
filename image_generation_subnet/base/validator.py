@@ -37,12 +37,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def __init__(self, config=None):
         super().__init__(config=config)
-        bt.logging.enable_default()
-        if config.logging.trace:
-            bt.logging.enable_trace()
-        if config.logging.debug:
-            bt.logging.enable_debug()
-            
+
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
 
