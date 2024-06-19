@@ -237,6 +237,7 @@ class BaseValidatorNeuron(BaseNeuron):
             version_key=self.spec_version,
         )
         if success:
+            bt.logging.success(f"Reveal weights successfully, weights_data:\n{self.last_commit_weights_info}")
             self.need_reveal = False
             self.last_reveal_weights_block = self.block
         else:
