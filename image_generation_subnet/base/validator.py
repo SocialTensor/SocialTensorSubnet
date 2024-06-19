@@ -283,20 +283,18 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.trace("raw_weights", raw_weights)
         bt.logging.trace("top10 values", raw_weights.sort()[0])
         bt.logging.trace("top10 uids", raw_weights.sort()[1])
-        raw_weights = np.array(raw_weights)
+        raw_weights = np.array(raw_weights).astype(np.float32)
+        uids = np.array(self.metagraph.uids).astype(np.int64)
         # Process the raw weights to final_weights via subtensor limitations.
         (
-            processed_weight_uids,
-            processed_weights,
-        ) = bt.utils.weight_utils.process_weights_for_netuid(
-            uids=self.metagraph.uids,
+            processed_weight_uids: list[int],
+            processed_weights: list[int],
+        ) = bt.utils.weight_utils.convert_weights_and_uids_for_emit(
+            uids=uids,
             weights=raw_weights,
-            netuid=self.config.netuid,
-            subtensor=self.subtensor,
-            metagraph=self.metagraph,
         )
-        processed_weight_uids = processed_weight_uids.tolist()
-        processed_weights = processed_weights.tolist()
+        processed_weight_uids = processed_weight_uids
+        processed_weights = processed_weights
         salt = [random.randint(0, 1000) for _ in range(3)]
 
         bt.logging.trace("processed_weights", processed_weights)
