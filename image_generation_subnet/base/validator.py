@@ -287,8 +287,8 @@ class BaseValidatorNeuron(BaseNeuron):
         uids = np.array(self.metagraph.uids).astype(np.int64)
         # Process the raw weights to final_weights via subtensor limitations.
         (
-            processed_weight_uids: list[int],
-            processed_weights: list[int],
+            processed_weight_uids,
+            processed_weights
         ) = bt.utils.weight_utils.convert_weights_and_uids_for_emit(
             uids=uids,
             weights=raw_weights,
