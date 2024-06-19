@@ -223,12 +223,12 @@ class BaseValidatorNeuron(BaseNeuron):
 
         if self.should_sync_metagraph():
             self.resync_metagraph()
-
-        if self.should_reveal_last_weights():
-            self.reveal_weights()
         
         if self.should_commit_new_weights():
             self.set_weights()
+
+        if self.should_reveal_last_weights():
+            self.reveal_weights()
 
 
     def reveal_weights(self):
