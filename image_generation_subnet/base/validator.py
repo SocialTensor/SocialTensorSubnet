@@ -41,9 +41,8 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Init commit, reveal weights variable
         self.last_commit_weights_block = self.block - 1000
-        self.last_reveal_success = True
+        self.last_reveal_weights_block = self.block - 1000
         self.need_reveal = False
-        self.allow_commit_weights = True
 
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
@@ -238,10 +237,9 @@ class BaseValidatorNeuron(BaseNeuron):
             version_key=self.spec_version,
         )
         if success:
-            self.allow_commit_weights = True
             self.need_reveal = False
+            self.last_reveal_weights_block = self.block
         else:
-            self.allow_commit_weights = False
             self.need_reveal = True
 
     def should_reveal_last_weights(self):
@@ -254,15 +252,18 @@ class BaseValidatorNeuron(BaseNeuron):
             bt.logging.warning("Haven't set new weights since last time")
             return False
         commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
-        if self.block - self.last_commit_weights_block < commit_reveal_weights_interval:
-            bt.logging.warning(f"Too soon to reveal. Current block is {self.block}, commited at {self.last_commit_weights_block}, tempo is {commit_reveal_weights_interval}")
+        if self.block - self.last_reveal_weights_block < commit_reveal_weights_interval:
+            bt.logging.warning(f"Too soon to REVEAL. Current block is {self.block}, commited at {self.last_reveal_weights_block}, tempo is {commit_reveal_weights_interval}")
             return False
         return True
 
     def should_commit_new_weights(self):
         commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
-        if self.block - self.last_commit_weights_block < commit_reveal_weights_interval and self.allow_commit_weights:
-            bt.logging.warning(f"Maybe too soon to reveal. Current block is {self.block}, commited at {self.last_commit_weights_block}, tempo is {commit_reveal_weights_interval}")
+        if self.need_reveal:
+            bt.logging.warning(f"[set_weights] - Need reveal lastest commited weights first!")
+            return False
+        if self.block - self.last_commit_weights_block < commit_reveal_weights_interval:
+            bt.logging.warning(f"[set_weights] - Maybe too soon to reveal. Current block is {self.block}, commited at {self.last_commit_weights_block}, tempo is {commit_reveal_weights_interval}")
             return False
         return True
 
