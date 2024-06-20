@@ -1,4 +1,4 @@
-import time
+import time, asyncio
 import os
 import bittensor as bt
 import random
@@ -19,9 +19,11 @@ from image_generation_subnet.validator.offline_challenge import (
     get_backup_llm_prompt,
 )
 from datetime import datetime
+from services.offline_rewarding.redis_client import RedisClient
+from services.offline_rewarding.reward_app import RewardApp
 
 MODEL_CONFIGS = yaml.load(
-    open("generation_models/configs/model_config.yaml"), yaml.FullLoader
+    open("/home/zenai/vietle/sn23/NicheImage/generation_models/configs/model_config.yaml"), yaml.FullLoader
 )
 
 
@@ -304,6 +306,14 @@ class Validator(BaseValidatorNeuron):
             list(self.nicheimage_catalogue.keys()),
             time_per_loop=self.config.loop_base_time,
         )
+        # self.config.proxy.port = 40003 # for test
+        self.redis_client = RedisClient()
+        self.offline_reward = True
+        if self.offline_reward:
+            self.reward_app = RewardApp(self)
+            self.clear_stream_event = threading.Event() # Event to signal when to clear the redis queue
+            threading.Thread(target=self.clear_stream_redis, daemon=True).start()
+        
         if self.config.proxy.port:
             try:
                 self.validator_proxy = ValidatorProxy(self)
@@ -313,6 +323,7 @@ class Validator(BaseValidatorNeuron):
                     "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
                     + traceback.format_exc()
                 )
+            
 
     def forward(self):
         """
@@ -348,6 +359,11 @@ class Validator(BaseValidatorNeuron):
         loop_start = time.time()
         self.miner_manager.update_miners_identity()
         self.query_queue.update_queue(self.miner_manager.all_uids_info)
+
+        if self.offline_reward:
+            rewarding_thread = threading.Thread(target = self.reward_offline)
+            rewarding_thread.start()
+
         for (
             model_name,
             uids,
@@ -370,8 +386,8 @@ class Validator(BaseValidatorNeuron):
 
         for thread in threads:
             thread.join()
-        self.update_scores_on_chain()
-        self.save_state()
+
+
         bt.logging.info(
             "Loop completed, uids info:\n",
             str(self.miner_manager.all_uids_info).replace("},", "},\n"),
@@ -384,6 +400,20 @@ class Validator(BaseValidatorNeuron):
                 f"Sleeping for {loop_base_time - actual_time_taken} seconds"
             )
             time.sleep(loop_base_time - actual_time_taken)
+
+        self.clear_stream_event.set()
+        self.update_scores_on_chain()
+        self.save_state()
+
+    def reward_offline(self):
+        asyncio.get_event_loop().run_until_complete(self.reward_app.dequeue_message())
+
+    def clear_stream_redis(self):
+        while True:
+            if self.clear_stream_event.is_set():
+                self.redis_client.clear_stream(self.reward_app.stream_name)
+                self.clear_stream_event.clear()
+            time.sleep(10)
 
     def async_query_and_reward(
         self,
@@ -436,30 +466,33 @@ class Validator(BaseValidatorNeuron):
             store_thread.start()
 
             if reward_uids:
-                if callable(reward_url):
-                    reward_uids, rewards = reward_url(
-                        base_synapse, reward_responses, reward_uids
-                    )
+                if self.offline_reward:
+                    ig_subnet.validator.get_reward_offline(base_synapse, reward_responses, reward_uids, self.nicheimage_catalogue[model_name].get("timeout", 12), self.redis_client)
                 else:
-                    reward_uids, rewards = ig_subnet.validator.get_reward(
-                        reward_url,
-                        base_synapse,
-                        reward_responses,
-                        reward_uids,
-                        self.nicheimage_catalogue[model_name].get("timeout", 12),
-                        self.miner_manager,
-                    )
-
-                    # Scale Reward based on Miner Volume
-                for i, uid in enumerate(reward_uids):
-                    if rewards[i] > 0:
-                        rewards[i] = rewards[i] * (
-                            0.6 + 0.4 * self.miner_manager.all_uids_info[uid]["reward_scale"]
+                    if callable(reward_url):
+                        reward_uids, rewards = reward_url(
+                            base_synapse, reward_responses, reward_uids
+                        )
+                    else:
+                        reward_uids, rewards = ig_subnet.validator.get_reward(
+                            reward_url,
+                            base_synapse,
+                            reward_responses,
+                            reward_uids,
+                            self.nicheimage_catalogue[model_name].get("timeout", 12),
+                            self.miner_manager,
                         )
 
-                bt.logging.info(f"Scored responses: {rewards}")
+                        # Scale Reward based on Miner Volume
+                    for i, uid in enumerate(reward_uids):
+                        if rewards[i] > 0:
+                            rewards[i] = rewards[i] * (
+                                0.6 + 0.4 * self.miner_manager.all_uids_info[uid]["reward_scale"]
+                            )
 
-                self.miner_manager.update_scores(reward_uids, rewards)
+                    bt.logging.info(f"Scored responses: {rewards}")
+
+                    self.miner_manager.update_scores(reward_uids, rewards)
             store_thread.join()
 
     def prepare_challenge(self, uids_should_rewards, model_name, pipeline_type):

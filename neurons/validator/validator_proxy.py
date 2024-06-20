@@ -93,26 +93,31 @@ class ValidatorProxy:
         if (
             random.random() < self.validator.config.proxy.checking_probability
             or should_reward
-        ):
-            if callable(reward_url):
-                uids, rewards = reward_url(synapse, [response], [uid])
-            else:
-                (
-                    uids,
-                    rewards,
-                ) = image_generation_subnet.validator.get_reward(
-                    reward_url, synapse, [response], [uid], timeout, self.validator.miner_manager
-                )
-            bt.logging.info(
-                f"Proxy: Updating scores of miners {uids} with rewards {rewards}, should_reward: {should_reward}"
-            )
-                # Scale Reward based on Miner Volume
-            for i, uid in enumerate(uids):
-                if rewards[i] > 0:
-                    rewards[i] = rewards[i] * (
-                        0.6 + 0.4 * self.validator.miner_manager.all_uids_info[uid]["reward_scale"]
+        ):  
+            if self.validator.offline_reward:
+                image_generation_subnet.validator.get_reward_offline(synapse, [response], [uid], timeout, self.validator.redis_client)
+                if callable(reward_url):
+                    uids, rewards = reward_url(synapse, [response], [uid])
+                else:
+                    (
+                        uids,
+                        rewards,
+                    ) = image_generation_subnet.validator.get_reward(
+                        reward_url, synapse, [response], [uid], timeout, self.validator.miner_manager
                     )
-            self.validator.miner_manager.update_scores(uids, rewards)
+                bt.logging.info(
+                    f"Proxy: Updating scores of miners {uids} with rewards {rewards}, should_reward: {should_reward}"
+                )
+                    # Scale Reward based on Miner Volume
+                for i, uid in enumerate(uids):
+                    if rewards[i] > 0:
+                        rewards[i] = rewards[i] * (
+                            0.6 + 0.4 * self.validator.miner_manager.all_uids_info[uid]["reward_scale"]
+                        )
+                bt.logging.info(
+                    f"Organic reward: {rewards}"
+                )
+                self.validator.miner_manager.update_scores(uids, rewards)
 
     async def forward(self, data: dict = {}):
         self.authenticate_token(data["authorization"])

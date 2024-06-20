@@ -6,7 +6,7 @@ from math import pow
 from functools import wraps
 from tqdm import tqdm
 import httpx
-
+import json
 
 def retry(**kwargs):
     module = kwargs.get("module", "unknown")
@@ -67,6 +67,41 @@ def get_challenge(
             synapses[i] = None
     return synapses
 
+def get_reward_offline(
+    base_synapse: ImageGenerating,
+    synapses: List[ImageGenerating],
+    uids: List[int],
+    timeout: float,
+    message_broker
+):
+    valid_uids = [uid for uid, response in zip(uids, synapses) if response.is_success]
+    invalid_uids = [
+        uid for uid, synapse in zip(uids, synapses) if not synapse.is_success
+    ]
+    total_uids = valid_uids + invalid_uids
+    valid_synapses = [synapse for synapse in synapses if synapse.is_success]
+    if valid_uids:
+        miner_data = []
+        for synapse in valid_synapses:
+            dt = synapse.deserialize()
+            dt["process_time"] = synapse.dendrite.process_time
+            miner_data.append(dt)
+        data = {
+            "timeout": timeout,
+            "valid_uids": valid_uids,
+            "invalid_uids": invalid_uids,
+            "miner_data": miner_data,
+            "base_data": base_synapse.deserialize_input(),
+
+        }
+
+        try:
+            message_broker.publish_to_stream(stream_name = "synapse_data", message = {"data": json.dumps(data)})
+        except Exception as ex:
+            bt.logging.error(f"Push synapse result to message broker fail: {str(ex)} ")
+
+    else:
+        bt.logging.info("0 valid responses in a batch")
 
 def get_reward(
     url: str,

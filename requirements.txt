@@ -26,5 +26,5 @@ jinja2
 insightface
 onnxruntime-gpu==1.18.0
 openai
-
 sentencepiece
+redis==5.0.6
