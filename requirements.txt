@@ -26,3 +26,4 @@ insightface
 onnxruntime-gpu
 openai
 sentencepiece
+redis==5.0.6
