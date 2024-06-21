@@ -18,9 +18,8 @@ class RewardApp():
         self.stream_name = "synapse_data"
         self.redis_client: RedisClient = RedisClient()
         self.rewarder = CosineSimilarityReward()
-        self.prefetch_count = 3
         self.validator = validator
-
+        
     def group_synapse_by_model(self, data):
         data_group_by_model = {}
         for d in data:
@@ -31,27 +30,26 @@ class RewardApp():
             data_group_by_model[model_name].append(d)
         return data_group_by_model
 
-    async def generate_response(self, data_group_by_model):
-        for model_name in data_group_by_model:
-            data =  data_group_by_model[model_name]
-            model_deployment = ModelDeployment(MODEL_CONFIG[model_name])
-            for synapse in data_group_by_model[model_name]:
+    async def generate_image_response(self, synapse_info, model_name):
+        model_deployment = ModelDeployment(MODEL_CONFIG[model_name])
+        for synapse in synapse_info:
+            if len(synapse["valid_uids"]) > 0:
                 base_synapse = synapse["base_data"]
                 synapse_data = ImageGenerating(**base_synapse)
                 data = synapse_data.deserialize()
                 base64_image = await model_deployment.generate(data)
                 synapse["validator_response"] = base64_image
-                del model_deployment
-            return data_group_by_model
+        del model_deployment
+        return synapse_info
 
-    def calculate_rewards(self, data_with_validator_response):
+    def calculate_rewards(self, data):
         
         total_uids, total_rewards = [], []
-        for model_name in data_with_validator_response:
-            for info in data_with_validator_response[model_name]:
-                all_uids_info = self.validator.miner_manager.all_uids_info
-                timeout = info["timeout"]
-                validator_response = info["validator_response"]
+        valid_rewards = []
+        for info in data:
+            timeout = info["timeout"]
+            if len(info["valid_uids"]) > 0:
+                validator_response = info.get("validator_response")
                 miner_responses = [x["image"] for x in  info["miner_data"]]
                 valid_rewards = self.rewarder.get_reward(validator_response, miner_responses)
                 valid_rewards = [float(reward) for reward in valid_rewards]
@@ -62,24 +60,61 @@ class RewardApp():
                 else:
                     valid_rewards = add_time_penalty(valid_rewards, process_times, 0.4, 12)
                 valid_rewards = [round(num, 3) for num in valid_rewards]
-                uids = info["valid_uids"] + info["invalid_uids"]
-                for i, uid in enumerate(info["valid_uids"]):
-                    if valid_rewards[i] > 0:
-                        valid_rewards[i] = valid_rewards[i] * (
-                            0.6 + 0.4 * all_uids_info[uid]["reward_scale"]
-                        )
-                rewards = valid_rewards + [0] * len(info["invalid_uids"])
-                
-                total_uids.extend(uids)
-                total_rewards.extend(rewards)
-                self.validator.miner_manager.update_scores(total_uids, total_rewards)
+            uids = info["valid_uids"] + info["invalid_uids"]
+            rewards = valid_rewards + [0] * len(info["invalid_uids"])
+            
+            total_uids.extend(uids)
+            total_rewards.extend(rewards)
+        
+        return total_uids, total_rewards
+
+    # Scale Reward based on Miner Volume
+    def scale_reward(self, reward_uids, rewards):     
+        for i, uid in enumerate(reward_uids):
+            if rewards[i] > 0:
+                rewards[i] = rewards[i] * (
+                    0.6 + 0.4 * self.validator.miner_manager.all_uids_info[uid]["reward_scale"]
+                )
+        return reward_uids, rewards
+    
+
+    async def reward_image_type(self, data, model_name):
+        data_with_validator_response = await self.generate_image_response(data, model_name)    
+        total_uids, total_rewards = self.calculate_rewards(data_with_validator_response)
+        return total_uids, total_rewards
+
+    def reward_custom_type(self, data, model_name):
+        pass
+        
+    async def categorize_rewards_type(self, data_group_by_model):
+        for model_name in data_group_by_model:
+            reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
+            reward_type = self.validator.nicheimage_catalogue[model_name]["reward_type"]
+            data = data_group_by_model[model_name]
+            reward_uids, rewards = [], []
+            if reward_type == 'image':
+                reward_uids, rewards = await self.reward_image_type(data, model_name)
+            elif reward_type == "custom" and callable(reward_url):
+                for d in data:
+                    d_uids, d_rewards = reward_url(
+                        ImageGenerating(**d["base_data"]), [ImageGenerating(**synapse) for synapse in d["all_miner_data"]], d["uids"]
+                    )
+                    reward_uids.extend(d_uids)
+                    rewards.extend(d_rewards)
+            else:
+                print("Reward method not found !!!")
+            
+            if len(reward_uids) > 0 :
+                reward_uids, rewards =self.scale_reward(reward_uids, rewards)
+                self.validator.miner_manager.update_scores(reward_uids, rewards)
 
     async def dequeue_message(self):
         async def reward_callback(message_data):
             message_data = [json.loads(x["data"]) for x in message_data]
             data_group_by_model = self.group_synapse_by_model(message_data)
-            data_with_validator_response = await self.generate_response(data_group_by_model)
-            self.calculate_rewards(data_with_validator_response)
+
+            await self.categorize_rewards_type(data_group_by_model)
+
         
         await self.redis_client.process_message_from_stream_async(self.stream_name, reward_callback)
                 

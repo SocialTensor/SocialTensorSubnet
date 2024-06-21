@@ -171,6 +171,7 @@ def initialize_nicheimage_catalogue(config):
                 "supporting_pipelines"
             ],
             "reward_url": ig_subnet.validator.get_reward_GoJourney,
+            "reward_type": "custom",
             "timeout": 12,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
@@ -181,6 +182,7 @@ def initialize_nicheimage_catalogue(config):
                 "supporting_pipelines"
             ],
             "reward_url": config.reward_url.DreamShaperXL,
+            "reward_type": "image",
             "inference_params": {
                 "num_inference_steps": 8,
                 "width": 1024,
@@ -196,6 +198,7 @@ def initialize_nicheimage_catalogue(config):
             ],
             "model_incentive_weight": 0.18,
             "reward_url": config.reward_url.JuggernautXL,
+            "reward_type": "image",
             "inference_params": {
                 "num_inference_steps": 30,
                 "width": 1024,
@@ -211,6 +214,7 @@ def initialize_nicheimage_catalogue(config):
             ],
             "model_incentive_weight": 0.29,
             "reward_url": config.reward_url.RealitiesEdgeXL,
+            "reward_type": "image",
             "inference_params": {
                 "num_inference_steps": 7,
                 "width": 1024,
@@ -226,6 +230,7 @@ def initialize_nicheimage_catalogue(config):
             ],
             "model_incentive_weight": 0.27,
             "reward_url": config.reward_url.AnimeV3,
+            "reward_type": "image",
             "inference_params": {
                 "num_inference_steps": 25,
                 "width": 1024,
@@ -244,6 +249,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Gemma7b,
+            "reward_type": "text",
             "inference_params": {},
         },
         "StickerMaker": {
@@ -254,6 +260,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.StickerMaker,
+            "reward_type": "image",
             "inference_params": {"is_upscale": False},
         },
         "FaceToMany": {
@@ -264,6 +271,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.FaceToMany,
+            "reward_type": "image",
             "inference_params": {},
         },
         "Llama3_70b": {
@@ -274,6 +282,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 128,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Llama3_70b,
+            "reward_type": "text",
             "inference_params": {},
         },
         "DallE": {
@@ -281,6 +290,7 @@ def initialize_nicheimage_catalogue(config):
                 "supporting_pipelines"
             ],
             "reward_url": ig_subnet.validator.get_reward_dalle,
+            "reward_type": "custom",
             "timeout": 36,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,

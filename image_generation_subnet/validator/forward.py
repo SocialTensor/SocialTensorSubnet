@@ -78,30 +78,29 @@ def get_reward_offline(
     invalid_uids = [
         uid for uid, synapse in zip(uids, synapses) if not synapse.is_success
     ]
-    total_uids = valid_uids + invalid_uids
     valid_synapses = [synapse for synapse in synapses if synapse.is_success]
-    if valid_uids:
-        miner_data = []
-        for synapse in valid_synapses:
-            dt = synapse.deserialize()
-            dt["process_time"] = synapse.dendrite.process_time
-            miner_data.append(dt)
-        data = {
-            "timeout": timeout,
-            "valid_uids": valid_uids,
-            "invalid_uids": invalid_uids,
-            "miner_data": miner_data,
-            "base_data": base_synapse.deserialize_input(),
+   
+    miner_data = []
+    for synapse in valid_synapses:
+        dt = synapse.deserialize()
+        dt["process_time"] = synapse.dendrite.process_time
+        miner_data.append(dt)
+    
+    all_miner_data = [synapse.deserialize() for synapse in synapses]
+    data = {
+        "timeout": timeout,
+        "valid_uids": valid_uids,
+        "invalid_uids": invalid_uids,
+        "miner_data": miner_data,
+        "base_data": base_synapse.deserialize_input(),
+        "uids": uids,
+        "all_miner_data": all_miner_data
+    }
+    try:
+        message_broker.publish_to_stream(stream_name = "synapse_data", message = {"data": json.dumps(data)})
+    except Exception as ex:
+        bt.logging.error(f"Push synapse result to message broker fail: {str(ex)} ")
 
-        }
-
-        try:
-            message_broker.publish_to_stream(stream_name = "synapse_data", message = {"data": json.dumps(data)})
-        except Exception as ex:
-            bt.logging.error(f"Push synapse result to message broker fail: {str(ex)} ")
-
-    else:
-        bt.logging.info("0 valid responses in a batch")
 
 def get_reward(
     url: str,
