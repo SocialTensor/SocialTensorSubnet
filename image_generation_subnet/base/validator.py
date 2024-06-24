@@ -222,12 +222,12 @@ class BaseValidatorNeuron(BaseNeuron):
 
         if self.should_sync_metagraph():
             self.resync_metagraph()
-        
-        if self.should_commit_new_weights():
-            self.set_weights()
 
         if self.should_reveal_last_weights():
             self.reveal_weights()
+        
+        if self.should_commit_new_weights():
+            self.set_weights()
 
 
     def reveal_weights(self):
@@ -237,7 +237,7 @@ class BaseValidatorNeuron(BaseNeuron):
             version_key=self.spec_version,
         )
         if success:
-            bt.logging.success(f"Reveal weights successfully, weights_data:\n{self.last_commit_weights_info}")
+            bt.logging.success(f"[Reveal Weights] Reveal weights successfully, salt: {self.last_commit_weights_info["salt"]}, block: {self.block}")
             self.need_reveal = False
             self.last_reveal_weights_block = self.block
         else:
@@ -250,21 +250,21 @@ class BaseValidatorNeuron(BaseNeuron):
         2. reveal interval
         """
         if not self.need_reveal:
-            bt.logging.warning("Haven't set new weights since last time")
+            bt.logging.warning("[Reveal Weights] Haven't set new weights since last time")
             return False
         commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
         if self.block - self.last_reveal_weights_block < commit_reveal_weights_interval:
-            bt.logging.warning(f"Too soon to REVEAL. Current block is {self.block}, commited at {self.last_reveal_weights_block}, tempo is {commit_reveal_weights_interval}")
+            bt.logging.warning(f"[Reveal Weights] Too soon to REVEAL. Current block is {self.block}, commited at {self.last_reveal_weights_block}, tempo is {commit_reveal_weights_interval}")
             return False
         return True
 
     def should_commit_new_weights(self):
         commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
         if self.need_reveal:
-            bt.logging.warning(f"[set_weights] - Need reveal lastest commited weights first!")
+            bt.logging.warning(f"[Set Weights] - Need reveal lastest commited weights first!")
             return False
         if self.block - self.last_commit_weights_block < commit_reveal_weights_interval:
-            bt.logging.warning(f"[set_weights] - Maybe too soon to reveal. Current block is {self.block}, commited at {self.last_commit_weights_block}, tempo is {commit_reveal_weights_interval}")
+            bt.logging.warning(f"[Set Weights] - Maybe too soon to reveal. Current block is {self.block}, commited at {self.last_commit_weights_block}, tempo is {commit_reveal_weights_interval}")
             return False
         return True
 
@@ -320,7 +320,7 @@ class BaseValidatorNeuron(BaseNeuron):
         )
 
         if success:
-            bt.logging.success(f"Committed new weights! Salt:{salt}, Block: {self.block}")
+            bt.logging.success(f"[Set Weights] Committed new weights! Salt:{salt}, Block: {self.block}")
             self.need_reveal = True # commit weights successfully, wait for reveal after blocks
             self.last_commit_weights_info = copy.deepcopy(commit_data)
             self.last_commit_weights_block = self.block
