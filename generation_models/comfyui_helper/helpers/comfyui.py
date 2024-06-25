@@ -16,6 +16,7 @@ from urllib.error import URLError
 # custom_nodes helpers
 from generation_models.comfyui_helper.helpers.ComfyUI_BRIA_AI_RMBG import ComfyUI_BRIA_AI_RMBG
 
+CUDA_VISIBLE_DEVICES = os.getenv("CUDA_VISIBLE_DEVICES", 0)
 
 class ComfyUI:
     def __init__(self, port):
@@ -37,13 +38,13 @@ class ComfyUI:
         start_time = time.time()
         while not self.is_server_running():
             if time.time() - start_time > 60:  # If more than a minute has passed
-                raise TimeoutError("Server did not start within 60 seconds")
+                print("Server did not start within 60 seconds")
             time.sleep(1)  # Wait for 1 second before checking again
 
         print("Server running")
 
     def run_server(self, output_directory, input_directory):
-        command = f". comfyui/bin/activate && cd generation_models/comfyui_helper/ComfyUI/ && python main.py --port {self.port} --output-directory {output_directory} --input-directory {input_directory}"
+        command = f". comfyui/bin/activate && cd generation_models/comfyui_helper/ComfyUI/ && python main.py --port {self.port} --output-directory {output_directory} --input-directory {input_directory} --cuda-device {CUDA_VISIBLE_DEVICES}"
         print(command)
         server_process = subprocess.Popen(command, shell=True)
         server_process.wait()
@@ -56,6 +57,36 @@ class ComfyUI:
                 return response.status == 200
         except URLError:
             return False
+
+    def kill_process_on_port(self):
+        import signal
+        import re
+        
+        port = self.port
+        try:
+            command = f"ss -ltnp 'sport = :{port}'"
+            ss_output = subprocess.check_output(command, shell=True).decode()
+
+            if ss_output:
+                pid = None
+                for line in ss_output.splitlines():
+                    if f":{port}" in line:
+                        match = re.search(r'pid=(\d+)', line)
+                        if match:
+                            pid = match.group(1)
+
+                if pid:
+                    print(f"Found process {pid} running on port {port}")
+                    os.kill(int(pid), signal.SIGKILL)
+                    print(f"Process {pid} killed")
+                else:
+                    print(f"No process found running on port {port}")
+            else:
+                print(f"No process found running on port {port}")
+        except subprocess.CalledProcessError:
+            print(f"No process found running on port {port}")
+        except Exception as e:
+            print(f"An error occurred: {e}")
 
     def download_pre_start_models(self):
         # Some models need to be downloaded and loaded before starting ComfyUI
