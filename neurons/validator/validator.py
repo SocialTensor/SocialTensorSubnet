@@ -12,6 +12,7 @@ import yaml
 import threading
 import math
 import queue
+import json
 from copy import deepcopy
 from image_generation_subnet.validator.offline_challenge import (
     get_backup_image,
@@ -371,8 +372,8 @@ class Validator(BaseValidatorNeuron):
         self.query_queue.update_queue(self.miner_manager.all_uids_info)
 
         if self.offline_reward:
-            rewarding_thread = threading.Thread(target = self.reward_offline)
-            rewarding_thread.start()
+            generate_response_thread = threading.Thread(target = self.generate_validator_responses).start()
+            rewarding_thread = threading.Thread(target = self.reward_offline).start()
 
         for (
             model_name,
@@ -416,7 +417,9 @@ class Validator(BaseValidatorNeuron):
         self.save_state()
 
     def reward_offline(self):
-        asyncio.get_event_loop().run_until_complete(self.reward_app.dequeue_message())
+        asyncio.get_event_loop().run_until_complete(self.reward_app.dequeue_reward_message())
+    def generate_validator_responses(self):
+        asyncio.get_event_loop().run_until_complete(self.reward_app.dequeue_base_synapse_message())
 
     def clear_stream_redis(self):
         while True:
@@ -424,6 +427,8 @@ class Validator(BaseValidatorNeuron):
                 self.redis_client.clear_stream(self.reward_app.stream_name)
                 self.clear_stream_event.clear()
             time.sleep(10)
+    def enqueue_synapse_for_validation(self, base_synapse):
+        self.redis_client.publish_to_stream(stream_name = "base_synapse", message = {"data": json.dumps(base_synapse.deserialize())})
 
     def async_query_and_reward(
         self,
@@ -449,6 +454,9 @@ class Validator(BaseValidatorNeuron):
             if not synapse:
                 continue
             base_synapse = synapse.copy()
+            if self.offline_reward and any([should_reward for should_reward in should_rewards]):
+                self.enqueue_synapse_for_validation(base_synapse)
+                
             axons = [self.metagraph.axons[int(uid)] for uid in uids]
             responses = dendrite.query(
                 axons=axons,
