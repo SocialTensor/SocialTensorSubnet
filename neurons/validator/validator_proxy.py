@@ -142,7 +142,8 @@ class ValidatorProxy:
             model_name
         ):
             should_reward = should_reward or random.random() < self.validator.config.proxy.checking_probability
-            if self.validator.offline_reward and should_reward:
+            if should_reward and self.validator.offline_reward and \
+                self.validator.nicheimage_catalogue[model_name]["reward_type"] in self.validator.supporting_offline_reward_types:
                 self.validator.enqueue_synapse_for_validation(synapse)
 
             bt.logging.info(
