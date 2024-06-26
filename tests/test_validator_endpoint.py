@@ -134,8 +134,8 @@ nicheimage_catalogue = {
 }
 
 
-# URL_VALIDATOR_ENDPOINT = "http://localhost:10006/generate"
-URL_VALIDATOR_ENDPOINT = "http://213.173.98.5:13300/generate"
+URL_VALIDATOR_ENDPOINT = "http://localhost:10006/generate"
+
 
 request_inputs = []
 
