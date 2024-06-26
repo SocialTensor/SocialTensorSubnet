@@ -4,6 +4,7 @@ from image_generation_subnet.protocol import ImageGenerating
 from image_generation_subnet.validator import get_challenge, add_time_penalty
 import hashlib
 import time, json, os
+import requests
 from services.offline_rewarding.redis_client import RedisClient
 from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
 
@@ -22,13 +23,18 @@ class RewardApp():
         self.validator = validator
         self.validator_response = {}
         self.log_validator_response_engine = "redis"
+        if self.log_validator_response_engine == "redis":
+            self.redis_key_ttl = 60 * 15
         self.log_validator_response_dir = "log/validator_response"
         if not os.path.exists(self.log_validator_response_dir):
             os.makedirs(self.log_validator_response_dir)
 
+        self.reward_endpoint = ""
+
     def save_log_validator(self, key, value):
         if self.log_validator_response_engine == "redis":
             self.redis_client.client.set(key, json.dumps(value))
+            self.redis_client.client.expire(key, self.redis_key_ttl)
         else:
             save_path = os.path.join(self.log_validator_response_dir, f'{key}.json')
             with open(save_path , 'w') as f:
@@ -59,6 +65,17 @@ class RewardApp():
         return hash_id
 
     
+    def get_challenge_result(self, model_name, base_synapse):
+        req = {
+            "model_name": model_name,
+            "prompts": [base_synapse],
+        }
+        response = requests.post(self.reward_endpoint, json = req)
+        if response.status_code != 200:
+            raise Exception(f"Error in get_challenge_result: {response.text}")
+        result = response.json()[0]["image"] # for image models, not implement for text
+        return result
+
     def group_synapse_by_model(self, data):
         data_group_by_model = {}
         for base_synapse in data:
@@ -71,20 +88,15 @@ class RewardApp():
         return data_group_by_model
 
     async def generate_response(self, base_synapses, model_name):
-        model_deployment = ModelDeployment(MODEL_CONFIG[model_name])
         synapse_responses = []
         for base_synapse in base_synapses:
             hash_id = base_synapse["hash_id"]
             if not self.check_exists_log(hash_id):
-                synapse_data = ImageGenerating(**base_synapse)
-                data = synapse_data.deserialize()
-                base64_image = await model_deployment.generate(data)
-                base_synapse["validator_response"] = base64_image
+                base_synapse["validator_response"] = self.get_challenge_result(model_name, base_synapse)
                 self.save_log_validator(hash_id, base_synapse)
             else:
                 base_synapse = self.get_log_validator(hash_id)
             synapse_responses.append(base_synapse)
-        del model_deployment
         return synapse_responses
     
     def group_miner_data_by_model(self, data):
@@ -98,29 +110,25 @@ class RewardApp():
         return data_group_by_model
 
     async def generate_image_response(self, synapse_info, model_name):
-        model_deployment = ModelDeployment(MODEL_CONFIG[model_name])
         for synapse in synapse_info:
             if len(synapse["valid_uids"]) > 0:
                 base_synapse = synapse["base_data"]
                 base_synapse["hash_id"] = self.get_base_synapse_hashid(base_synapse)
                 if not self.check_exists_log(base_synapse["hash_id"]):
-                    synapse_data = ImageGenerating(**base_synapse)
-                    data = synapse_data.deserialize()
-                    base64_image = await model_deployment.generate(data)
+                    base64_image = self.get_challenge_result(model_name, base_synapse)
                     synapse["validator_response"] = base64_image
                     base_synapse["validator_response"] = base64_image
                     self.save_log_validator(base_synapse["hash_id"], base_synapse)
                 else:
                     base_synapse = self.get_log_validator(base_synapse["hash_id"])
                     synapse["validator_response"] = base_synapse["validator_response"]
-        del model_deployment
         return synapse_info
 
     def calculate_rewards(self, data):
         
         total_uids, total_rewards = [], []
-        valid_rewards = []
         for info in data:
+            valid_rewards = []
             timeout = info["timeout"]
             if len(info["valid_uids"]) > 0:
                 validator_response = info.get("validator_response")
@@ -157,9 +165,6 @@ class RewardApp():
         total_uids, total_rewards = self.calculate_rewards(data_with_validator_response)
         return total_uids, total_rewards
 
-    def reward_custom_type(self, data, model_name):
-        pass
-        
     async def categorize_rewards_type(self, data_group_by_model):
         for model_name in data_group_by_model:
             reward_url = self.validator.nicheimage_catalogue[model_name]["reward_url"]
@@ -168,7 +173,7 @@ class RewardApp():
             reward_uids, rewards = [], []
             if reward_type == 'image':
                 reward_uids, rewards = await self.reward_image_type(data, model_name)
-            elif reward_type == "custom" and callable(reward_url):
+            elif reward_type == "custom_offline" and callable(reward_url):
                 for d in data:
                     d_uids, d_rewards = reward_url(
                         ImageGenerating(**d["base_data"]), [ImageGenerating(**synapse) for synapse in d["all_miner_data"]], d["uids"]
