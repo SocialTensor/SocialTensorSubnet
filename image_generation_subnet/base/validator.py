@@ -266,7 +266,7 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.trace("processed_weight_uids", processed_weight_uids)
 
         # Set the weights on chain via our subtensor connection.
-        self.subtensor.set_weights(
+        success, message = self.subtensor.set_weights(
             wallet=self.wallet,
             netuid=self.config.netuid,
             uids=processed_weight_uids,
@@ -274,8 +274,10 @@ class BaseValidatorNeuron(BaseNeuron):
             wait_for_finalization=False,
             version_key=self.spec_version,
         )
-
-        bt.logging.info(f"Set weights: {processed_weights}")
+        if success:
+            bt.logging.success(f"[Weights] Set weights: {processed_weights}")
+        else:
+            bt.logging.error(f"[Weights] Set weights failed")
 
     def reveal_weights(self):
         success, message = self.subtensor.reveal_weights(
@@ -295,9 +297,13 @@ class BaseValidatorNeuron(BaseNeuron):
             return False
 
         # Define appropriate logic for when set weights.
-        return (
+        if not (
             self.block - self.metagraph.last_update[self.uid]
-        ) > self.config.neuron.epoch_length
+        ) > self.config.neuron.epoch_length:
+            bt.logging.debug("[Weights] Not the time to set weights")
+            return False
+        bt.logging.info("[Weights] Allowed to set weights")
+        return True
 
     def should_reveal_last_weights(self):
         """
