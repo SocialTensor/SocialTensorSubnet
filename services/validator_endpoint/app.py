@@ -61,21 +61,13 @@ class PromptRequests(BaseModel):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=10006)
+    parser.add_argument("--port", type=int, default=20202)
     parser.add_argument(
         "--bind_ip",
         type=str,
         default="0.0.0.0",
         help="IP address to run the service on",
     )
-    parser.add_argument(
-        "--model_name",
-        type=str,
-        default="RealisticVision",
-    )
-    parser.add_argument("--num_gpus", type=float, default=1.0)
-    parser.add_argument("--num_cpus", type=float, default=1.0)
-    parser.add_argument("--num_replicas", type=int, default=1)
     args = parser.parse_args()
     return args
 
