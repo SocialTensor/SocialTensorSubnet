@@ -230,7 +230,8 @@ class BaseValidatorNeuron(BaseNeuron):
             if self.should_commit_new_weights():
                 self.commit_weights()
         else:
-
+            if self.should_set_weights():
+                self.set_weights()
 
     def set_weights(self):
         """
@@ -304,6 +305,8 @@ class BaseValidatorNeuron(BaseNeuron):
         1. revealed the last commit weights
         2. reveal interval
         """
+        if self.config.neuron.disable_set_weights:
+            return False
         if not self.need_reveal:
             bt.logging.warning("[Reveal Weights] Haven't set new weights since last time")
             return False
@@ -314,6 +317,8 @@ class BaseValidatorNeuron(BaseNeuron):
         return True
 
     def should_commit_new_weights(self):
+        if self.config.neuron.disable_set_weights:
+            return False
         commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
         if self.need_reveal:
             bt.logging.warning(f"[Set Weights] - Need reveal lastest commited weights first!")
