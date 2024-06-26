@@ -65,7 +65,7 @@ class ImageGenerating(bt.Synapse):
         description="Base64 encoded image",
     )
     # avoid warnings
-    computed_body_hash: str = Field("", title="Computed Body Hash", frozen=False)
+    computed_body_hash: str = pydantic.Field("", title="Computed Body Hash", frozen=False)
 
     def miner_update(self, update: dict):
         return self.copy(update=update)
@@ -146,7 +146,7 @@ class TextGenerating(bt.Synapse):
     prompt_output: typing.Optional[dict] = {}
     pipeline_params: dict = {}
     # avoid warnings
-    computed_body_hash: str = Field("", title="Computed Body Hash", frozen=False)
+    computed_body_hash: str = pydantic.Field("", title="Computed Body Hash", frozen=False)
     def miner_update(self, update: dict):
         self.prompt_output = update
 
