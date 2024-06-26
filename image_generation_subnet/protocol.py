@@ -16,7 +16,7 @@ MODEL_CONFIG = yaml.load(
 class Information(bt.Synapse):
     request_dict: dict = {}
     response_dict: dict = {}
-    computed_body_hash: str = Field("", title="Computed Body Hash", frozen=False)
+    computed_body_hash: str = pydantic.Field("", title="Computed Body Hash", frozen=False)
 
 class ImageGenerating(bt.Synapse):
     prompt: str = pydantic.Field(
