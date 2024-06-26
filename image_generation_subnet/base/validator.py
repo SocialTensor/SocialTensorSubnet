@@ -222,12 +222,59 @@ class BaseValidatorNeuron(BaseNeuron):
         if self.should_sync_metagraph():
             self.resync_metagraph()
 
-        if self.should_reveal_last_weights():
-            self.reveal_weights()
-        
-        if self.should_commit_new_weights():
-            self.set_weights()
+        commit_reveal_weights_enabled = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_enabled
+        bt.logging.info(f"[Weights] commit_reveal_weights: {commit_reveal_weights_enabled}")
+        if commit_reveal_weights_enabled:
+            if self.should_reveal_last_weights():
+                self.reveal_weights()
+            if self.should_commit_new_weights():
+                self.commit_weights()
+        else:
 
+
+    def set_weights(self):
+        """
+        Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
+        """
+
+        # Check if self.scores contains any NaN values and log a warning if it does.
+        if torch.isnan(self.scores).any():
+            bt.logging.warning(
+                "Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
+            )
+
+        # Calculate the average reward for each uid across non-zero values.
+        # Replace any NaN values with 0.
+        raw_weights = torch.nn.functional.normalize(self.scores, p=1, dim=0)
+        bt.logging.trace("raw_weights", raw_weights)
+        bt.logging.trace("top10 values", raw_weights.sort()[0])
+        bt.logging.trace("top10 uids", raw_weights.sort()[1])
+
+        # Process the raw weights to final_weights via subtensor limitations.
+        (
+            processed_weight_uids,
+            processed_weights,
+        ) = bt.utils.weight_utils.process_weights_for_netuid(
+            uids=self.metagraph.uids.to("cpu"),
+            weights=raw_weights.to("cpu"),
+            netuid=self.config.netuid,
+            subtensor=self.subtensor,
+            metagraph=self.metagraph,
+        )
+        bt.logging.trace("processed_weights", processed_weights)
+        bt.logging.trace("processed_weight_uids", processed_weight_uids)
+
+        # Set the weights on chain via our subtensor connection.
+        self.subtensor.set_weights(
+            wallet=self.wallet,
+            netuid=self.config.netuid,
+            uids=processed_weight_uids,
+            weights=processed_weights,
+            wait_for_finalization=False,
+            version_key=self.spec_version,
+        )
+
+        bt.logging.info(f"Set weights: {processed_weights}")
 
     def reveal_weights(self):
         success, message = self.subtensor.reveal_weights(
@@ -240,6 +287,16 @@ class BaseValidatorNeuron(BaseNeuron):
             self.need_reveal = False
         else:
             self.need_reveal = True
+
+    def should_set_weights(self) -> bool:
+        # Check if enough epoch blocks have elapsed since the last epoch.
+        if self.config.neuron.disable_set_weights:
+            return False
+
+        # Define appropriate logic for when set weights.
+        return (
+            self.block - self.metagraph.last_update[self.uid]
+        ) > self.config.neuron.epoch_length
 
     def should_reveal_last_weights(self):
         """
@@ -266,7 +323,7 @@ class BaseValidatorNeuron(BaseNeuron):
             return False
         return True
 
-    def set_weights(self):
+    def commit_weights(self):
         """
         set hashed weights
         """
@@ -295,7 +352,7 @@ class BaseValidatorNeuron(BaseNeuron):
         )
         processed_weight_uids = processed_weight_uids
         processed_weights = processed_weights
-        salt = [random.randint(0, 1000) for _ in range(3)]
+        salt = [random.randint(0, 1000) for _ in range(4)]
 
         bt.logging.trace("processed_weights", processed_weights)
         bt.logging.trace("processed_weight_uids", processed_weight_uids)
