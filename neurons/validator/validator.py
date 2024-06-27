@@ -172,7 +172,7 @@ def initialize_nicheimage_catalogue(config):
                 "supporting_pipelines"
             ],
             "reward_url": ig_subnet.validator.get_reward_GoJourney,
-            "reward_type": "custom",
+            "reward_type": "custom_offline",
             "timeout": 12,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
@@ -291,7 +291,7 @@ def initialize_nicheimage_catalogue(config):
                 "supporting_pipelines"
             ],
             "reward_url": ig_subnet.validator.get_reward_dalle,
-            "reward_type": "custom",
+            "reward_type": "custom_offline",
             "timeout": 36,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
@@ -319,7 +319,9 @@ class Validator(BaseValidatorNeuron):
         )
         # self.config.proxy.port = 40003 # for test
         self.redis_client = RedisClient()
+
         self.offline_reward = True
+        self.supporting_offline_reward_types = ["image", "custom_offline"]
         if self.offline_reward:
             self.reward_app = RewardApp(self)
             self.clear_stream_event = threading.Event() # Event to signal when to clear the redis queue
@@ -372,8 +374,8 @@ class Validator(BaseValidatorNeuron):
         self.query_queue.update_queue(self.miner_manager.all_uids_info)
 
         if self.offline_reward:
-            generate_response_thread = threading.Thread(target = self.generate_validator_responses).start()
-            rewarding_thread = threading.Thread(target = self.reward_offline).start()
+            threading.Thread(target = self.generate_validator_responses, daemon=True).start()
+            threading.Thread(target = self.reward_offline, daemon=True).start()
 
         for (
             model_name,
@@ -484,7 +486,7 @@ class Validator(BaseValidatorNeuron):
             store_thread.start()
 
             if reward_uids:
-                if self.offline_reward:
+                if self.offline_reward and self.nicheimage_catalogue[model_name]["reward_type"] in self.supporting_offline_reward_types:
                     ig_subnet.validator.get_reward_offline(base_synapse, reward_responses, reward_uids, self.nicheimage_catalogue[model_name].get("timeout", 12), self.redis_client)
                 else:
                     if callable(reward_url):

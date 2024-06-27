@@ -30,7 +30,7 @@ class RedisClient():
         print(f"Clear stream {stream_name} done !")
 
     
-    async def process_message_from_stream_async(self, stream_name, process_callback, count=5, block=5000, always_ack = False, decode = True, retries = 10):
+    async def process_message_from_stream_async(self, stream_name, process_callback, count=10, block=5000, always_ack = False, decode = True, retries = 10):
         while True:
             messages = self.read_from_stream(stream_name, count, block)
 
@@ -44,22 +44,23 @@ class RedisClient():
                 # else:
                 #     return
 
-            all_message_data, all_message_ids = [], []
+            all_messages = []
             for stream, message_list in messages:
                 for message_id, message_data in message_list:
                     if decode:
                         message_data = self.decode_message_stream(message_data)
                     # print(f"Message ID: {message_id}")
-                    all_message_data.append(message_data)
-                    all_message_ids.append(message_id)
+                    all_messages.append({
+                        "content": message_data,
+                        "id": message_id.decode('utf-8')
+                    })
                     if always_ack:
                         self.remove_from_stream(stream_name, message_id)
             
             try:
-                await process_callback(all_message_data)
+                success_message_ids, error_message_ids  = await process_callback(all_messages)
                 if not  always_ack:
-                    for message_id in all_message_ids:
+                    for message_id in success_message_ids:
                         self.remove_from_stream(stream_name, message_id)
             except Exception as ex:
-                print(f"Exception process message {message_id}: {str(ex)}")
-    
+                print(f"Exception process message in stream: {str(ex)}")
