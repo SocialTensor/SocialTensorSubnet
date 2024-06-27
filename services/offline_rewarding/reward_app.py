@@ -93,6 +93,7 @@ class RewardApp():
     async def generate_response(self, base_synapses, model_name):
         success_ids, error_ids = [], []
         for base_synapse in base_synapses:
+            raw_message_id = copy.deepcopy(base_synapse["message_id"])
             try:
                 hash_id = base_synapse["hash_id"]
                 if not self.check_exists_log(hash_id):
@@ -100,10 +101,10 @@ class RewardApp():
                     self.save_log_validator(hash_id, base_synapse)
                 else:
                     base_synapse = self.get_log_validator(hash_id)
-                success_ids.append(base_synapse["message_id"])
+                success_ids.append(raw_message_id)
             except Exception as ex:
                 print(f"[ERROR] generate_response fail: {str(ex)}")
-                error_ids.append(base_synapse["message_id"])
+                error_ids.append(raw_message_id)
         return success_ids, error_ids
     
     def group_miner_data_by_model(self, data):
@@ -120,6 +121,7 @@ class RewardApp():
         success_ids, not_processed_ids = [], []
         success_synapses = []
         for synapse in synapse_info:
+            raw_message_id = copy.deepcopy(synapse["message_id"])
             if len(synapse["valid_uids"]) > 0:
                 base_synapse = synapse["base_data"]
                 base_synapse["hash_id"] = self.get_base_synapse_hashid(base_synapse)
@@ -131,19 +133,19 @@ class RewardApp():
                             base_synapse["validator_response"] = base64_image
                             self.save_log_validator(base_synapse["hash_id"], base_synapse)
 
-                            success_ids.append(synapse["message_id"])
+                            success_ids.append(raw_message_id)
                             success_synapses.append(synapse)
                         except Exception as ex:
                             print(f"Genereate response error: {str(ex)}")
-                            not_processed_ids.append(synapse["message_id"])
+                            not_processed_ids.append(raw_message_id)
                     else:
-                        not_processed_ids.append(synapse["message_id"])
+                        not_processed_ids.append(raw_message_id)
                     
                 else:
                     base_synapse = self.get_log_validator(base_synapse["hash_id"])
                     synapse["validator_response"] = base_synapse["validator_response"]
 
-                    success_ids.append(synapse["message_id"])
+                    success_ids.append(raw_message_id)
                     success_synapses.append(synapse)
         return success_synapses, success_ids, not_processed_ids
 
@@ -232,6 +234,7 @@ class RewardApp():
             total_not_processed_ids.extend(not_processed_ids)
             if len(reward_uids) > 0 :
                 reward_uids, rewards =self.scale_reward(reward_uids, rewards)
+                print("Reward result: ", reward_uids, rewards)
                 self.validator.miner_manager.update_scores(reward_uids, rewards)
         return total_success_ids, total_not_processed_ids
 
@@ -250,7 +253,7 @@ class RewardApp():
             total_success_ids, total_not_processed_ids = await self.categorize_rewards_type(data_group_by_model)
             return total_success_ids, total_not_processed_ids
         
-        await self.redis_client.process_message_from_stream_async(self.stream_name, reward_callback)
+        await self.redis_client.process_message_from_stream_async(self.stream_name, reward_callback, count=50)
 
     async def dequeue_base_synapse_message(self):
         async def generate_validator_response(messages):
