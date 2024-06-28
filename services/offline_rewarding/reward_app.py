@@ -226,7 +226,7 @@ class RewardApp():
                     )
                     reward_uids.extend(d_uids)
                     rewards.extend(d_rewards)
-                    success_ids, not_processed_ids = [x["message_id"] for x in data], []
+                success_ids, not_processed_ids = [x["message_id"] for x in data], []
             else:
                 print("Reward method not found !!!")
             
