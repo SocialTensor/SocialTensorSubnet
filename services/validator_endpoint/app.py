@@ -61,7 +61,7 @@ class PromptRequests(BaseModel):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=20202)
+    parser.add_argument("--port", type=int, default=13300)
     parser.add_argument(
         "--bind_ip",
         type=str,
@@ -97,9 +97,11 @@ class ValidatorEndpoint:
         return model_deployment
 
     async def unload_model(self):
-        del self.model_handle
-        gc.collect()
+        if hasattr(self, 'model_handle'):
+            del self.model_handle
         torch.cuda.empty_cache()
+        gc.collect()
+        
 
     async def generate(self, item: PromptRequests):
         model_name = item.model_name

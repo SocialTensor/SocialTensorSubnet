@@ -15,10 +15,10 @@ print(MODEL_CONFIG)
 
 class RewardApp():
     def __init__(self, validator):
-        
-        self.stream_name = "synapse_data"
-        self.base_synapse_stream_name = "base_synapse"
-        self.redis_client: RedisClient = RedisClient()
+        self.redis_client: RedisClient = validator.redis_client
+        self.reward_stream_name = self.redis_client.reward_stream_name
+        self.base_synapse_stream_name = self.redis_client.base_synapse_stream_name
+
         self.rewarder = CosineSimilarityReward()
         self.validator = validator
         self.validator_response = {}
@@ -29,8 +29,11 @@ class RewardApp():
         if not os.path.exists(self.log_validator_response_dir):
             os.makedirs(self.log_validator_response_dir)
 
-        self.reward_endpoint = "url-validator-endpoint"
+        self.reward_endpoint = "http://213.173.98.5:13300/generate"
         self.current_model = None
+
+        self.total_uids = []
+        self.total_rewards = []
 
     def save_log_validator(self, key, value):
         if self.log_validator_response_engine == "redis":
@@ -69,6 +72,8 @@ class RewardApp():
 
     
     def get_challenge_result(self, model_name, base_synapse):
+        if model_name in ["GoJourney","DallE"]:
+            return None
         req = {
             "model_name": model_name,
             "prompts": [base_synapse],
@@ -98,6 +103,7 @@ class RewardApp():
                 hash_id = base_synapse["hash_id"]
                 if not self.check_exists_log(hash_id):
                     base_synapse["validator_response"] = self.get_challenge_result(model_name, base_synapse)
+                    self.current_model = model_name
                     self.save_log_validator(hash_id, base_synapse)
                 else:
                     base_synapse = self.get_log_validator(hash_id)
@@ -129,6 +135,7 @@ class RewardApp():
                     if generate_if_not_exist:
                         try:
                             base64_image = self.get_challenge_result(model_name, base_synapse)
+                            self.current_model = model_name
                             synapse["validator_response"] = base64_image
                             base_synapse["validator_response"] = base64_image
                             self.save_log_validator(base_synapse["hash_id"], base_synapse)
@@ -236,10 +243,16 @@ class RewardApp():
                 reward_uids, rewards =self.scale_reward(reward_uids, rewards)
                 print("Reward result: ", reward_uids, rewards)
                 self.validator.miner_manager.update_scores(reward_uids, rewards)
+
+                self.total_uids.extend(reward_uids)
+                self.total_rewards.extend(rewards)
+                print("Total_uids: " ,self.total_uids, f" Total {len(self.total_uids)}", f" Total distinct: {len(list(set(self.total_uids)))}")
+                print("Total_rewards: " ,self.total_rewards, f" Total {len(self.total_rewards)}")
         return total_success_ids, total_not_processed_ids
 
     async def dequeue_reward_message(self):
         async def reward_callback(messages):
+            meta = {"count_success" : {}}
             message_ids = [x["id"] for x in messages]
             message_content = [x["content"] for x in messages]
 
@@ -251,12 +264,21 @@ class RewardApp():
             data_group_by_model = self.group_miner_data_by_model(message_data)
 
             total_success_ids, total_not_processed_ids = await self.categorize_rewards_type(data_group_by_model)
-            return total_success_ids, total_not_processed_ids
+
+            for mess in message_data:
+                if mess["message_id"] in total_success_ids:
+                    base_synapse = mess["base_data"]
+                    model_name = base_synapse["model_name"]
+                    if model_name not in meta:
+                        meta["count_success"][model_name] = 0
+                    meta["count_success"][model_name]+= 1
+            return total_success_ids, total_not_processed_ids, meta
         
-        await self.redis_client.process_message_from_stream_async(self.stream_name, reward_callback, count=50)
+        await self.redis_client.process_message_from_stream_async(self.reward_stream_name, reward_callback, count=50)
 
     async def dequeue_base_synapse_message(self):
         async def generate_validator_response(messages):
+            meta = {"count_success" : {}}
             message_data = [x["content"] for x in messages]
             message_ids = [x["id"] for x in messages]
             base_synapses = []
@@ -270,15 +292,18 @@ class RewardApp():
 
             total_success_ids, total_error_ids = [], []
             for model_name in priority_models:
+                if model_name not in meta:
+                    meta["count_success"][model_name] = 0
                 if model_name in data_group_by_model:
                     success_ids, error_ids = await self.generate_response(data_group_by_model[model_name], model_name)
                     total_success_ids.extend(success_ids)
                     total_error_ids.extend(error_ids)
+                    meta["count_success"][model_name]+= len(success_ids)
                     break
             
-            return total_success_ids, total_error_ids
+            return total_success_ids, total_error_ids, meta
         
-        await self.redis_client.process_message_from_stream_async(self.base_synapse_stream_name, generate_validator_response)    
+        await self.redis_client.process_message_from_stream_async(self.base_synapse_stream_name, generate_validator_response, count=100)    
 
 if __name__ == "__main__":
     app = RewardApp()

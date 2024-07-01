@@ -24,7 +24,7 @@ from services.offline_rewarding.redis_client import RedisClient
 from services.offline_rewarding.reward_app import RewardApp
 
 MODEL_CONFIGS = yaml.load(
-    open("/home/zenai/vietle/sn23/NicheImage/generation_models/configs/model_config.yaml"), yaml.FullLoader
+    open("generation_models/configs/model_config.yaml"), yaml.FullLoader
 )
 
 
@@ -322,6 +322,7 @@ class Validator(BaseValidatorNeuron):
 
         self.offline_reward = True
         self.supporting_offline_reward_types = ["image", "custom_offline"]
+        self.generate_response_offline_types = ["image"]
         if self.offline_reward:
             self.reward_app = RewardApp(self)
             self.clear_stream_event = threading.Event() # Event to signal when to clear the redis queue
@@ -403,8 +404,11 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info(
             "Loop completed, uids info:\n",
-            str(self.miner_manager.all_uids_info).replace("},", "},\n"),
         )
+        # bt.logging.info(
+        #     "Loop completed, uids info:\n",
+        #     str(self.miner_manager.all_uids_info).replace("},", "},\n"),
+        # )
 
         actual_time_taken = time.time() - loop_start
 
@@ -426,7 +430,8 @@ class Validator(BaseValidatorNeuron):
     def clear_stream_redis(self):
         while True:
             if self.clear_stream_event.is_set():
-                self.redis_client.clear_stream(self.reward_app.stream_name)
+                self.redis_client.clear_stream(self.reward_app.reward_stream_name)
+                self.redis_client.clear_stream(self.reward_app.base_synapse_stream_name)
                 self.clear_stream_event.clear()
             time.sleep(10)
     def enqueue_synapse_for_validation(self, base_synapse):
@@ -456,7 +461,7 @@ class Validator(BaseValidatorNeuron):
             if not synapse:
                 continue
             base_synapse = synapse.copy()
-            if self.offline_reward and any([should_reward for should_reward in should_rewards]):
+            if self.offline_reward and any([should_reward for should_reward in should_rewards]) and self.nicheimage_catalogue[model_name]["reward_type"] in self.generate_response_offline_types:
                 self.enqueue_synapse_for_validation(base_synapse)
                 
             axons = [self.metagraph.axons[int(uid)] for uid in uids]
@@ -525,6 +530,7 @@ class Validator(BaseValidatorNeuron):
             ]
         )
         batch_size = min(4, 1 + model_miner_count // 4)
+        # batch_size = min(16, 1 + model_miner_count // 2)
         random.shuffle(uids_should_rewards)
         batched_uids_should_rewards = [
             uids_should_rewards[i * batch_size : (i + 1) * batch_size]
