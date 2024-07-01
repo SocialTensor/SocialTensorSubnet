@@ -122,6 +122,9 @@ def resize_for_condition_image(input_image: Image, resolution: int):
 
 
 def download_checkpoint(download_url, checkpoint_file):
+    if "civitai_token" in download_url:
+        download_url = download_url.format(civitai_token=os.environ.get("CIVITAI_TOKEN"))
+    print(download_url)
     folder, filename = os.path.split(checkpoint_file)
     os.makedirs(folder, exist_ok=True)
     with requests.get(download_url, stream=True) as response:
