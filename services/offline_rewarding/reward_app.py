@@ -15,7 +15,7 @@ print(MODEL_CONFIG)
 
 class RewardApp():
     def __init__(self, validator):
-        self.redis_client: RedisClient = validator.redis_client
+        self.redis_client: RedisClient = RedisClient()
         self.reward_stream_name = self.redis_client.reward_stream_name
         self.base_synapse_stream_name = self.redis_client.base_synapse_stream_name
 
@@ -29,7 +29,7 @@ class RewardApp():
         if not os.path.exists(self.log_validator_response_dir):
             os.makedirs(self.log_validator_response_dir)
 
-        self.reward_endpoint = "http://213.173.98.5:13300/generate"
+        self.reward_endpoint = "url-endpoint"
         self.current_model = None
 
         self.total_uids = []
