@@ -3,7 +3,7 @@ import json, time
 
 
 class RedisClient():
-    def __init__(self, host='20.62.195.114', port=6378, db=0):
+    def __init__(self, host='localhost', port=6379, db=0):
         self.client = redis.Redis(host=host, port=port, db=db)
         self.reward_stream_name = "synapse_data"
         self.base_synapse_stream_name = "base_synapse"
@@ -83,8 +83,3 @@ class RedisClient():
                             self.remove_from_stream(stream_name, message_id)
             except Exception as ex:
                 print(f"Exception process message in stream: {str(ex)}")
-
-# client = RedisClient()
-# for key in client.client.scan_iter("*"):
-#     print(key)
-#     client.client.delete(key)

@@ -261,7 +261,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.StickerMaker,
-            "reward_type": "image",
+            "reward_type": "image_online",
             "inference_params": {"is_upscale": False},
         },
         "FaceToMany": {
@@ -272,7 +272,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.FaceToMany,
-            "reward_type": "image",
+            "reward_type": "image_online",
             "inference_params": {},
         },
         "Llama3_70b": {
@@ -401,14 +401,10 @@ class Validator(BaseValidatorNeuron):
         for thread in threads:
             thread.join()
 
-
         bt.logging.info(
             "Loop completed, uids info:\n",
+            str(self.miner_manager.all_uids_info).replace("},", "},\n"),
         )
-        # bt.logging.info(
-        #     "Loop completed, uids info:\n",
-        #     str(self.miner_manager.all_uids_info).replace("},", "},\n"),
-        # )
 
         actual_time_taken = time.time() - loop_start
 
