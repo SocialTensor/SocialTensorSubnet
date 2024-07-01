@@ -1,6 +1,5 @@
 from .comfyui_helper.helpers.comfyui import ComfyUI
 from .niche_stable_diffusion import NicheStableDiffusion
-from .niche_stable_diffusion_v3 import NicheStableDiffusionV3
 from .niche_stable_diffusion_xl import NicheStableDiffusionXL
 from .niche_go_journey import NicheGoJourney
 from .niche_comfyui import NicheComfyUI
@@ -11,5 +10,4 @@ __all__ = [
     "NicheGoJourney",
     "NicheComfyUI",
     "NicheDallE",
-    "NicheStableDiffusionV3"
 ]
