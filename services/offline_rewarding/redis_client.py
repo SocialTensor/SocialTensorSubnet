@@ -3,12 +3,15 @@ import json, time
 
 
 class RedisClient():
-    def __init__(self, host='localhost', port=6379, db=0):
+    def __init__(self, host='20.62.195.114', port=6378, db=0):
         self.client = redis.Redis(host=host, port=port, db=db)
+        self.reward_stream_name = "synapse_data"
+        self.base_synapse_stream_name = "base_synapse"
+        self.count_success = {}
 
     def publish_to_stream(self, stream_name, message):
         message_id = self.client.xadd(stream_name, message)
-        print(f"Published message ID: {message_id}")
+        print(f"Published {stream_name} message ID: {message_id}")
         return message_id
 
     def read_from_stream(self, stream_name, count, block):
@@ -17,7 +20,7 @@ class RedisClient():
     
     def remove_from_stream(self, stream_name, message_id):
         self.client.xdel(stream_name, message_id)
-        print(f"Removed message ID: {message_id}")
+        print(f"Removed {stream_name} message ID: {message_id}")
 
     def decode_message_stream(self, message_data):
         output = {}
@@ -26,16 +29,29 @@ class RedisClient():
         return output
     
     def clear_stream(self, stream_name):
+        print(self.count_success)
+        count = self.client.xlen(stream_name)
         self.client.xtrim(stream_name, maxlen=0)
-        print(f"Clear stream {stream_name} done !")
+        print(f"Number of messages remain in {stream_name} stream: {count}.", f"Clear stream {stream_name} done !")
 
-    
+        self.count_success = {}
+
+    def update_meta_success(self, stream_name, meta):
+        meta_count_success = meta["count_success"]
+        if stream_name not in self.count_success:
+            self.count_success[stream_name] = {}
+        for key in meta_count_success:
+            if key not in self.count_success[stream_name]:
+                self.count_success[stream_name][key] = 0
+            self.count_success[stream_name][key] += meta_count_success[key]
+
     async def process_message_from_stream_async(self, stream_name, process_callback, count=10, block=5000, always_ack = False, decode = True, retries = 10):
         while True:
             messages = self.read_from_stream(stream_name, count, block)
 
             if not messages:
                 print("No new messages. Waiting for more...")
+                continue
                 # if retries > 0:
                 #     print("No new messages. Waiting for more...")
                 #     retries -= 1
@@ -58,9 +74,17 @@ class RedisClient():
                         self.remove_from_stream(stream_name, message_id)
             
             try:
-                success_message_ids, error_message_ids  = await process_callback(all_messages)
-                if not  always_ack:
-                    for message_id in success_message_ids:
-                        self.remove_from_stream(stream_name, message_id)
+                success_message_ids, error_message_ids, meta  = await process_callback(all_messages)
+                if len(success_message_ids) > 0:
+                    self.update_meta_success(stream_name, meta)
+                    print(f"Count success:  {self.count_success}")
+                    if not  always_ack:
+                        for message_id in success_message_ids:
+                            self.remove_from_stream(stream_name, message_id)
             except Exception as ex:
                 print(f"Exception process message in stream: {str(ex)}")
+
+# client = RedisClient()
+# for key in client.client.scan_iter("*"):
+#     print(key)
+#     client.client.delete(key)
