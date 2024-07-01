@@ -3,7 +3,6 @@ from diffusers import (
     EulerAncestralDiscreteScheduler,
     DPMSolverMultistepScheduler,
     LCMScheduler,
-    FlowMatchEulerDiscreteScheduler
 )
 from io import BytesIO
 import base64
@@ -56,8 +55,6 @@ def set_scheduler(scheduler_name: str, config):
         scheduler = EulerDiscreteScheduler.from_config(config)
     elif scheduler_name == "euler_a":
         scheduler = EulerAncestralDiscreteScheduler.from_config(config)
-    elif scheduler_name == 'fm_euler':
-        scheduler = FlowMatchEulerDiscreteScheduler.from_config(config)
     elif scheduler_name == "dpm++2m_karras":
         scheduler = DPMSolverMultistepScheduler.from_config(
             config, use_karras_sigmas=True

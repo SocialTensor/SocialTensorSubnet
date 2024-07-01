@@ -75,13 +75,3 @@ DallE:
   params:
     supporting_pipelines:
       - "txt2img"
-
-StableDiffusionV3:
-  target: generation_models.NicheStableDiffusionV3
-  params:
-    # checkpoint_file: "checkpoints/StableDiffusionV3.safetensors"
-    # download_url: "https://civitai.com/api/download/models/552771?token={civitai_token}"
-    repo_id: "stabilityai/stable-diffusion-3-medium-diffusers"
-    scheduler: "fm_euler"
-    supporting_pipelines:
-      - "txt2img"
