@@ -317,13 +317,11 @@ class Validator(BaseValidatorNeuron):
             list(self.nicheimage_catalogue.keys()),
             time_per_loop=self.config.loop_base_time,
         )
-        # self.config.proxy.port = 40003 # for test
-        self.redis_client = RedisClient()
-
-        self.offline_reward = True
+        self.offline_reward = self.config.offline_reward.enable
         self.supporting_offline_reward_types = ["image", "custom_offline"]
         self.generate_response_offline_types = ["image"]
         if self.offline_reward:
+            self.redis_client = RedisClient(url=self.config.offline_reward.redis_endpoint)
             self.reward_app = RewardApp(self)
             self.clear_stream_event = threading.Event() # Event to signal when to clear the redis queue
             threading.Thread(target=self.clear_stream_redis, daemon=True).start()

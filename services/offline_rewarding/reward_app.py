@@ -15,13 +15,12 @@ print(MODEL_CONFIG)
 
 class RewardApp():
     def __init__(self, validator):
-        self.redis_client: RedisClient = RedisClient()
+        self.validator = validator
+        self.redis_client: RedisClient = RedisClient(url=self.validator.config.offline_reward.redis_endpoint)
         self.reward_stream_name = self.redis_client.reward_stream_name
         self.base_synapse_stream_name = self.redis_client.base_synapse_stream_name
-
         self.rewarder = CosineSimilarityReward()
-        self.validator = validator
-        self.validator_response = {}
+
         self.log_validator_response_engine = "redis"
         if self.log_validator_response_engine == "redis":
             self.redis_key_ttl = 60 * 15
@@ -29,7 +28,7 @@ class RewardApp():
         if not os.path.exists(self.log_validator_response_dir):
             os.makedirs(self.log_validator_response_dir)
 
-        self.reward_endpoint = "url-endpoint"
+        self.reward_endpoint = self.validator.config.offline_reward.validator_endpoint
         self.current_model = None
 
         self.total_uids = []

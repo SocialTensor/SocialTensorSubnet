@@ -1,9 +1,14 @@
 import redis
 import json, time
-
+from urllib.parse import urlparse
 
 class RedisClient():
-    def __init__(self, host='localhost', port=6379, db=0):
+    def __init__(self, host=None, port=None, url=None, db=0):
+        if url:
+            parsed_url = urlparse(url)
+            host = parsed_url.hostname
+            port = parsed_url.port
+            
         self.client = redis.Redis(host=host, port=port, db=db)
         self.reward_stream_name = "synapse_data"
         self.base_synapse_stream_name = "base_synapse"
