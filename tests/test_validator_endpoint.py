@@ -3,7 +3,7 @@ import requests
 import yaml, copy, base64, io
 from PIL import Image
 import time
-
+import argparse
 
 def pil_image_to_base64(image: Image.Image, format="JPEG") -> str:
     if format not in ["JPEG", "PNG"]:
@@ -133,41 +133,45 @@ nicheimage_catalogue = {
     }
 }
 
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Test validator endpoint')
+    parser.add_argument('--n_times', type=int, default=2, help='Number of times to test')
+    parser.add_argument(
+        "--generate_endpoint",
+        type=str,
+        help="The endpoint to send generate requests to.",
+        default="http://127.0.0.1:13300/generate",
+    )
+    args = parser.parse_args()
 
-URL_VALIDATOR_ENDPOINT = "http://localhost:10006/generate"
-
-request_inputs = []
-
-for model_name, config in nicheimage_catalogue.items():
-    if not config["reward_type"] in ["image"]:
-        continue
-    dt = {
-        "prompt": "a cute cat",
-        "seed": 0,
-        "pipeline_params": config["inference_params"]
-    }
-    for pipeline_type in config["supporting_pipelines"]:
-        print(model_name, pipeline_type)
-        dt_cp = copy.deepcopy(dt)
-        dt_cp["pipeline_type"] = pipeline_type
-        if pipeline_type in ["img2img", "instantid", "controlnet"]:
-            dt_cp["conditional_image"] = conditional_image
-        req = {
-            "model_name": model_name,
-            "prompts": [
-                dt_cp
-            ]
+    request_inputs = []
+    for model_name, config in nicheimage_catalogue.items():
+        if not config["reward_type"] in ["image"]:
+            continue
+        dt = {
+            "prompt": "a cute cat",
+            "seed": 0,
+            "pipeline_params": config["inference_params"]
         }
-        res = requests.post(URL_VALIDATOR_ENDPOINT, json = req)
-        print(res.status_code)
+        for pipeline_type in config["supporting_pipelines"]:
+            dt_cp = copy.deepcopy(dt)
+            dt_cp["pipeline_type"] = pipeline_type
+            if pipeline_type in ["img2img", "instantid", "controlnet"]:
+                dt_cp["conditional_image"] = conditional_image
+            req = {
+                "model_name": model_name,
+                "prompts": [
+                    dt_cp
+                ]
+            }
+            request_inputs.append(req)
+
+    request_inputs = request_inputs * args.n_times
+    t1 = time.time()
+    for req in request_inputs:
+        print("Processing: ", req["model_name"], req["prompts"][0]["pipeline_type"])
+        res = requests.post(args.generate_endpoint, json = req)
+        print("Status code: ", res.status_code)
         assert res.status_code == 200
-        request_inputs.append(req)
 
-
-t1 = time.time()
-for req in request_inputs:
-    res = requests.post(URL_VALIDATOR_ENDPOINT, json = req)
-    print(res.status_code)
-    assert res.status_code == 200
-
-print("Total time: ", time.time()-t1)
+    print("Total time: ", time.time()-t1)
