@@ -11,7 +11,6 @@ from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
 )
-print(MODEL_CONFIG)
 
 class RewardApp():
     def __init__(self, validator):
@@ -189,20 +188,19 @@ class RewardApp():
                     0.6 + 0.4 * self.validator.miner_manager.all_uids_info[uid]["reward_scale"]
                 )
         return reward_uids, rewards
-    
-    def get_priority_of_model(self):
-        """
-        Retrieves the processing priority for models. The current model has the highest priority,
-        followed by sorting based on the model incentive weight.
-        """
-        models_with_weights = [(model_name, details["model_incentive_weight"]) for model_name, details in self.validator.nicheimage_catalogue.items()]
-        sorted_models = sorted(models_with_weights, key=lambda x: -x[1])
-        sorted_model_names = [model for model, weight in sorted_models]
 
+    def get_priority_of_model(self, data_group_by_model):
+        """
+        Sorts the priority of models based on the number of messages currently in queue.
+        """
+        model_counts = [(name, len(data_group_by_model[name])) for name in data_group_by_model]
+        sorted_model = sorted(model_counts, key=lambda x: -x[1])
+        sorted_model_names = [x[0] for x in sorted_model]
         if self.current_model in sorted_model_names:
             sorted_model_names.remove(self.current_model)
             sorted_model_names.insert(0, self.current_model)
         return sorted_model_names
+
 
     async def reward_image_type(self, data, model_name):
         data_with_validator_response, success_ids, not_processed_ids = await self.generate_image_response(data, model_name)    
@@ -273,7 +271,7 @@ class RewardApp():
                     meta["count_success"][model_name]+= 1
             return total_success_ids, total_not_processed_ids, meta
         
-        await self.redis_client.process_message_from_stream_async(self.reward_stream_name, reward_callback, count=50)
+        await self.redis_client.process_message_from_stream_async(self.reward_stream_name, reward_callback, count=1000)
 
     async def dequeue_base_synapse_message(self):
         async def generate_validator_response(messages):
@@ -287,7 +285,7 @@ class RewardApp():
                 base_synapses.append(content)
 
             data_group_by_model = self.group_synapse_by_model(base_synapses)
-            priority_models = self.get_priority_of_model()
+            priority_models = self.get_priority_of_model(data_group_by_model)
 
             total_success_ids, total_error_ids = [], []
             for model_name in priority_models:
@@ -302,10 +300,4 @@ class RewardApp():
             
             return total_success_ids, total_error_ids, meta
         
-        await self.redis_client.process_message_from_stream_async(self.base_synapse_stream_name, generate_validator_response, count=100)    
-
-if __name__ == "__main__":
-    app = RewardApp()
-
-    import asyncio
-    asyncio.run(app.dequeue_reward_message())
+        await self.redis_client.process_message_from_stream_async(self.base_synapse_stream_name, generate_validator_response, count=1000)    
