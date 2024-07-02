@@ -1,5 +1,5 @@
 bittensor==6.9.3
-diffusers==0.28.0
+diffusers==0.29.0
 transformers==4.40.0
 accelerate==0.27.2
 cryptography==42.0.0
@@ -26,3 +26,5 @@ jinja2
 insightface
 onnxruntime-gpu==1.18.0
 openai
+
+sentencepiece
