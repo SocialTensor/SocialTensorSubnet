@@ -82,12 +82,6 @@ class ValidatorEndpoint:
         self.app = FastAPI()
         self.app.add_api_route("/generate", self.generate, methods=["POST"])
         self.app.add_middleware(RequestCancelledMiddleware)
-
-        try:
-            with open("generation_models/log_time.json", "r") as f:
-                self.log = json.load(f)
-        except:
-            self.log = {}
     
     def load_model(self, model_name):
         print(f"Loading model: {model_name}")
@@ -106,32 +100,20 @@ class ValidatorEndpoint:
     async def generate(self, item: PromptRequests):
         model_name = item.model_name
 
-        if model_name not in self.log:
-            self.log[model_name] = {
-                "load_time": [],
-                "infer_time": []
-            }
-
         if model_name != self.model_name:
             asyncio.get_event_loop().run_until_complete(self.unload_model())
-            t1 = time.time()
             self.model_handle = self.load_model(model_name)
-            self.log[model_name]["load_time"].append(time.time() - t1)
             self.model_name = model_name
         
         outputs = []
         for prompt_data in item.prompts:
             prompt_data = prompt_data.dict()
-            t2 = time.time()
             output = await self.model_handle.generate(prompt_data=prompt_data)
-            self.log[model_name]["infer_time"].append(f'{time.time() - t2} ({prompt_data["pipeline_type"]})')
             if isinstance(output, dict):
                 prompt_data["response_dict"] = output
             if isinstance(output, str):
                 prompt_data["image"] = output
             outputs.append(prompt_data)
-        with open("generation_models/log_time.json", 'w') as f:
-            json.dump(self.log, f, ensure_ascii = False)
         return outputs
 
 

@@ -80,6 +80,9 @@ class NicheComfyUI(BaseModel):
         return files
 
     def __del__(self):
+        """Destructor to release resources when deleting the object.
+        Kills the ComfyUI process on its assigned port and deletes all attributes of the instance.
+        """
         self.comfyui.kill_process_on_port()
         for attr_name in dir(self):
             attr = getattr(self, attr_name)

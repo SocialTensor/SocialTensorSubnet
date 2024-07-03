@@ -59,6 +59,10 @@ class ComfyUI:
             return False
 
     def kill_process_on_port(self):
+        """ Terminates any process that is using the specified port. This function is 
+        useful for freeing up resources, particularly when a server ComfyUI server
+        is running on a given port and needs to be shut down.
+        """
         import signal
         import re
         

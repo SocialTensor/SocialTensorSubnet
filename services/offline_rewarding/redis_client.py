@@ -3,7 +3,14 @@ import json, time
 from urllib.parse import urlparse
 
 class RedisClient():
+    """ A client class to interact with Redis, allowing for publishing, reading,
+    and managing messages in streams. This is useful for systems that require message
+    queuing, processing, and real-time data handling."""
     def __init__(self, host=None, port=None, url=None, db=0):
+        """
+        Initializes the Redis client with given host, port, and database.
+        If a URL is provided, it overrides host and port settings.
+        """
         if url:
             parsed_url = urlparse(url)
             host = parsed_url.hostname
@@ -34,7 +41,7 @@ class RedisClient():
         return output
     
     def clear_stream(self, stream_name):
-        print(self.count_success)
+        print("Num success messages: ", self.count_success)
         count = self.client.xlen(stream_name)
         self.client.xtrim(stream_name, maxlen=0)
         print(f"Number of messages remain in {stream_name} stream: {count}.", f"Clear stream {stream_name} done !")
@@ -42,6 +49,7 @@ class RedisClient():
         self.count_success = {}
 
     def update_meta_success(self, stream_name, meta):
+        """Updates the count_success dictionary with metadata from successfully processed messages."""
         meta_count_success = meta["count_success"]
         if stream_name not in self.count_success:
             self.count_success[stream_name] = {}
@@ -51,19 +59,16 @@ class RedisClient():
             self.count_success[stream_name][key] += meta_count_success[key]
 
     async def process_message_from_stream_async(self, stream_name, process_callback, count=10, block=5000, always_ack = False, decode = True, retries = 10):
+        """
+        Asynchronously processes messages from the specified Redis stream using a callback function. 
+        Handles message decoding, acknowledgment
+        """
         while True:
             messages = self.read_from_stream(stream_name, count, block)
 
             if not messages:
                 print("No new messages. Waiting for more...")
                 continue
-                # if retries > 0:
-                #     print("No new messages. Waiting for more...")
-                #     retries -= 1
-                #     time.sleep(5)
-                #     continue
-                # else:
-                #     return
 
             all_messages = []
             for stream, message_list in messages:

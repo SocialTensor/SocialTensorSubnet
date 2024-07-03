@@ -1,11 +1,12 @@
 bittensor==6.9.3
-diffusers==0.29.0
+diffusers==0.28.0
 transformers==4.40.0
 accelerate==0.27.2
-cryptography==42.0.5
+cryptography==42.0.0
 ImageHash==4.3.1
 loguru==0.7.0
 Pillow==10.2.0
+pydantic==1.10.13
 PyYAML==6.0.1
 Requests==2.31.0
 setuptools==68.0.0
