@@ -261,7 +261,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.StickerMaker,
-            "reward_type": "image_online",
+            "reward_type": "image",
             "inference_params": {"is_upscale": False},
         },
         "FaceToMany": {
@@ -272,7 +272,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "reward_url": config.reward_url.FaceToMany,
-            "reward_type": "image_online",
+            "reward_type": "image",
             "inference_params": {},
         },
         "Llama3_70b": {
@@ -323,8 +323,8 @@ class Validator(BaseValidatorNeuron):
         if self.offline_reward:
             self.redis_client = RedisClient(url=self.config.offline_reward.redis_endpoint)
             self.reward_app = RewardApp(self)
-            self.clear_stream_event = threading.Event() # Event to signal when to clear the redis queue
-            threading.Thread(target=self.clear_stream_redis, daemon=True).start()
+            self.end_loop_event = threading.Event()
+            threading.Thread(target=self.clear_data, daemon=True).start()
             threading.Thread(target = self.generate_validator_responses, daemon=True).start()
             threading.Thread(target = self.reward_offline, daemon=True).start()
         
@@ -411,7 +411,7 @@ class Validator(BaseValidatorNeuron):
             time.sleep(loop_base_time - actual_time_taken)
 
         if self.offline_reward:
-            self.clear_stream_event.set()
+            self.end_loop_event.set()
             
         self.update_scores_on_chain()
         self.save_state()
@@ -424,15 +424,15 @@ class Validator(BaseValidatorNeuron):
         """Handle generating validator responses for base synapses and cache the results to score the miner later"""
         asyncio.get_event_loop().run_until_complete(self.reward_app.dequeue_base_synapse_message())
 
-    def clear_stream_redis(self):
-        """Clear queues when the duration of one loop is complete."""
+    def clear_data(self):
+        """Process when the duration of one loop is complete."""
         while True:
-            if self.clear_stream_event.is_set():
-                self.redis_client.clear_stream(self.reward_app.reward_stream_name)
-                self.redis_client.clear_stream(self.reward_app.base_synapse_stream_name)
+            if self.end_loop_event.is_set():
+                self.redis_client.get_stream_info(self.reward_app.reward_stream_name)
+                self.redis_client.get_stream_info(self.reward_app.base_synapse_stream_name)
                 self.reward_app.show_total_uids_and_rewards()
                 self.reward_app.reset_total_uids_and_rewards()
-                self.clear_stream_event.clear()
+                self.end_loop_event.clear()
             time.sleep(10)
     def enqueue_synapse_for_validation(self, base_synapse):
         """Push base synapse to queue for generating validator response."""
@@ -530,8 +530,8 @@ class Validator(BaseValidatorNeuron):
                 if info["model_name"] == model_name
             ]
         )
-        # batch_size = min(4, 1 + model_miner_count // 4)
-        batch_size = min(16, 1 + model_miner_count // 2)
+        batch_size = min(4, 1 + model_miner_count // 4)
+        # batch_size = min(16, 1 + model_miner_count // 2)
         random.shuffle(uids_should_rewards)
         batched_uids_should_rewards = [
             uids_should_rewards[i * batch_size : (i + 1) * batch_size]

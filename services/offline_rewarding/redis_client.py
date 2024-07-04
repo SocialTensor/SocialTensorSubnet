@@ -19,6 +19,7 @@ class RedisClient():
         self.client = redis.Redis(host=host, port=port, db=db)
         self.reward_stream_name = "synapse_data"
         self.base_synapse_stream_name = "base_synapse"
+        self.max_queue_size = 200
         self.count_success = {}
 
     def publish_to_stream(self, stream_name, message):
@@ -40,12 +41,16 @@ class RedisClient():
             output[key.decode('utf-8')] = value.decode('utf-8')
         return output
     
-    def clear_stream(self, stream_name):
+    def get_stream_info(self, stream_name, is_clear = False):
         print("Num success messages: ", self.count_success)
         count = self.client.xlen(stream_name)
-        self.client.xtrim(stream_name, maxlen=0)
-        print(f"Number of messages remain in {stream_name} stream: {count}.", f"Clear stream {stream_name} done !")
-
+        print(f"Number of messages remain in {stream_name} stream: {count}.")
+        if is_clear:
+            self.client.xtrim(stream_name, maxlen=0)
+            print(f"Clear stream {stream_name} done !")
+        elif self.max_queue_size:
+            self.client.xtrim(stream_name, maxlen=self.max_queue_size)
+            
         self.count_success = {}
 
     def update_meta_success(self, stream_name, meta):

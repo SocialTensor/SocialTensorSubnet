@@ -41,7 +41,7 @@ class RewardApp():
 
         self.log_validator_response_engine = "redis"
         if self.log_validator_response_engine == "redis":
-            self.redis_key_ttl = 60 * 15
+            self.redis_key_ttl = 60 * 20
         self.log_validator_response_dir = "log/validator_response"
         if not os.path.exists(self.log_validator_response_dir):
             os.makedirs(self.log_validator_response_dir)
@@ -97,8 +97,10 @@ class RewardApp():
         }
         response = requests.post(self.reward_endpoint, json = req)
         if response.status_code != 200:
-            raise Exception(f"Error in get_challenge_result: {response.text}")
-        result = response.json()[0]["image"] # for image models, not implement for text
+            print(f"Error in get_challenge_result: {response.text}")
+            result = None
+        else:
+            result = response.json()[0]["image"] # for image models, not implement for text
         return result
 
     def group_synapse_by_model(self, data):
