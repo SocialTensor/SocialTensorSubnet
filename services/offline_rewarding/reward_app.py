@@ -13,9 +13,28 @@ MODEL_CONFIG = yaml.load(
 )
 
 class RewardApp():
+    """
+    Calculate rewards for miners by handling message processing within a Redis-based system and validator endpoint.
+
+    Attributes:
+        validator: The validator instance used for challenge-response validation.
+        redis_client (RedisClient): Instance of the Redis client for stream interaction.
+        base_synapse_stream_name (str): Stream for generating results using the validator endpoint to compare with miners' answers later.
+        reward_stream_name (str): Stream for calculating rewards based on comparing validator and miner responses.
+        rewarder (CosineSimilarityReward): Instance of the cosine similarity reward calculator.
+        log_validator_response_engine (str): Engine used for caching validator responses ("disk" or "redis").
+            redis_key_ttl (int): Time-to-live for Redis keys in seconds, (if log_validator_response_engine == "redis")
+            log_validator_response_dir (str): Directory path for logging validator responses to disk. (if log_validator_response_engine == "disk")
+        reward_endpoint (str): Endpoint (GPU server) for validator to get challenge results.
+        current_model (str): Name of the currently processing model.
+        total_uids (list): List of total unique identifiers processed.
+        total_rewards (list): List of total rewards assigned.
+    """
     def __init__(self, validator):
+        
         self.validator = validator
-        self.redis_client: RedisClient = RedisClient(url=self.validator.config.offline_reward.redis_endpoint)
+        self.redis_client: RedisClient = self.validator.redis_client
+
         self.reward_stream_name = self.redis_client.reward_stream_name
         self.base_synapse_stream_name = self.redis_client.base_synapse_stream_name
         self.rewarder = CosineSimilarityReward()
@@ -180,8 +199,8 @@ class RewardApp():
         
         return total_uids, total_rewards
 
-    # Scale Reward based on Miner Volume
-    def scale_reward(self, reward_uids, rewards):     
+    def scale_reward(self, reward_uids, rewards):   
+        """Scale Reward based on Miner Volume"""  
         for i, uid in enumerate(reward_uids):
             if rewards[i] > 0:
                 rewards[i] = rewards[i] * (
@@ -192,13 +211,15 @@ class RewardApp():
     def get_priority_of_model(self, data_group_by_model):
         """
         Sorts the priority of models based on the number of messages currently in queue.
+        If the number of messages currently in queue is equal, it sorts based on the model incentive weight.
         """
         model_counts = [(name, len(data_group_by_model[name])) for name in data_group_by_model]
-        sorted_model = sorted(model_counts, key=lambda x: -x[1])
+        sorted_model = sorted(model_counts, key=lambda x: (x[1], self.validator.nicheimage_catalogue[x[0]]["model_incentive_weight"]), reverse=True)
         sorted_model_names = [x[0] for x in sorted_model]
         if self.current_model in sorted_model_names:
             sorted_model_names.remove(self.current_model)
             sorted_model_names.insert(0, self.current_model)
+        print(f"Current model: {self.current_model}, Model Counts: {model_counts}, Sorted model names: {sorted_model_names}")
         return sorted_model_names
 
 
@@ -243,8 +264,6 @@ class RewardApp():
 
                 self.total_uids.extend(reward_uids)
                 self.total_rewards.extend(rewards)
-                print("Total_uids: " ,self.total_uids, f" Total {len(self.total_uids)}", f" Total distinct: {len(list(set(self.total_uids)))}")
-                print("Total_rewards: " ,self.total_rewards, f" Total {len(self.total_rewards)}")
         return total_success_ids, total_not_processed_ids
 
     async def dequeue_reward_message(self):
@@ -301,3 +320,10 @@ class RewardApp():
             return total_success_ids, total_error_ids, meta
         
         await self.redis_client.process_message_from_stream_async(self.base_synapse_stream_name, generate_validator_response, count=1000)    
+
+    def show_total_uids_and_rewards(self):
+        print(f"Total_uids (len = {len(self.total_uids)}; len distinct = {len(list(set(self.total_uids)))}): {self.total_uids}")
+        print(f"Total rewards (len={len(self.total_rewards)}): {self.total_rewards}")
+    
+    def reset_total_uids_and_rewards(self):
+        self.total_uids, self.total_rewards = [], []

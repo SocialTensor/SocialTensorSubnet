@@ -74,6 +74,7 @@ def get_reward_offline(
     timeout: float,
     message_broker
 ):
+    """Push synapse responses into a Redis stream to calculate rewards offline for miners ."""
     valid_uids = [uid for uid, response in zip(uids, synapses) if response.is_success]
     invalid_uids = [
         uid for uid, synapse in zip(uids, synapses) if not synapse.is_success
