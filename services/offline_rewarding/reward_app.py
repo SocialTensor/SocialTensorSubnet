@@ -173,6 +173,10 @@ class RewardApp():
 
                     success_ids.append(raw_message_id)
                     success_synapses.append(synapse)
+            else:
+                ## if len valid_uids = 0, dont need to generate validator responses
+                success_ids.append(raw_message_id)
+                success_synapses.append(synapse)
         return success_synapses, success_ids, not_processed_ids
 
     def calculate_rewards(self, data):
