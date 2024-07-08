@@ -348,9 +348,9 @@ class BaseValidatorNeuron(BaseNeuron):
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
         raw_weights = torch.nn.functional.normalize(self.scores, p=1, dim=0)
-        bt.logging.trace("raw_weights", raw_weights)
-        bt.logging.trace("top10 values", raw_weights.sort()[0])
-        bt.logging.trace("top10 uids", raw_weights.sort()[1])
+        bt.logging.info("raw_weights", raw_weights)
+        bt.logging.info("top10 values", raw_weights.sort()[0])
+        bt.logging.info("top10 uids", raw_weights.sort()[1])
         raw_weights = np.array(raw_weights).astype(np.float32)
         uids = np.array(self.metagraph.uids).astype(np.int64)
         # Process the raw weights to final_weights via subtensor limitations.
@@ -361,13 +361,11 @@ class BaseValidatorNeuron(BaseNeuron):
             uids=uids,
             weights=raw_weights,
         )
-        processed_weight_uids = processed_weight_uids
-        processed_weights = processed_weights
         salt = [random.randint(0, 1000) for _ in range(4)]
 
-        bt.logging.trace("processed_weights", processed_weights)
-        bt.logging.trace("processed_weight_uids", processed_weight_uids)
-        bt.logging.trace("salt", salt)
+        bt.logging.info("processed_weights", processed_weights)
+        bt.logging.info("processed_weight_uids", processed_weight_uids)
+        bt.logging.info("salt", salt)
 
 
         commit_data = {
