@@ -378,16 +378,18 @@ class BaseValidatorNeuron(BaseNeuron):
         # Set the weights on chain via our subtensor connection.
         success, message = self.subtensor.commit_weights(
             **commit_data,
-            wait_for_finalization=False,
+            wait_for_finalization=True,
+            wait_for_inclusion=True,
             version_key=self.spec_version,
         )
 
         if success:
-            bt.logging.success(f"[Set Weights] Committed new weights! Salt:{salt}, Block: {self.block}. {message}")
+            bt.logging.success(f"[Commit Weights] Committed new weights! Salt:{salt}, Block: {self.block}. {message}")
             self.need_reveal = True # commit weights successfully, wait for reveal after blocks
             self.last_commit_weights_info = copy.deepcopy(commit_data)
             self.last_commit_weights_block = self.block
-
+        else:
+            bt.logging.error(f"[Commit Weights] Failed, msg: {message}")
     def resync_metagraph(self):
         """Resyncs the metagraph and updates the hotkeys and moving averages based on the new metagraph."""
         bt.logging.info("resync_metagraph()")
