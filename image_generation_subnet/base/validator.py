@@ -254,12 +254,9 @@ class BaseValidatorNeuron(BaseNeuron):
         (
             processed_weight_uids,
             processed_weights,
-        ) = bt.utils.weight_utils.process_weights_for_netuid(
+        ) = bt.utils.weight_utils.convert_weights_and_uids_for_emit(
             uids=self.metagraph.uids,
             weights=raw_weights,
-            netuid=self.config.netuid,
-            subtensor=self.subtensor,
-            metagraph=self.metagraph,
         )
         bt.logging.trace("processed_weights", processed_weights)
         bt.logging.trace("processed_weight_uids", processed_weight_uids)
