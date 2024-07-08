@@ -270,13 +270,14 @@ class BaseValidatorNeuron(BaseNeuron):
             netuid=self.config.netuid,
             uids=processed_weight_uids,
             weights=processed_weights,
-            wait_for_finalization=False,
+            wait_for_finalization=True,
+            wait_for_inclusion=True,
             version_key=self.spec_version,
         )
         if success:
-            bt.logging.success(f"[Weights] Set weights: {processed_weights}")
+            bt.logging.success(f"[Weights] Set weights: {processed_weights}, msg: {message}")
         else:
-            bt.logging.error(f"[Weights] Set weights failed")
+            bt.logging.error(f"[Weights] Set weights failed, msg: {message}")
 
     def reveal_weights(self):
         success, message = self.subtensor.reveal_weights(
