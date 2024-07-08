@@ -221,7 +221,7 @@ class BaseValidatorNeuron(BaseNeuron):
         if self.should_sync_metagraph():
             self.resync_metagraph()
 
-        commit_reveal_weights_enabled = self.subtensor.get_subnet_hyperparameters(self.netuid).commit_reveal_weights_enabled
+        commit_reveal_weights_enabled = self.subtensor.get_subnet_hyperparameters(self.config.netuid).commit_reveal_weights_enabled
         bt.logging.info(f"[Weights] commit_reveal_weights: {commit_reveal_weights_enabled}")
         if commit_reveal_weights_enabled:
             if self.should_reveal_last_weights():
