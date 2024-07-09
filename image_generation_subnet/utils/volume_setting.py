@@ -16,7 +16,8 @@ def get_volume_per_validator(
     valid_uids = [uid for uid, stake in zip(all_uids, all_stakes) if stake >= min_stake]
     if UID:
         valid_uids = int(UID)
-        valid_stakes = all_stakes[int(UID)]
+        valid_stakes = [all_stakes[int(UID)]]
+        print(valid_stakes)
 
     if not valid_stakes:
         bt.logging.warning(
