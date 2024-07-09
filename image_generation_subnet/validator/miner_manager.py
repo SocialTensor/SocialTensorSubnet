@@ -85,7 +85,8 @@ class MinerManager:
                 miner_state["min_stake"],
                 False,
             )
-            miner_state["rate_limit"] = volume_per_validator.get(self.validator.uid, 100)
+            # miner_state["rate_limit"] = volume_per_validator.get(self.validator.uid, 100)
+            miner_state["rate_limit"] = 100
             bt.logging.info(f"Rate limit for {uid}: {miner_state['rate_limit']}")
             if miner_state["model_name"] == model_name:
                 continue
