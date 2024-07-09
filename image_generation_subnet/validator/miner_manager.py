@@ -82,7 +82,7 @@ class MinerManager:
                 self.validator.metagraph,
                 miner_state["total_volume"],
                 1.03,
-                10000,
+                miner_state["min_stake"],
                 False,
             )
             miner_state["rate_limit"] = volume_per_validator.get(self.validator.uid, 2)
