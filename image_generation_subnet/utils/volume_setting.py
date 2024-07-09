@@ -1,6 +1,7 @@
 import bittensor as bt
 import torch
-
+import os
+UID = os.getenv("UID")
 
 def get_volume_per_validator(
     metagraph,
@@ -13,6 +14,10 @@ def get_volume_per_validator(
     all_uids = [uid for uid in range(len(all_stakes))]
     valid_stakes = [stake for stake in all_stakes if stake >= min_stake]
     valid_uids = [uid for uid, stake in zip(all_uids, all_stakes) if stake >= min_stake]
+    if UID:
+        valid_uids = int(UID)
+        valid_stakes = all_stakes[int(UID)]
+
     if not valid_stakes:
         bt.logging.warning(
             (
