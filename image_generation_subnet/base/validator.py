@@ -314,7 +314,7 @@ class BaseValidatorNeuron(BaseNeuron):
         if not self.need_reveal:
             bt.logging.warning("[Reveal Weights] Haven't set new weights since last time")
             return False
-        commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
+        commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(self.config.netuid).commit_reveal_weights_interval
         if self.block - self.metagraph.last_update[self.uid] < commit_reveal_weights_interval + 10:
             bt.logging.warning(f"[Reveal Weights] Too soon to REVEAL. Current block is {self.block}, updated at {self.metagraph.last_update[self.uid]}, tempo is {commit_reveal_weights_interval}")
             return False
@@ -323,7 +323,7 @@ class BaseValidatorNeuron(BaseNeuron):
     def should_commit_new_weights(self):
         if self.config.neuron.disable_set_weights:
             return False
-        commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(23).commit_reveal_weights_interval
+        commit_reveal_weights_interval = self.subtensor.get_subnet_hyperparameters(self.config.netuid).commit_reveal_weights_interval
         if self.need_reveal:
             bt.logging.warning(f"[Set Weights] - Need reveal lastest commited weights first!")
             return False
