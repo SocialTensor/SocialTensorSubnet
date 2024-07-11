@@ -6,7 +6,7 @@ import os
 import shutil
 from pathlib import Path
 import random
-
+import socket
 
 def import_from_string(import_str):
     module_name, class_name = import_str.rsplit(".", 1)
@@ -14,6 +14,13 @@ def import_from_string(import_str):
     module = __import__(module_name, fromlist=[class_name])
     return getattr(module, class_name)
 
+def check_port_in_use(port, host='127.0.0.1'):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        try:
+            sock.bind((host, port))
+            return False 
+        except socket.error:
+            return True 
 
 class NicheComfyUI(BaseModel):
     def load_model(
@@ -22,6 +29,9 @@ class NicheComfyUI(BaseModel):
         update_wf_function = import_from_string(update_wf_function)
         init_setup_function = import_from_string(init_setup_function)
         random_port = random.randint(10000, 50000) # For automatic bind port when scale up using Ray
+        while check_port_in_use(random_port):
+            random_port = random.randint(10000, 50000)
+        
         self.comfyui = ComfyUI(random_port)
         init_setup_function(self.comfyui, **kwargs)
         self.output_folder = f"generation_models/comfyui_helper/ComfyUI/output_{random_port}"
