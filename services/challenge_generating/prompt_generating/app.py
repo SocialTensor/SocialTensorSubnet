@@ -5,7 +5,7 @@ from typing import Optional
 from transformers import set_seed
 import httpx
 import random
-
+import uvicorn
 
 class Prompt(BaseModel, extra=Extra.allow):
     prompt: str
@@ -56,5 +56,8 @@ class ChallengeImage:
         prompt = prompt + prompt_completion
         return {"prompt": prompt}
 
-
-app = ChallengeImage()
+if __name__ == '__main__':
+    args = get_args()
+    print("Args: ",args)
+    app = ChallengeImage()
+    uvicorn.run(app.app, host="0.0.0.0", port=args.port)

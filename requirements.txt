@@ -28,3 +28,4 @@ onnxruntime-gpu==1.18.0
 openai
 sentencepiece
 redis==5.0.6
+ctranslate2==4.3.1
