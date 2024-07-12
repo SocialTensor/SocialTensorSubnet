@@ -7,6 +7,9 @@ from functools import wraps
 from tqdm import tqdm
 import httpx
 
+REWARD_TIME_PORTION = -0.1
+REWARD_ACC_PORTION = 0.6
+REWARD_SIM_PORTION = 0.4
 
 def retry(**kwargs):
     module = kwargs.get("module", "unknown")
@@ -94,10 +97,7 @@ def get_reward(
         valid_rewards = response.json()["rewards"]
         valid_rewards = [float(reward) for reward in valid_rewards]
         process_times = [synapse.dendrite.process_time for synapse in valid_synapses]
-        if timeout > 12:
-            valid_rewards = add_time_penalty(valid_rewards, process_times, 0.4, 64)
-        else:
-            valid_rewards = add_time_penalty(valid_rewards, process_times, 0.4, 12)
+        valid_rewards = [reward + REWARD_TIME_PORTION * process_time / timeout for reward, process_time in zip(valid_rewards, process_times)]
         valid_rewards = [round(num, 3) for num in valid_rewards]
     else:
         bt.logging.info("0 valid responses in a batch")
@@ -106,18 +106,3 @@ def get_reward(
     total_rewards = valid_rewards + [0] * len(invalid_uids)
 
     return total_uids, total_rewards
-
-
-def add_time_penalty(rewards, process_times, max_penalty=0.4, factor: float = 12):
-    """
-    Add time penalty to rewards, based on process time
-    """
-    penalties = [
-        max_penalty * pow(process_time, 3) / pow(factor, 3)
-        for process_time in process_times
-    ]
-    penalties = [min(penalty, max_penalty) for penalty in penalties]
-    for i in range(len(rewards)):
-        if rewards[i] > 0:
-            rewards[i] = rewards[i] - penalties[i]
-    return rewards
