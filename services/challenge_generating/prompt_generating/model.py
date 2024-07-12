@@ -2,7 +2,7 @@ import ctranslate2
 from transformers import AutoTokenizer
 
 
-class ChallengePrompt():
+class ChallengePromptGenerator():
     def __init__(
             self, 
             model_id = "nichetensor-org/GPT-Prompt-Expansion-Fooocus-v2-ct2", 

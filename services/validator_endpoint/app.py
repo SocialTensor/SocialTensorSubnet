@@ -5,13 +5,13 @@ import asyncio
 import time, json
 import gc
 import torch
+import requests
 from fastapi import FastAPI
 from typing import Optional, List
 from pydantic import BaseModel, Extra
 from services.rays.image_generating import ModelDeployment
-from services.challenge_generating.image_generating.app import ImageGenerator, TextToImagePrompt
 from services.challenge_generating.prompt_generating.app import Prompt as ChallengePromptInput
-from services.challenge_generating.prompt_generating.model import ChallengePrompt
+from services.challenge_generating.prompt_generating.model import ChallengePromptGenerator
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -70,16 +70,22 @@ def get_args():
         default="0.0.0.0",
         help="IP address to run the service on",
     )
+    parser.add_argument(
+        "--challenge_image_url",
+        type=str,
+        default="http://localhost:10001",
+        help="Endpoint for generate image challenge",
+    )
     args = parser.parse_args()
     return args
 
 
 args = get_args()
 
-
 class ValidatorEndpoint:
     def __init__(self):
-        self.challenge_prompt = ChallengePrompt()
+        self.challenge_prompt = ChallengePromptGenerator()
+        self.challenge_image_url = args.challenge_image_url
         self.model_handle = None
         self.model_name = None
         self.app = FastAPI()
@@ -122,22 +128,16 @@ class ValidatorEndpoint:
             outputs.append(prompt_data)
         return outputs
 
-    async def generate_challenge_image(self, item: TextToImagePrompt):
-        model_name = self.challenge_image_model
-        if model_name != self.model_name:
-            asyncio.get_event_loop().run_until_complete(self.unload_model())
-            self.model_handle = ImageGenerator()
-            self.model_name = model_name
+    async def generate_challenge_image(self, item: dict):
+        response = requests.post(self.challenge_image_url, json = dict(item))
+        return  response.json()
         
-        result = await self.model_handle(item.__dict__)
-        return  {"conditional_image": result}
-        
-    def generate_challenge_prompt(self, item: ChallengePromptInput):
+    async def generate_challenge_prompt(self, item: ChallengePromptInput):
         data = dict(item)
         prompt = data["prompt"]
         if not prompt:
             prompt = "an image of "
-        complete_prompt = self.challenge_prompt.infer_prompt([prompt], max_generation_length=77, sampling_topk=30, sampling_topp=0.9)
+        complete_prompt = self.challenge_prompt.infer_prompt([prompt], max_generation_length=77, sampling_topk=100)
         return {"prompt": complete_prompt}
     
 if __name__ == "__main__":
