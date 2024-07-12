@@ -60,7 +60,7 @@ def get_challenge(
                 challenge = response.json()
         except Exception as e:
             bt.logging.warning(f"Error in get_challenge: {e}")
-            challenge = None
+            challenge = backup_func()
         if challenge:
             synapses[i] = synapse.copy(update=challenge)
         else:
