@@ -1,14 +1,17 @@
-from fastapi import FastAPI
-from typing import Optional, List
-from pydantic import BaseModel, Extra
 import argparse
 import uvicorn
 import yaml
-from services.rays.image_generating import ModelDeployment
 import asyncio
 import time, json
 import gc
 import torch
+import requests
+from fastapi import FastAPI
+from typing import Optional, List
+from pydantic import BaseModel, Extra
+from services.rays.image_generating import ModelDeployment
+from services.challenge_generating.prompt_generating.app import Prompt as ChallengePromptInput
+from services.challenge_generating.prompt_generating.model import ChallengePromptGenerator
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -58,7 +61,6 @@ class PromptRequests(BaseModel):
     model_name: str
     prompts: List[Prompt]
 
-
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=13300)
@@ -68,21 +70,31 @@ def get_args():
         default="0.0.0.0",
         help="IP address to run the service on",
     )
+    parser.add_argument(
+        "--challenge_image_url",
+        type=str,
+        default="http://localhost:10001",
+        help="Endpoint for generate image challenge",
+    )
     args = parser.parse_args()
     return args
 
 
 args = get_args()
 
-
 class ValidatorEndpoint:
     def __init__(self):
+        self.challenge_prompt = ChallengePromptGenerator()
+        self.challenge_image_url = args.challenge_image_url
         self.model_handle = None
         self.model_name = None
         self.app = FastAPI()
         self.app.add_api_route("/generate", self.generate, methods=["POST"])
+        self.app.add_api_route("/challenge/prompt", self.generate_challenge_prompt, methods=["POST"])
+        self.app.add_api_route("/challenge/image", self.generate_challenge_image, methods=["POST"])
+        self.challenge_image_model = "challenge_image_model"
         self.app.add_middleware(RequestCancelledMiddleware)
-    
+
     def load_model(self, model_name):
         print(f"Loading model: {model_name}")
         start = time.time()
@@ -116,8 +128,18 @@ class ValidatorEndpoint:
             outputs.append(prompt_data)
         return outputs
 
-
-
+    async def generate_challenge_image(self, item: dict):
+        response = requests.post(self.challenge_image_url, json = dict(item))
+        return  response.json()
+        
+    async def generate_challenge_prompt(self, item: ChallengePromptInput):
+        data = dict(item)
+        prompt = data["prompt"]
+        if not prompt:
+            prompt = "an image of "
+        complete_prompt = self.challenge_prompt.infer_prompt([prompt], max_generation_length=77, sampling_topk=100)[0].strip()
+        return {"prompt": complete_prompt}
+    
 if __name__ == "__main__":
     app = ValidatorEndpoint()
     uvicorn.run(
