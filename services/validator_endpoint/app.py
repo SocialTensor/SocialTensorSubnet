@@ -137,7 +137,7 @@ class ValidatorEndpoint:
         prompt = data["prompt"]
         if not prompt:
             prompt = "an image of "
-        complete_prompt = self.challenge_prompt.infer_prompt([prompt], max_generation_length=77, sampling_topk=100)
+        complete_prompt = self.challenge_prompt.infer_prompt([prompt], max_generation_length=77, sampling_topk=100)[0].strip()
         return {"prompt": complete_prompt}
     
 if __name__ == "__main__":
