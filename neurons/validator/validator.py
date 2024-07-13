@@ -531,7 +531,7 @@ class Validator(BaseValidatorNeuron):
             ]
         )
         batch_size = min(4, 1 + model_miner_count // 4)
-        # batch_size = min(16, 1 + model_miner_count // 2)
+        
         random.shuffle(uids_should_rewards)
         batched_uids_should_rewards = [
             uids_should_rewards[i * batch_size : (i + 1) * batch_size]
