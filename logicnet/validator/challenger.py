@@ -4,6 +4,7 @@ import random
 import os
 from logicnet.protocol import LogicSynapse
 from dotenv import load_dotenv
+import bittensor as bt
 
 load_dotenv()
 MODEL = os.getenv("CHALLENGE_MODEL", "gpt-3.5-turbo")
@@ -34,25 +35,31 @@ class LogicChallenger:
 
     def get_math_problem(self) -> str:
         messages = [
-            {"role": "user", "message": self.math_generator_prompt},
+            {"role": "user", "content": self.math_generator_prompt},
         ]
+        print(MODEL, messages)
         response = self.openai_client.chat.completions.create(
             model=MODEL,
             messages=messages,
             max_tokens=128,
             temperature=0.5,
         )
-        return response.choices[0].message["content"]
+        print(response)
+        response = response.choices[0].message.content
+        bt.logging.info(f"Generated math problem: {response}")
+        return response
 
     def get_revised_math_question(self, math_problem: str, conditions: dict) -> str:
+        prompt = "Please paraphrase by adding word or expression to this question as if you were a {profile} who is {mood} and write in a {tone} tone. You can use incorrect grammar, typo or add more context!".format(
+            **conditions
+        )
+        bt.logging.debug(f"Revising prompt: {prompt}")
         messages = [
-            {"role": "user", "message": self.get_math_problem},
-            {"role": "system", "message": math_problem},
+            {"role": "user", "content": self.math_generator_prompt},
+            {"role": "assistant", "content": math_problem},
             {
                 "role": "user",
-                "message": "Please paraphrase by adding word or expression to this question as if you were a {profile} who is {mood} and write in a {tone} tone. You can use incorrect grammar, typo or add more context!".format(
-                    **conditions
-                ),
+                "content": prompt,
             },
         ]
         response = self.openai_client.chat.completions.create(
@@ -61,9 +68,11 @@ class LogicChallenger:
             max_tokens=256,
             temperature=0.5,
         )
-        return response.choices[0].message["content"]
+        response = response.choices[0].message.content
+        bt.logging.info(f"Generated revised math question: {response}")
+        return response
 
-    def get_condition():
+    def get_condition(self):
         profiles = [
             "math enthusiast",
             "math student",

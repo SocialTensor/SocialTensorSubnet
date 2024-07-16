@@ -4,6 +4,7 @@ import openai
 from logicnet.protocol import LogicSynapse
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
+import bittensor as bt
 
 load_dotenv()
 # RECOMMENDED MODEL GPT4 - OPENAI
@@ -28,16 +29,16 @@ class LogicRewarder:
         correctness_scores = self._get_correct_score(
             base_synapse.raw_logic_question, ground_truth, response_texts
         )
-        processing_times = [response.processing_time for response in responses]
+        processing_times = [response.dendrite.process_time for response in responses]
         timeout = base_synapse.timeout
         final_scores = []
-        for similarity, correctness, processing_time in zip(
+        for similarity, correctness, process_time in zip(
             similarities, correctness_scores, processing_times
         ):
             final_score = (
                 SIMILARITY_WEIGHT * similarity
                 + CORRECTNESS_WEIGHT * correctness
-                + PROCESSING_TIME_WEIGHT * processing_time / timeout
+                + PROCESSING_TIME_WEIGHT * process_time / timeout
             )
             final_scores.append(final_score)
 
@@ -49,15 +50,15 @@ class LogicRewarder:
             messages = [
                 {
                     "role": "user",
-                    "message": question,
+                    "content": question,
                 },
                 {
                     "role": "assistant",
-                    "message": ground_truth,
+                    "content": ground_truth,
                 },
                 {
                     "role": "user",
-                    "message": f"Is this solution correct? Generate only Yes or No.\n---\n{response}\n---",
+                    "content": f"Is this solution correct? Generate only Yes or No.\n---\n{response}\n---",
                 },
             ]
             response = self.openai_client.chat.completions.create(
@@ -66,7 +67,7 @@ class LogicRewarder:
                 max_tokens=32,
                 temperature=0.7,
             )
-            response_str = response.choices[0].message["content"]
+            response_str = response.choices[0].message.content
             response_str = response_str.strip().lower()
             if "yes" in response_str:
                 scores.append(1)
@@ -92,7 +93,7 @@ class LogicRewarder:
 
     def _get_ground_truth(self, question: str):
         messages = [
-            {"role": "user", "message": question},
+            {"role": "user", "content": question},
         ]
         response = self.openai_client.chat.completions.create(
             model=MODEL,
@@ -100,4 +101,6 @@ class LogicRewarder:
             max_tokens=1024,
             temperature=0.7,
         )
-        return response.choices[0].message["content"]
+        response = response.choices[0].message.content
+        bt.logging.info(f"Generated ground truth: {response}")
+        return response

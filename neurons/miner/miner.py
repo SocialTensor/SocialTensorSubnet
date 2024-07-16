@@ -38,9 +38,10 @@ class Miner(BaseMinerNeuron):
 
     async def forward(self, synapse: LogicSynapse) -> LogicSynapse:
         try:
+            bt.logging.info(f"Received synapse: {synapse}")
             logic_question: str = synapse.logic_question
             messages = [
-                {"role": "user", "message": logic_question},
+                {"role": "user", "content": logic_question},
             ]
             response = await self.openai_client.chat.completions.create(
                 model=MODEL,
@@ -48,7 +49,7 @@ class Miner(BaseMinerNeuron):
                 max_tokens=1028,
                 temperature=0.8,
             )
-            synapse.logic_answer = response.choices[0].message["content"]
+            synapse.logic_answer = response.choices[0].message.content
             self.num_processing_requests += 1
             self.total_request_in_interval += 1
         except Exception as e:

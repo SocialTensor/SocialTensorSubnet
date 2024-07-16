@@ -40,3 +40,4 @@ class LogicSynapse(bt.Synapse):
 
     def miner_synapse(self):
         self.raw_logic_question = ""
+        return self
