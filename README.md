@@ -9,6 +9,7 @@ MINER_BASE_URL=https://api.together.xyz/v1
 MINER_MODEL="meta-llama/Llama-3-8b-chat-hf"
 MINER_KEY=your-api-key
 ```
+Then `cp example_env.env .env`
 
 2. Run the following command to start the miner
 
@@ -27,6 +28,7 @@ CHALLENGE_BASE_URL=https://api.together.xyz/v1
 CHALLENGE_MODEL="meta-llama/Llama-3-8b-chat-hf"
 CHALLENGE_KEY=your-api-key
 ```
+Then `cp example_env.env .env`
 2. CHANGE 'REWARD_BASE_URL', 'REWARD_MODEL', 'REWARD_KEY' in `example_env.env` file to connect to LLM (OpenAI, TogetherAI or self-host vLLM) for **REWARD CALCULATING**. 
 
 **RECOMMENDED TO USE LARGE MODEL**
@@ -42,3 +44,4 @@ REWARD_BASE_URL=https://api.openai.com/v1
 REWARD_MODEL="gpt4o"
 REWARD_KEY=your-api-key
 ```
+Then `cp example_env.env .env`
