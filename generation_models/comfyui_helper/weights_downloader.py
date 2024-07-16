@@ -1,9 +1,9 @@
 import subprocess
 import time
 import os
-
 from generation_models.comfyui_helper.weights_manifest import WeightsManifest
 
+IS_SUDO = os.getenv("IS_SUDO")
 BASE_URL = "https://weights.replicate.delivery/default/comfy-ui"
 os.makedirs(".cache", exist_ok=True)
 
@@ -43,9 +43,14 @@ class WeightsDownloader:
 
         print(f"⏳ Downloading {weight_str} to {dest}")
         start = time.time()
-        subprocess.check_call(
-            ["pget", "--log-level", "warn", "-xf", url, dest], close_fds=False
-        )
+        if IS_SUDO:
+            subprocess.check_call(
+                ["sudo", "pget", "--log-level", "warn", "-xf", url, dest], close_fds=False
+            )
+        else:
+            subprocess.check_call(
+                ["pget", "--log-level", "warn", "-xf", url, dest], close_fds=False
+            )
         elapsed_time = time.time() - start
         try:
             file_size_bytes = os.path.getsize(
