@@ -173,3 +173,4 @@ vllm/*
 *.bin
 *.1
 *.onnx
+example_env.env
