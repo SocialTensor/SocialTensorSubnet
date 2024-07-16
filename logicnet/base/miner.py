@@ -22,7 +22,7 @@ import traceback
 
 import bittensor as bt
 
-from image_generation_subnet.base.neuron import BaseNeuron
+from logicnet.base.neuron import BaseNeuron
 
 
 class BaseMinerNeuron(BaseNeuron):

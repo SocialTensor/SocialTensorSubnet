@@ -5,11 +5,9 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from cryptography.exceptions import InvalidSignature
 import bittensor as bt
 import base64
-import image_generation_subnet
-import os
+import logicnet
 import random
 import asyncio
-from image_generation_subnet.validator.proxy import ProxyCounter
 import traceback
 import httpx
 import threading
@@ -32,9 +30,6 @@ class ValidatorProxy:
             dependencies=[Depends(self.get_self)],
         )
         self.loop = asyncio.get_event_loop()
-        self.proxy_counter = ProxyCounter(
-            os.path.join(self.validator.config.neuron.full_path, "proxy_counter.json")
-        )
         if self.validator.config.proxy.port:
             self.start_server()
 
@@ -98,7 +93,7 @@ class ValidatorProxy:
                 (
                     uids,
                     rewards,
-                ) = image_generation_subnet.validator.get_reward(
+                ) = logicnet.validator.get_reward(
                     reward_url,
                     synapse,
                     [response],
@@ -132,7 +127,7 @@ class ValidatorProxy:
         if "seed" not in payload:
             payload["seed"] = random.randint(0, 1e9)
         model_name = payload["model_name"]
-        model_config = self.validator.nicheimage_catalogue[model_name]
+        model_config = self.validator.categories[model_name]
         synapse_cls = model_config["synapse_type"]
         synapse = synapse_cls(**payload)
         synapse.limit_params()
@@ -170,13 +165,9 @@ class ValidatorProxy:
             else:
                 continue
         if output:
-            self.proxy_counter.update(is_success=True)
-            self.proxy_counter.save()
             response = output.deserialize_response()
             return response
         else:
-            self.proxy_counter.update(is_success=False)
-            self.proxy_counter.save()
             return HTTPException(status_code=500, detail="No valid response received")
 
     async def get_self(self):

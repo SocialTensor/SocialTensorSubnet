@@ -8,8 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 # RECOMMENDED MODEL GPT4 - OPENAI
 MODEL = os.getenv("REWARD_MODEL", "gpt-3.5-turbo")
-BASE_URL = os.getenv("REWARD_OPENAI_BASE_URL", "https://api.openai.com/v1")
-KEY = os.getenv("REWARD_OPENAI_API_KEY")
+BASE_URL = os.getenv("REWARD_BASE_URL", "https://api.openai.com/v1")
+KEY = os.getenv("REWARD_KEY")
 
 SIMILARITY_WEIGHT = 0.5
 CORRECTNESS_WEIGHT = 0.4

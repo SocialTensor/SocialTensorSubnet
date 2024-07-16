@@ -5,6 +5,7 @@ from logicnet.utils.volume_setting import (
     get_rate_limit_per_validator,
     MIN_RATE_LIMIT,
 )
+import traceback
 
 NO_OF_RECENT_SCORES = 10
 
@@ -32,7 +33,7 @@ class MinerManager:
         """
         TODO
         """
-        self.all_uids = [int(uid.item) for uid in self.validator.metagraph.uids]
+        self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
         uid_to_axon = dict(zip(self.all_uids, self.validator.metagraph.axons))
         query_axons = [uid_to_axon[int(uid)] for uid in self.all_uids]
         synapse = Information()
@@ -65,6 +66,7 @@ class MinerManager:
                 rate_limit_per_validator: dict = get_rate_limit_per_validator(
                     metagraph=self.validator.metagraph,
                     epoch_volume=info.epoch_volume,
+                    min_stake=self.validator.config.min_stake,
                     log=False,
                 )
                 info.rate_limit = rate_limit_per_validator.get(
@@ -74,14 +76,23 @@ class MinerManager:
 
             bt.logging.success("Updated miner identity")
             return True
-        except Exception:
-            bt.logging.error("Update miner identity error!!!")
+        except Exception as e:
+            bt.logging.error(f"Update miner identity error: {e}")
+            traceback.print_exc()
             return False
+
+    def get_miner_uids(self, category: str):
+        available_uids = [
+            int(uid)
+            for uid in self.all_uids_info.keys()
+            if self.all_uids_info[uid].category == category
+        ]
+        return available_uids
 
     def update_scores(self, uids, rewards):
         for uid, reward in zip(uids, rewards):
             self.all_uids_info[uid].scores.append(reward)
-            self.all_uids_info[uid].scores = self.all_uids_info[uid]["scores"][
+            self.all_uids_info[uid].scores = self.all_uids_info[uid].scores[
                 -NO_OF_RECENT_SCORES:
             ]
 
@@ -96,3 +107,19 @@ class MinerManager:
         weights = torch.clamp(weights, 0, 1)
         weights = weights / weights.sum()
         return weights
+
+    def get_model_specific_weights(self, category, normalize=True):
+        model_specific_weights = torch.zeros(len(self.all_uids))
+        for uid in self.get_miner_uids(category):
+            num_past_to_check = 10
+            model_specific_weights[int(uid)] = (
+                sum(self.all_uids_info[uid].scores[-num_past_to_check:])
+                / num_past_to_check
+            )
+        model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
+        if normalize:
+            tensor_sum = torch.sum(model_specific_weights)
+            # Normalizing the tensor
+            if tensor_sum > 0:
+                model_specific_weights = model_specific_weights / tensor_sum
+        return model_specific_weights

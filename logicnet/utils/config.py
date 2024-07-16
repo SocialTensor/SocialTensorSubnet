@@ -3,6 +3,8 @@ import argparse
 import bittensor as bt
 from loguru import logger
 
+MIN_STAKE = 10000
+
 
 def check_config(cls, config: "bt.Config"):
     r"""Checks/validates the config namespace object."""
@@ -127,7 +129,21 @@ def add_args(cls, parser):
             default=0.1,
         )
 
+        parser.add_argument(
+            "--min_stake",
+            type=int,
+            help="The minimum stake for a validator to be considered",
+            default=MIN_STAKE,
+        )
+
     else:
+        parser.add_argument(
+            "--miner.category",
+            type=str,
+            help="The category of the miner",
+            default="Logic",
+        )
+
         parser.add_argument(
             "--miner.total_volume",
             type=int,
@@ -139,7 +155,7 @@ def add_args(cls, parser):
             "--miner.min_stake",
             type=int,
             help="The minimum stake for a validator to be considered",
-            default=10000,
+            default=MIN_STAKE,
         )
 
         parser.add_argument(

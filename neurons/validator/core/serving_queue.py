@@ -29,16 +29,16 @@ class QueryQueue:
         for q in self.proxy_queue.values():
             q.queue.clear()
         for uid, info in all_uids_info.items():
-            if not info["category"]:
+            if not info.category:
                 continue
             synthentic_model_queue = self.synthentic_queue.setdefault(
-                info["category"], queue.Queue()
+                info.category, queue.Queue()
             )
             proxy_model_queue = self.proxy_queue.setdefault(
-                info["category"], queue.Queue()
+                info.category, queue.Queue()
             )
             synthetic_rate_limit, proxy_rate_limit = self.get_rate_limit_by_type(
-                info["rate_limit"]
+                info.rate_limit
             )
             for _ in range(int(synthetic_rate_limit)):
                 synthentic_model_queue.put(QueryItem(uid=uid))

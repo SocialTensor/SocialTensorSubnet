@@ -28,11 +28,11 @@ class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
         bt.logging.info("load_state()")
+        self.categories = init_category()
         self.miner_manager = MinerManager(self)
         self.load_state()
         self.update_scores_on_chain()
         self.sync()
-        self.categories = init_category()
         self.miner_manager.update_miners_identity()
         self.query_queue = QueryQueue(
             list(self.categories.keys()),
@@ -186,8 +186,7 @@ class Validator(BaseValidatorNeuron):
                 category
             )
             model_specific_weights = (
-                model_specific_weights
-                * self.nicheimage_catalogue[category]["model_incentive_weight"]
+                model_specific_weights * self.categories[category]["incentive_weight"]
             )
             bt.logging.info(
                 f"model_specific_weights for {category}\n{model_specific_weights}"
