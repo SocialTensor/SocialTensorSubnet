@@ -1,8 +1,5 @@
 import bittensor as bt
 import pydantic
-from generation_models.utils import base64_to_pil_image
-import typing
-import requests
 
 
 class Information(bt.Synapse):
@@ -16,11 +13,7 @@ class LogicSynapse(bt.Synapse):
     TODO
     """
 
-    logic_question: str = pydantic.Field(
-        "",
-        title="Logic Question",
-        description=""
-    )
+    logic_question: str = pydantic.Field("", title="Logic Question", description="")
 
     logic_answer: str = pydantic.Field(
         "",

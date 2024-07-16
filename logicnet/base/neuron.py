@@ -97,7 +97,8 @@ class BaseNeuron(ABC):
         self.step = 0
 
     @abstractmethod
-    def run(self): ...
+    def run(self):
+        ...
 
     def sync(self):
         """

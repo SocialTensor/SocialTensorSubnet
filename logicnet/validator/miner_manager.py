@@ -1,15 +1,18 @@
 import bittensor as bt
-from image_generation_subnet.protocol import ImageGenerating, Information
+from image_generation_subnet.protocol import Information
 import torch
-from image_generation_subnet.utils.volume_setting import get_rate_limit_per_validator, MIN_RATE_LIMIT
-import requests
-from threading import Thread
-import image_generation_subnet as ig_subnet
+from image_generation_subnet.utils.volume_setting import (
+    get_rate_limit_per_validator,
+    MIN_RATE_LIMIT,
+)
 
 NO_OF_RECENT_SCORES = 10
 
+
 class MinerInfo:
-    def __init__(self, scores: list[float] = [], epoch_volume: int = 42, *args, **kwargs):
+    def __init__(
+        self, scores: list[float] = [], epoch_volume: int = 42, *args, **kwargs
+    ):
         """
         TODO
         """
@@ -17,14 +20,13 @@ class MinerInfo:
         self.epoch_volume: int = epoch_volume
         self.rate_limit = {}
 
+
 class MinerManager:
     def __init__(self, validator):
         self.validator = validator
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
-        self.all_uids_info = {
-            uid: MinerInfo() for uid in self.all_uids
-        }
-    
+        self.all_uids_info = {uid: MinerInfo() for uid in self.all_uids}
+
     def get_miner_info(self):
         """
         TODO
@@ -54,7 +56,9 @@ class MinerManager:
         try:
             valid_miners_info = self.get_miner_info()
             if not valid_miners_info:
-                bt.logging.warning("No active miner available. Skipping setting weights.")
+                bt.logging.warning(
+                    "No active miner available. Skipping setting weights."
+                )
             for uid, info in valid_miners_info.items():
                 info = MinerInfo(**info)
                 rate_limit_per_validator: dict = get_rate_limit_per_validator(
@@ -62,28 +66,32 @@ class MinerManager:
                     epoch_volume=info.epoch_volume,
                     log=False,
                 )
-                info.rate_limit = volume_per_validator.get(self.validator.uid, MIN_RATE_LIMIT)
+                info.rate_limit = rate_limit_per_validator.get(
+                    self.validator.uid, MIN_RATE_LIMIT
+                )
                 bt.logging.info(f"Rate limit for {uid}: {info.rate_limit}")
 
             bt.logging.success("Updated miner identity")
             return True
-        except:
+        except Exception:
             bt.logging.error("Update miner identity error!!!")
             return False
-    
+
     def update_scores(self, uids, rewards):
         for uid, reward in zip(uids, rewards):
             self.all_uids_info[uid].scores.append(reward)
-            self.all_uids_info[uid].scores = self.all_uids_info[uid]["scores"][-NO_OF_RECENT_SCORES:]
+            self.all_uids_info[uid].scores = self.all_uids_info[uid]["scores"][
+                -NO_OF_RECENT_SCORES:
+            ]
 
-    def get_on_chain_weights(self) -> torch.Tensor:
+    def get_on_chain_weights(self, category) -> torch.Tensor:
         weights = torch.zeros(len(self.all_uids))
-        for uid, info in self.get_miner_uids(model_name):
+        for uid, info in self.get_miner_uids(category):
             weights[int(uid)] = (
                 sum(self.all_uids_info[uid].scores[-NO_OF_RECENT_SCORES:])
                 / NO_OF_RECENT_SCORES
             )
         weights = weights + 1e-6
         weights = torch.clamp(weights, 0, 1)
-        weigths = weights / weights.sum()
+        weights = weights / weights.sum()
         return weights

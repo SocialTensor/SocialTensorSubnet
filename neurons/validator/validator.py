@@ -1,5 +1,4 @@
 import time
-import os
 import bittensor as bt
 import random
 import torch
@@ -8,18 +7,9 @@ from neurons.validator.validator_proxy import ValidatorProxy
 from image_generation_subnet.validator import MinerManager
 import image_generation_subnet as ig_subnet
 import traceback
-import yaml
 import threading
-import math
-import queue
-from copy import deepcopy
-from image_generation_subnet.validator.offline_challenge import (
-    get_backup_image,
-    get_backup_prompt,
-    get_backup_llm_prompt,
-)
 from datetime import datetime
-from neurons.core.serving_queue import QueryItem, QueryQueue
+from neurons.core.serving_queue import QueryQueue
 
 
 class Validator(BaseValidatorNeuron):
@@ -123,7 +113,9 @@ class Validator(BaseValidatorNeuron):
         should_rewards: list[int],
     ):
         dendrite = bt.dendrite(self.wallet)
-        if model_name == "RealitiesEdgeXL" and datetime.utcnow() < datetime(2024, 6, 12, 0, 0, 0):
+        if model_name == "RealitiesEdgeXL" and datetime.utcnow() < datetime(
+            2024, 6, 12, 0, 0, 0
+        ):
             pipeline_type = "txt2img"
         else:
             pipeline_type = random.choice(
@@ -185,7 +177,9 @@ class Validator(BaseValidatorNeuron):
                 for i, uid in enumerate(reward_uids):
                     if rewards[i] > 0:
                         rewards[i] = rewards[i] * (
-                            0.6 + 0.4 * self.miner_manager.all_uids_info[uid]["reward_scale"]
+                            0.6
+                            + 0.4
+                            * self.miner_manager.all_uids_info[uid]["reward_scale"]
                         )
 
                 bt.logging.info(f"Scored responses: {rewards}")
@@ -236,7 +230,7 @@ class Validator(BaseValidatorNeuron):
     ):
         if not self.config.share_response:
             return
-        
+
         for uid, response in enumerate(responses):
             if not response.is_success:
                 continue
@@ -254,7 +248,7 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
-            
+
             # Smoothing update incentive
             temp_incentive_weight = {}
             if datetime.utcnow() < datetime(2024, 6, 6, 0, 0, 0):
@@ -264,7 +258,9 @@ class Validator(BaseValidatorNeuron):
                 }
 
             if model_name in temp_incentive_weight:
-                bt.logging.info(f"Using temp_incentive_weight: {temp_incentive_weight} for {model_name}")
+                bt.logging.info(
+                    f"Using temp_incentive_weight: {temp_incentive_weight} for {model_name}"
+                )
                 model_specific_weights = (
                     model_specific_weights * temp_incentive_weight[model_name]
                 )

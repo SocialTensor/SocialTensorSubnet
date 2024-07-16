@@ -1,8 +1,6 @@
-import requests
 import bittensor as bt
 from image_generation_subnet.protocol import ImageGenerating
 from typing import List
-from math import pow
 from functools import wraps
 from tqdm import tqdm
 import httpx
@@ -10,6 +8,7 @@ import httpx
 REWARD_TIME_PORTION = -0.1
 REWARD_ACC_PORTION = 0.6
 REWARD_SIM_PORTION = 0.4
+
 
 def retry(**kwargs):
     module = kwargs.get("module", "unknown")
@@ -97,7 +96,10 @@ def get_reward(
         valid_rewards = response.json()["rewards"]
         valid_rewards = [float(reward) for reward in valid_rewards]
         process_times = [synapse.dendrite.process_time for synapse in valid_synapses]
-        valid_rewards = [reward + REWARD_TIME_PORTION * process_time / timeout for reward, process_time in zip(valid_rewards, process_times)]
+        valid_rewards = [
+            reward + REWARD_TIME_PORTION * process_time / timeout
+            for reward, process_time in zip(valid_rewards, process_times)
+        ]
         valid_rewards = [round(num, 3) for num in valid_rewards]
     else:
         bt.logging.info("0 valid responses in a batch")

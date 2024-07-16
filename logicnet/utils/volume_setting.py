@@ -3,9 +3,11 @@ import torch
 
 MIN_RATE_LIMIT = 2
 
+
 def get_rate_limit_per_validator(
     metagraph,
     epoch_volume: int,
+    min_stake: int,
     log: bool = True,
 ) -> dict:
     all_stakes = [stake for stake in metagraph.total_stake.tolist()]
@@ -27,9 +29,7 @@ def get_rate_limit_per_validator(
         min_stake = 0
 
     valid_stakes = torch.tensor(valid_stakes) + 1e-4
-    normalized_valid_stakes = (
-        valid_stakes / valid_stakes.sum()
-    )
+    normalized_valid_stakes = valid_stakes / valid_stakes.sum()
     volume_per_validator = epoch_volume * normalized_valid_stakes
     volume_per_validator = torch.floor(volume_per_validator)
     volume_per_validator = dict(zip(valid_uids, volume_per_validator.tolist()))

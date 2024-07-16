@@ -10,10 +10,8 @@ import os
 import random
 import asyncio
 from image_generation_subnet.validator.proxy import ProxyCounter
-from image_generation_subnet.protocol import ImageGenerating
 import traceback
 import httpx
-from starlette.concurrency import run_in_threadpool
 import threading
 
 
@@ -101,16 +99,25 @@ class ValidatorProxy:
                     uids,
                     rewards,
                 ) = image_generation_subnet.validator.get_reward(
-                    reward_url, synapse, [response], [uid], timeout, self.validator.miner_manager
+                    reward_url,
+                    synapse,
+                    [response],
+                    [uid],
+                    timeout,
+                    self.validator.miner_manager,
                 )
             bt.logging.info(
                 f"Proxy: Updating scores of miners {uids} with rewards {rewards}, should_reward: {should_reward}"
             )
-                # Scale Reward based on Miner Volume
+            # Scale Reward based on Miner Volume
             for i, uid in enumerate(uids):
                 if rewards[i] > 0:
                     rewards[i] = rewards[i] * (
-                        0.6 + 0.4 * self.validator.miner_manager.all_uids_info[uid]["reward_scale"]
+                        0.6
+                        + 0.4
+                        * self.validator.miner_manager.all_uids_info[uid][
+                            "reward_scale"
+                        ]
                     )
             self.validator.miner_manager.update_scores(uids, rewards)
 
