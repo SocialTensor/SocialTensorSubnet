@@ -7,10 +7,13 @@ from logicnet.protocol import LogicSynapse, Information
 import traceback
 import openai
 import os
+from dotenv import load_dotenv
 
-MINER_MODEL = os.getenv("MINER_MODEL", "gpt-3.5-turbo")
-MINER_BASE_URL = os.getenv("MINER_BASE_URL", "https://api.openai.com/v1")
-MINER_KEY = os.getenv("MINER_API_KEY")
+load_dotenv()
+
+MODEL = os.getenv("MINER_MODEL", "gpt-3.5-turbo")
+BASE_URL = os.getenv("MINER_BASE_URL", "https://api.openai.com/v1")
+KEY = os.getenv("MINER_API_KEY")
 
 
 class Miner(BaseMinerNeuron):
@@ -29,9 +32,7 @@ class Miner(BaseMinerNeuron):
         self.num_processing_requests = 0
         self.total_request_in_interval = 0
         bt.logging.info(f"Miner info: {self.miner_info}")
-        self.openai_client = openai.AsyncOpenAI(
-            base_url=MINER_BASE_URL, api_key=MINER_KEY
-        )
+        self.openai_client = openai.AsyncOpenAI(base_url=BASE_URL, api_key=KEY)
 
     async def forward(self, synapse: LogicSynapse) -> LogicSynapse:
         try:
@@ -40,7 +41,7 @@ class Miner(BaseMinerNeuron):
                 {"role": "user", "message": logic_question},
             ]
             response = await self.openai_client.chat.completions.create(
-                model=MINER_MODEL,
+                model=MODEL,
                 messages=messages,
                 max_tokens=1028,
                 temperature=0.8,

@@ -1,7 +1,7 @@
 import bittensor as bt
-from image_generation_subnet.protocol import Information
+from logicnet.protocol import Information
 import torch
-from image_generation_subnet.utils.volume_setting import (
+from logicnet.utils.volume_setting import (
     get_rate_limit_per_validator,
     MIN_RATE_LIMIT,
 )

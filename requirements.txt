@@ -8,3 +8,4 @@ httpx==0.26.0
 numpy==1.26.4
 openai==1.35.14
 sentence-transformers
+python-dotenv

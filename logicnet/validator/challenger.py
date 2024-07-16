@@ -3,13 +3,17 @@ import openai
 import random
 import os
 from logicnet.protocol import LogicSynapse
+from dotenv import load_dotenv
 
-LLM_MODEL = os.getenv("LLM_MODEL", "gpt-3.5-turbo")
+load_dotenv()
+MODEL = os.getenv("CHALLENGE_MODEL", "gpt-3.5-turbo")
+BASE_URL = os.getenv("CHALLENGE_BASE_URL", "https://api.openai.com/v1")
+KEY = os.getenv("CHALLENGE_KEY")
 
 
 class LogicChallenger:
     def __init__(self):
-        self.openai_client = openai.OpenAI()
+        self.openai_client = openai.OpenAI(base_url=BASE_URL, api_key=KEY)
         self.math_generator_prompt = (
             "Write a math problem that required logic to solve."
         )
@@ -33,7 +37,7 @@ class LogicChallenger:
             {"role": "user", "message": self.math_generator_prompt},
         ]
         response = self.openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model=MODEL,
             messages=messages,
             max_tokens=128,
             temperature=0.5,
@@ -52,7 +56,7 @@ class LogicChallenger:
             },
         ]
         response = self.openai_client.chat.completions.create(
-            model=LLM_MODEL,
+            model=MODEL,
             messages=messages,
             max_tokens=256,
             temperature=0.5,
