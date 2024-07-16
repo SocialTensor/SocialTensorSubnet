@@ -36,7 +36,7 @@ class NicheGoJourney(BaseModel):
                     imagine_endpoint, headers=headers, json=data, timeout=32
                 )
                 imagine_response = imagine_response.json()
-                bt.logging.info(imagine_response, flush=True)
+                bt.logging.info(imagine_response)
                 task_id = imagine_response["task_id"]
                 fetch_response = client.post(fetch_endpoint, json={"task_id": task_id})
                 fetch_response = fetch_response.json()

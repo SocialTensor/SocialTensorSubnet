@@ -43,7 +43,7 @@ class RedisClient():
         return output
     
     def get_stream_info(self, stream_name, is_clear = False):
-        bt.logging.info("Num success messages: ", self.count_success)
+        bt.logging.info(f"Num success messages: {self.count_success}")
         count = self.client.xlen(stream_name)
         bt.logging.info(f"Number of messages remain in {stream_name} stream: {count}.")
         if is_clear:

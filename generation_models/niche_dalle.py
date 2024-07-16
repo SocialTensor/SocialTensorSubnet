@@ -84,7 +84,7 @@ class NicheDallE(BaseModel):
                     bt.logging.info(f"Retrying with safe prompt: {prompt}")
                     data = _generate(prompt, size, style)
 
-            bt.logging.info(data, flush=True)
+            bt.logging.info(data)
             return data
 
         return inference_function

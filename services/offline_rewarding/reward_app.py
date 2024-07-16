@@ -191,7 +191,7 @@ class RewardApp():
                 miner_responses = [x["image"] for x in  info["miner_data"]]
                 valid_rewards = self.rewarder.get_reward(validator_response, miner_responses)
                 valid_rewards = [float(reward) for reward in valid_rewards]
-                bt.logging.debug(valid_rewards, flush=True)
+                bt.logging.debug(valid_rewards)
                 process_times = [x["process_time"] for x in info["miner_data"]]
                 if timeout > 12:
                     valid_rewards = add_time_penalty(valid_rewards, process_times, 0.4, 64)
@@ -266,7 +266,7 @@ class RewardApp():
             total_not_processed_ids.extend(not_processed_ids)
             if len(reward_uids) > 0 :
                 reward_uids, rewards =self.scale_reward(reward_uids, rewards)
-                bt.logging.info("Reward result: ", reward_uids, rewards)
+                bt.logging.info(f"Reward result: {reward_uids}, {rewards}")
                 self.validator.miner_manager.update_scores(reward_uids, rewards)
 
                 self.total_uids.extend(reward_uids)

@@ -261,14 +261,14 @@ class ComfyUI:
                 self.randomise_input_seed(seed_key, inputs)
 
     def run_workflow(self, workflow):
-        print("Running workflow")
+        bt.logging.info("Running workflow")
         # self.reset_execution_cache()
 
         prompt_id = self.queue_prompt(workflow)
         self.wait_for_prompt_completion(workflow, prompt_id)
         output_json = self.get_history(prompt_id)
-        print("outputs: ", output_json)
-        print("====================================")
+        bt.logging.info(f"outputs: {output_json}")
+        bt.logging.info("====================================")
 
     def get_history(self, prompt_id):
         with urllib.request.urlopen(
