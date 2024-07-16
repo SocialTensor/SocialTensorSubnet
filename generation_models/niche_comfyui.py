@@ -7,10 +7,11 @@ import shutil
 from pathlib import Path
 import random
 import socket
+import bittensor as bt
 
 def import_from_string(import_str):
     module_name, class_name = import_str.rsplit(".", 1)
-    print(module_name)
+    bt.logging.info(f"Import module: {module_name}")
     module = __import__(module_name, fromlist=[class_name])
     return getattr(module, class_name)
 
@@ -55,9 +56,9 @@ class NicheComfyUI(BaseModel):
             output_directories = [self.output_folder]
 
             for directory in output_directories:
-                print(f"Contents of {directory}:")
+                bt.logging.info(f"Contents of {directory}:")
                 files.extend(self.log_and_collect_files(directory))
-            print(files)
+            bt.logging.info(files)
             image = Image.open(files[0])
             return image
 
@@ -68,7 +69,7 @@ class NicheComfyUI(BaseModel):
         return image
 
     def cleanup(self, comfyui, output_folder, input_folder):
-        print("Cleanup")
+        bt.logging.info("Cleanup")
         comfyui.clear_queue()
         for directory in [output_folder, input_folder]:
             if os.path.exists(directory):
@@ -82,10 +83,10 @@ class NicheComfyUI(BaseModel):
                 continue
             path = os.path.join(directory, f)
             if os.path.isfile(path):
-                print(f"{prefix}{f}")
+                bt.logging.info(f"{prefix}{f}")
                 files.append(Path(path))
             elif os.path.isdir(path):
-                print(f"{prefix}{f}/")
+                bt.logging.info(f"{prefix}{f}/")
                 files.extend(self.log_and_collect_files(path, prefix=f"{prefix}{f}/"))
         return files
 
@@ -96,7 +97,6 @@ class NicheComfyUI(BaseModel):
         import glob
         self.comfyui.kill_process_on_port()
         for directory in [self.output_folder, self.input_folder]:
-            print(directory, os.path.exists(directory))
             if os.path.exists(directory):
                 shutil.rmtree(directory)
 

@@ -7,6 +7,7 @@ import time, json, os, copy
 import requests
 from services.offline_rewarding.redis_client import RedisClient
 from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
+import bittensor as bt
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -97,7 +98,7 @@ class RewardApp():
         }
         response = requests.post(self.reward_endpoint, json = req)
         if response.status_code != 200:
-            print(f"Error in get_challenge_result: {response.text}")
+            bt.logging.error(f"Error in get_challenge_result: {response.text}")
             result = None
         else:
             result = response.json()[0]["image"] # for image models, not implement for text
@@ -128,7 +129,7 @@ class RewardApp():
                     base_synapse = self.get_log_validator(hash_id)
                 success_ids.append(raw_message_id)
             except Exception as ex:
-                print(f"[ERROR] generate_response fail: {str(ex)}")
+                bt.logging.error(f"[ERROR] generate_response fail: {str(ex)}")
                 error_ids.append(raw_message_id)
         return success_ids, error_ids
     
@@ -162,7 +163,7 @@ class RewardApp():
                             success_ids.append(raw_message_id)
                             success_synapses.append(synapse)
                         except Exception as ex:
-                            print(f"Genereate response error: {str(ex)}")
+                            bt.logging.error(f"Genereate response error: {str(ex)}")
                             not_processed_ids.append(raw_message_id)
                     else:
                         not_processed_ids.append(raw_message_id)
@@ -190,7 +191,7 @@ class RewardApp():
                 miner_responses = [x["image"] for x in  info["miner_data"]]
                 valid_rewards = self.rewarder.get_reward(validator_response, miner_responses)
                 valid_rewards = [float(reward) for reward in valid_rewards]
-                print(valid_rewards, flush=True)
+                bt.logging.debug(valid_rewards, flush=True)
                 process_times = [x["process_time"] for x in info["miner_data"]]
                 if timeout > 12:
                     valid_rewards = add_time_penalty(valid_rewards, process_times, 0.4, 64)
@@ -225,7 +226,7 @@ class RewardApp():
         if self.current_model in sorted_model_names:
             sorted_model_names.remove(self.current_model)
             sorted_model_names.insert(0, self.current_model)
-        print(f"Current model: {self.current_model}, Model Counts: {model_counts}, Sorted model names: {sorted_model_names}")
+        bt.logging.info(f"Current model: {self.current_model}, Model Counts: {model_counts}, Sorted model names: {sorted_model_names}")
         return sorted_model_names
 
 
@@ -259,13 +260,13 @@ class RewardApp():
                     rewards.extend(d_rewards)
                 success_ids, not_processed_ids = [x["message_id"] for x in data], []
             else:
-                print("Reward method not found !!!")
+                bt.logging.warning("Reward method not found !!!")
             
             total_success_ids.extend(success_ids)
             total_not_processed_ids.extend(not_processed_ids)
             if len(reward_uids) > 0 :
                 reward_uids, rewards =self.scale_reward(reward_uids, rewards)
-                print("Reward result: ", reward_uids, rewards)
+                bt.logging.info("Reward result: ", reward_uids, rewards)
                 self.validator.miner_manager.update_scores(reward_uids, rewards)
 
                 self.total_uids.extend(reward_uids)
@@ -328,8 +329,8 @@ class RewardApp():
         await self.redis_client.process_message_from_stream_async(self.base_synapse_stream_name, generate_validator_response, count=1000)    
 
     def show_total_uids_and_rewards(self):
-        print(f"Total_uids (len = {len(self.total_uids)}; len distinct = {len(list(set(self.total_uids)))}): {self.total_uids}")
-        print(f"Total rewards (len={len(self.total_rewards)}): {self.total_rewards}")
+        bt.logging.info(f"Total_uids (len = {len(self.total_uids)}; len distinct = {len(list(set(self.total_uids)))}): {self.total_uids}")
+        bt.logging.info(f"Total rewards (len={len(self.total_rewards)}): {self.total_rewards}")
     
     def reset_total_uids_and_rewards(self):
         self.total_uids, self.total_rewards = [], []

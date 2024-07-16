@@ -1,6 +1,7 @@
 import redis
 import json, time
 from urllib.parse import urlparse
+import bittensor as bt
 
 class RedisClient():
     """ A client class to interact with Redis, allowing for publishing, reading,
@@ -24,7 +25,7 @@ class RedisClient():
 
     def publish_to_stream(self, stream_name, message):
         message_id = self.client.xadd(stream_name, message)
-        print(f"Published {stream_name} message ID: {message_id}")
+        bt.logging.info(f"Published {stream_name} message ID: {message_id}")
         return message_id
 
     def read_from_stream(self, stream_name, count, block):
@@ -33,7 +34,7 @@ class RedisClient():
     
     def remove_from_stream(self, stream_name, message_id):
         self.client.xdel(stream_name, message_id)
-        print(f"Removed {stream_name} message ID: {message_id}")
+        bt.logging.info(f"Removed {stream_name} message ID: {message_id}")
 
     def decode_message_stream(self, message_data):
         output = {}
@@ -42,12 +43,12 @@ class RedisClient():
         return output
     
     def get_stream_info(self, stream_name, is_clear = False):
-        print("Num success messages: ", self.count_success)
+        bt.logging.info("Num success messages: ", self.count_success)
         count = self.client.xlen(stream_name)
-        print(f"Number of messages remain in {stream_name} stream: {count}.")
+        bt.logging.info(f"Number of messages remain in {stream_name} stream: {count}.")
         if is_clear:
             self.client.xtrim(stream_name, maxlen=0)
-            print(f"Clear stream {stream_name} done !")
+            bt.logging.info(f"Clear stream {stream_name} done !")
         elif self.max_queue_size:
             self.client.xtrim(stream_name, maxlen=self.max_queue_size)
             
@@ -72,7 +73,7 @@ class RedisClient():
             messages = self.read_from_stream(stream_name, count, block)
 
             if not messages:
-                print("No new messages. Waiting for more...")
+                bt.logging.info("No new messages. Waiting for more...")
                 continue
 
             all_messages = []
@@ -80,7 +81,7 @@ class RedisClient():
                 for message_id, message_data in message_list:
                     if decode:
                         message_data = self.decode_message_stream(message_data)
-                    # print(f"Message ID: {message_id}")
+                    
                     all_messages.append({
                         "content": message_data,
                         "id": message_id.decode('utf-8')
@@ -92,9 +93,9 @@ class RedisClient():
                 success_message_ids, error_message_ids, meta  = await process_callback(all_messages)
                 if len(success_message_ids) > 0:
                     self.update_meta_success(stream_name, meta)
-                    print(f"Count success:  {self.count_success}")
+                    bt.logging.info(f"Count success:  {self.count_success}")
                     if not  always_ack:
                         for message_id in success_message_ids:
                             self.remove_from_stream(stream_name, message_id)
             except Exception as ex:
-                print(f"Exception process message in stream: {str(ex)}")
+                bt.logging.error(f"Exception process message in stream: {str(ex)}")
