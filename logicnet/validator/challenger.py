@@ -14,7 +14,7 @@ class LogicChallenger:
             "Write a math problem that required logic to solve."
         )
 
-    def __call__(self, synapse: LogicSynapse):
+    def __call__(self, synapse: LogicSynapse) -> LogicSynapse:
         raw_logic_question, logic_question = self.get_challenge()
         synapse.logic_question = logic_question
         synapse.raw_logic_question = raw_logic_question

@@ -1,12 +1,16 @@
 import time
-from typing import Tuple, TypeVar
+from typing import Tuple
 import bittensor as bt
-from image_generation_subnet.base.miner import BaseMinerNeuron
-import image_generation_subnet
-from image_generation_subnet.protocol import LogicSynapse, Information
+from logicnet.base.miner import BaseMinerNeuron
+import logicnet
+from logicnet.protocol import LogicSynapse, Information
 import traceback
+import openai
+import os
 
-T = TypeVar("T", bound=bt.Synapse)
+MINER_MODEL = os.getenv("MINER_MODEL", "gpt-3.5-turbo")
+MINER_BASE_URL = os.getenv("MINER_BASE_URL", "https://api.openai.com/v1")
+MINER_KEY = os.getenv("MINER_API_KEY")
 
 
 class Miner(BaseMinerNeuron):
@@ -14,20 +18,40 @@ class Miner(BaseMinerNeuron):
         super(Miner, self).__init__(config=config)
         self.validator_logs = {}
         self.volume_per_validator = (
-            image_generation_subnet.utils.volume_setting.get_volume_per_validator(
+            logicnet.utils.volume_setting.get_volume_per_validator(
                 self.metagraph,
                 self.config.miner.total_volume,
                 self.config.miner.size_preference_factor,
                 self.config.miner.min_stake,
             )
         )
-        self.miner_info = image_generation_subnet.miner.set_info(self)
+        self.miner_info = logicnet.miner.set_info(self)
         self.num_processing_requests = 0
         self.total_request_in_interval = 0
         bt.logging.info(f"Miner info: {self.miner_info}")
+        self.openai_client = openai.AsyncOpenAI(
+            base_url=MINER_BASE_URL, api_key=MINER_KEY
+        )
 
     async def forward(self, synapse: LogicSynapse) -> LogicSynapse:
-        # TODO
+        try:
+            logic_question: str = synapse.logic_question
+            messages = [
+                {"role": "user", "message": logic_question},
+            ]
+            response = await self.openai_client.chat.completions.create(
+                model=MINER_MODEL,
+                messages=messages,
+                max_tokens=1028,
+                temperature=0.8,
+            )
+            synapse.logic_answer = response.choices[0].message["content"]
+            self.num_processing_requests += 1
+            self.total_request_in_interval += 1
+        except Exception as e:
+            bt.logging.error(f"Error in forward: {e}")
+            traceback.print_exc()
+
         return synapse
 
     async def forward_info(self, synapse: Information) -> Information:
@@ -66,7 +90,7 @@ class Miner(BaseMinerNeuron):
                     f"Blacklisting {validator_uid}-validator has {stake} stake"
                 )
                 return True, "Not enough stake"
-            if image_generation_subnet.miner.check_limit(
+            if logicnet.miner.check_limit(
                 self,
                 uid=validator_uid,
                 stake=stake,
@@ -110,11 +134,13 @@ if __name__ == "__main__":
                 start_time = time.time()
                 miner.total_request_in_interval = 0
             try:
-                miner.volume_per_validator = image_generation_subnet.utils.volume_setting.get_volume_per_validator(
-                    miner.metagraph,
-                    miner.config.miner.total_volume,
-                    miner.config.miner.size_preference_factor,
-                    miner.config.miner.min_stake,
+                miner.volume_per_validator = (
+                    logicnet.utils.volume_setting.get_volume_per_validator(
+                        miner.metagraph,
+                        miner.config.miner.total_volume,
+                        miner.config.miner.size_preference_factor,
+                        miner.config.miner.min_stake,
+                    )
                 )
             except Exception as e:
                 print(e)
