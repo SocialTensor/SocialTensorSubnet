@@ -121,7 +121,7 @@ class Validator(BaseValidatorNeuron):
                 deserialize=False,
                 timeout=self.categories[category]["timeout"],
             )
-            bt.logging.debug(f"Response: {responses}")
+            bt.logging.debug(f"Miner response: {responses[0].logic_answer}")
             reward_responses = [
                 response
                 for response, should_reward in zip(responses, should_rewards)

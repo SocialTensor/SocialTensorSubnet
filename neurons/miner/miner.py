@@ -46,7 +46,7 @@ class Miner(BaseMinerNeuron):
             response = await self.openai_client.chat.completions.create(
                 model=MODEL,
                 messages=messages,
-                max_tokens=1028,
+                max_tokens=2048,
                 temperature=0.8,
             )
             synapse.logic_answer = response.choices[0].message.content

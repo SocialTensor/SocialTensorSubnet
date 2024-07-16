@@ -41,7 +41,7 @@ class LogicChallenger:
         response = self.openai_client.chat.completions.create(
             model=MODEL,
             messages=messages,
-            max_tokens=128,
+            max_tokens=1024,
             temperature=0.5,
         )
         print(response)
