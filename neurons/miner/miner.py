@@ -3,7 +3,7 @@ from typing import Tuple, TypeVar
 import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
-from image_generation_subnet.protocol import ImageGenerating, TextGenerating, Information
+from image_generation_subnet.protocol import LogicSynapse, Information
 import traceback
 
 T = TypeVar("T", bound=bt.Synapse)
@@ -26,53 +26,8 @@ class Miner(BaseMinerNeuron):
         self.total_request_in_interval = 0
         bt.logging.info(f"Miner info: {self.miner_info}")
 
-    async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
-        if "get_miner_info" in synapse.request_dict:
-            return await self.forward_info_legacy(synapse)
-        self.num_processing_requests += 1
-        self.total_request_in_interval += 1
-        try:
-            bt.logging.info(
-                f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
-            )
-            synapse.limit_params()
-            synapse = await image_generation_subnet.miner.generate(self, synapse)
-            self.num_processing_requests -= 1
-        except Exception as e:
-            bt.logging.warning(f"Error in forward_image: {e}")
-            self.num_processing_requests -= 1
-        return synapse
-
-    async def forward_info_legacy(self, synapse: ImageGenerating) -> ImageGenerating:
-        synapse.response_dict = self.miner_info
-        bt.logging.info(f"Response dict: {self.miner_info}")
-        validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
-        bt.logging.info(
-            f"Request counter for {validator_uid}: {self.validator_logs[validator_uid]['request_counter']}/{self.validator_logs[validator_uid]['max_request']}"
-        )
-        self.validator_logs[validator_uid]["request_counter"] = self.validator_logs[
-            validator_uid
-        ].get("request_counter", 0) - 1
-        bt.logging.info(
-            f"Request counter for {validator_uid}: {self.validator_logs[validator_uid]['request_counter']}/{self.validator_logs[validator_uid]['max_request']}"
-        )
-        return synapse
-
-    async def forward_text(self, synapse: TextGenerating) -> TextGenerating:
-        if synapse.request_dict:
-            return await self.forward_info_legacy(synapse)
-        self.num_processing_requests += 1
-        self.total_request_in_interval += 1
-        try:
-            bt.logging.info(
-                f"Processing {self.num_processing_requests} requests, synapse input: {synapse.prompt_input}"
-            )
-            synapse.limit_params()
-            synapse = await image_generation_subnet.miner.generate(self, synapse)
-            self.num_processing_requests -= 1
-        except Exception as e:
-            bt.logging.warning(f"Error in forward_text: {e}")
-            self.num_processing_requests -= 1
+    async def forward(self, synapse: LogicSynapse) -> LogicSynapse:
+        # TODO
         return synapse
 
     async def forward_info(self, synapse: Information) -> Information:
@@ -82,7 +37,7 @@ class Miner(BaseMinerNeuron):
     async def blacklist_info(self, synapse: Information) -> Tuple[bool, str]:
         return False, "All passed!"
 
-    async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
+    async def blacklist(self, synapse: LogicSynapse) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
         try:
             if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
@@ -129,13 +84,7 @@ class Miner(BaseMinerNeuron):
             traceback.print_exc()
             return False, "All passed!"
 
-    async def blacklist_image(self, synapse: ImageGenerating) -> Tuple[bool, str]:
-        return await self.blacklist(synapse)
-
-    async def blacklist_text(self, synapse: TextGenerating) -> Tuple[bool, str]:
-        return await self.blacklist(synapse)
-
-    async def priority(self, synapse: ImageGenerating) -> float:
+    async def priority(self, synapse: LogicSynapse) -> float:
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
         )  # Get the caller index.
