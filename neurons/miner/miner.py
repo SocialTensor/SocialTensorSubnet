@@ -21,7 +21,7 @@ class Miner(BaseMinerNeuron):
         super(Miner, self).__init__(config=config)
         self.validator_logs = {}
         self.volume_per_validator = (
-            logicnet.utils.volume_setting.get_volume_per_validator(
+            logicnet.utils.volume_setting.get_rate_limit_per_validator(
                 self.metagraph,
                 self.config.miner.total_volume,
                 self.config.miner.size_preference_factor,
@@ -136,7 +136,7 @@ if __name__ == "__main__":
                 miner.total_request_in_interval = 0
             try:
                 miner.volume_per_validator = (
-                    logicnet.utils.volume_setting.get_volume_per_validator(
+                    logicnet.utils.volume_setting.get_rate_limit_per_validator(
                         miner.metagraph,
                         miner.config.miner.total_volume,
                         miner.config.miner.size_preference_factor,

@@ -1,21 +1,3 @@
-# The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# Copyright © 2023 Opentensor Foundation
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
-
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-
 import os
 import argparse
 import bittensor as bt
@@ -65,20 +47,6 @@ def add_args(cls, parser):
     neuron_type = "validator" if "miner" not in cls.__name__.lower() else "miner"
 
     parser.add_argument(
-        "--neuron.name",
-        type=str,
-        help="Trials for this neuron go in neuron.root / (wallet_cold - wallet_hot) / neuron.name. ",
-        default=neuron_type,
-    )
-
-    parser.add_argument(
-        "--neuron.device",
-        type=str,
-        help="Device to run on.",
-        default="cpu",
-    )
-
-    parser.add_argument(
         "--neuron.epoch_length",
         type=int,
         help="The default epoch length (how often we set weights, measured in 12 second blocks).",
@@ -101,31 +69,10 @@ def add_args(cls, parser):
 
     if neuron_type == "validator":
         parser.add_argument(
-            "--neuron.num_concurrent_forwards",
-            type=int,
-            help="The number of concurrent forwards running at any time.",
-            default=1,
-        )
-
-        parser.add_argument(
-            "--neuron.sample_size",
-            type=int,
-            help="The number of miners to query in a single step.",
-            default=10,
-        )
-
-        parser.add_argument(
             "--neuron.disable_set_weights",
             action="store_true",
             help="Disables setting weights.",
             default=False,
-        )
-
-        parser.add_argument(
-            "--neuron.moving_average_alpha",
-            type=float,
-            help="Moving average alpha parameter, how much to add of the new observation.",
-            default=0.05,
         )
 
         parser.add_argument(
@@ -151,25 +98,12 @@ def add_args(cls, parser):
             help="The base time for the loop to run in seconds.",
             default=600,
         )
-        parser.add_argument(
-            "--volume_utilization_factor",
-            type=float,
-            help="Determine how much of the volume to be used for synthentic quering.",
-            default=0.8,
-        )
 
         parser.add_argument(
             "--async_batch_size",
             type=int,
             help="The number of threads to run in a single loop.",
             default=16,
-        )
-
-        parser.add_argument(
-            "--storage_url",
-            type=str,
-            help="The url to store the image.",
-            default="http://nichestorage.nichetensor.com:10000",
         )
 
         parser.add_argument(
@@ -193,131 +127,7 @@ def add_args(cls, parser):
             default=0.1,
         )
 
-        parser.add_argument(
-            "--reward_url.RealisticVision",
-            type=str,
-            default="http://nicheimage.nichetensor.com/reward/RealisticVision",
-        )
-
-        parser.add_argument(
-            "--reward_url.RealitiesEdgeXL",
-            type=str,
-            default="http://nicheimage.nichetensor.com/reward/RealitiesEdgeXL",
-        )
-
-        parser.add_argument(
-            "--reward_url.AnimeV3",
-            type=str,
-            default="http://nicheimage.nichetensor.com/reward/AnimeV3",
-        )
-
-        parser.add_argument(
-            "--reward_url.DreamShaper",
-            type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com/reward/DreamShaper",
-        )
-
-        parser.add_argument(
-            "--reward_url.Gemma7b",
-            type=str,
-            help="The endpoint to get the reward for Gemma7b.",
-            default="http://nicheimage.nichetensor.com/reward/Gemma7b",
-        )
-
-        parser.add_argument(
-            "--reward_url.StickerMaker",
-            type=str,
-            help="The endpoint to get the reward for StickerMaker.",
-            default="http://nicheimage.nichetensor.com/reward/StickerMaker",
-        )
-
-        parser.add_argument(
-            "--reward_url.FaceToMany",
-            type=str,
-            help="The endpoint to get the reward for FaceToMany.",
-            default="http://nicheimage.nichetensor.com/reward/FaceToMany",
-        )
-
-        parser.add_argument(
-            "--reward_url.Llama3_70b",
-            type=str,
-            help="The endpoint to get the reward for FaceToMany.",
-            default="http://nicheimage.nichetensor.com/reward/Llama3_70b",
-        )
-
-        parser.add_argument(
-            "--reward_url.DreamShaperXL",
-            type=str,
-            help="",
-            default="http://nicheimage.nichetensor.com/reward/DreamShaperXL",
-        )
-
-        parser.add_argument(
-            "--reward_url.JuggernautXL",
-            type=str,
-            help="",
-            default="http://nicheimage.nichetensor.com/reward/JuggernautXL",
-        )
-        # TODO: add more reward endpoints for categories
-
-        parser.add_argument(
-            "--challenge.prompt",
-            type=str,
-            help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/prompt",
-        )
-
-        parser.add_argument(
-            "--challenge.image",
-            type=str,
-            help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/image",
-        )
-
-        parser.add_argument(
-            "--challenge.llm_prompt",
-            type=str,
-            help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/llm_prompt",
-        )
-
-        parser.add_argument(
-            "--share_response",
-            action="store_true",
-            help="If set, validator will share miners' response to owner endpoint.",
-            default=False,
-        )
-
     else:
-        parser.add_argument(
-            "--blacklist.force_validator_permit",
-            action="store_true",
-            help="If set, we will force incoming requests to have a permit.",
-            default=False,
-        )
-
-        parser.add_argument(
-            "--blacklist.allow_non_registered",
-            action="store_true",
-            help="If set, miners will accept queries from non registered entities. (Dangerous!)",
-            default=False,
-        )
-
-        parser.add_argument(
-            "--generate_endpoint",
-            type=str,
-            help="The endpoint to send generate requests to.",
-            default="http://127.0.0.1:10006/generate",
-        )
-
-        parser.add_argument(
-            "--info_endpoint",
-            type=str,
-            help="The endpoint to send info requests to.",
-            default="http://127.0.0.1:10006/info",
-        )
-
         parser.add_argument(
             "--miner.total_volume",
             type=int,
