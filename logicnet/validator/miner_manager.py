@@ -16,6 +16,7 @@ class MinerInfo:
         category: str = "",
         scores: list[float] = [],
         epoch_volume: int = 42,
+        reward_scale: float = 0.0,
         *args,
         **kwargs,
     ):
@@ -26,12 +27,13 @@ class MinerInfo:
         self.epoch_volume: int = epoch_volume
         self.rate_limit = 0
         self.category: str = category
+        self.reward_scale: float = reward_scale
 
     def __str__(self):
-        return f"MinerInfo: {self.category} {self.scores} {self.epoch_volume} {self.rate_limit}"
+        return f"MinerInfo: {self.category} {self.scores} {self.epoch_volume} {self.rate_limit} {self.reward_scale}"
 
     def __repr__(self):
-        return f"MinerInfo: {self.category} {self.scores} {self.epoch_volume} {self.rate_limit}"
+        return f"MinerInfo: {self.category} {self.scores} {self.epoch_volume} {self.rate_limit} {self.reward_scale}"
 
     def to_dict(self):
         return {
@@ -39,6 +41,7 @@ class MinerInfo:
             "scores": self.scores,
             "epoch_volume": self.epoch_volume,
             "rate_limit": self.rate_limit,
+            "reward_scale": self.reward_scale,
         }
 
 
@@ -92,6 +95,7 @@ class MinerManager:
                 info.rate_limit = rate_limit_per_validator.get(
                     self.validator.uid, MIN_RATE_LIMIT
                 )
+                info.reward_scale = max(min(info.epoch_volume / 512, 1), 0)
                 self.all_uids_info[int(uid)] = info
                 miner_distribution.setdefault(info.category, []).append(uid)
 

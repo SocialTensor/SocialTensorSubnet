@@ -35,6 +35,9 @@ class LogicRewarder:
         for similarity, correctness, process_time in zip(
             similarities, correctness_scores, processing_times
         ):
+            bt.logging.info(
+                f"Similarity: {similarity:.2f}, Correctness: {correctness:.2f}, Process time: {process_time:.2f}"
+            )
             final_score = (
                 SIMILARITY_WEIGHT * similarity
                 + CORRECTNESS_WEIGHT * correctness
@@ -69,6 +72,7 @@ class LogicRewarder:
             )
             response_str = response.choices[0].message.content
             response_str = response_str.strip().lower()
+            bt.logging.debug(f"Correctness response: {response_str}")
             if "yes" in response_str:
                 scores.append(1)
             else:

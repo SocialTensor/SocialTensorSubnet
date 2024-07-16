@@ -144,8 +144,7 @@ class Validator(BaseValidatorNeuron):
                     if rewards[i] > 0:
                         rewards[i] = rewards[i] * (
                             0.9
-                            + 0.1
-                            * self.miner_manager.all_uids_info[uid]["reward_scale"]
+                            + 0.1 * self.miner_manager.all_uids_info[uid].reward_scale
                         )
 
                 bt.logging.info(f"Scored responses: {rewards}")
