@@ -136,18 +136,12 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--miner.size_preference_factor",
-            type=float,
-            help="The size preference factor for the volume per validator",
-            default=1.03,
-        )
-
-        parser.add_argument(
             "--miner.min_stake",
             type=int,
             help="The minimum stake for a validator to be considered",
             default=10000,
         )
+
         parser.add_argument(
             "--miner.limit_interval",
             type=int,

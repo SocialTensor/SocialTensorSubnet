@@ -24,7 +24,6 @@ class Miner(BaseMinerNeuron):
             logicnet.utils.volume_setting.get_rate_limit_per_validator(
                 self.metagraph,
                 self.config.miner.total_volume,
-                self.config.miner.size_preference_factor,
                 self.config.miner.min_stake,
             )
         )
@@ -139,7 +138,6 @@ if __name__ == "__main__":
                     logicnet.utils.volume_setting.get_rate_limit_per_validator(
                         miner.metagraph,
                         miner.config.miner.total_volume,
-                        miner.config.miner.size_preference_factor,
                         miner.config.miner.min_stake,
                     )
                 )
