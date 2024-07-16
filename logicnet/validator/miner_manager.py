@@ -12,15 +12,34 @@ NO_OF_RECENT_SCORES = 10
 
 class MinerInfo:
     def __init__(
-        self, scores: list[float] = [], epoch_volume: int = 42, *args, **kwargs
+        self,
+        category: str = "",
+        scores: list[float] = [],
+        epoch_volume: int = 42,
+        *args,
+        **kwargs,
     ):
         """
         TODO
         """
         self.scores: list[float] = scores
         self.epoch_volume: int = epoch_volume
-        self.rate_limit = {}
-        self.category: str = ""
+        self.rate_limit = 0
+        self.category: str = category
+
+    def __str__(self):
+        return f"MinerInfo: {self.category} {self.scores} {self.epoch_volume} {self.rate_limit}"
+
+    def __repr__(self):
+        return f"MinerInfo: {self.category} {self.scores} {self.epoch_volume} {self.rate_limit}"
+
+    def to_dict(self):
+        return {
+            "category": self.category,
+            "scores": self.scores,
+            "epoch_volume": self.epoch_volume,
+            "rate_limit": self.rate_limit,
+        }
 
 
 class MinerManager:
@@ -61,6 +80,7 @@ class MinerManager:
                 bt.logging.warning(
                     "No active miner available. Skipping setting weights."
                 )
+            miner_distribution = {}
             for uid, info in valid_miners_info.items():
                 info = MinerInfo(**info)
                 rate_limit_per_validator: dict = get_rate_limit_per_validator(
@@ -72,8 +92,12 @@ class MinerManager:
                 info.rate_limit = rate_limit_per_validator.get(
                     self.validator.uid, MIN_RATE_LIMIT
                 )
-                bt.logging.info(f"Rate limit for {uid}: {info.rate_limit}")
+                self.all_uids_info[int(uid)] = info
+                miner_distribution.setdefault(info.category, []).append(uid)
 
+                bt.logging.info(f"Rate limit for {uid}: {info.rate_limit}")
+            for category, uids in miner_distribution.items():
+                bt.logging.info(f"{len(uids)} Miners in category {category}: {uids}")
             bt.logging.success("Updated miner identity")
             return True
         except Exception as e:
@@ -82,6 +106,7 @@ class MinerManager:
             return False
 
     def get_miner_uids(self, category: str):
+        print(self.all_uids_info)
         available_uids = [
             int(uid)
             for uid in self.all_uids_info.keys()

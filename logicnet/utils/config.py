@@ -165,13 +165,6 @@ def add_args(cls, parser):
             default=600,
         )
 
-        parser.add_argument(
-            "--miner.max_concurrent_requests",
-            type=int,
-            help="The maximum number of concurrent requests to be served",
-            default=4,
-        )
-
 
 def config(cls):
     """

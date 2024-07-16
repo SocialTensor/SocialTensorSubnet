@@ -13,7 +13,7 @@ load_dotenv()
 
 MODEL = os.getenv("MINER_MODEL", "gpt-3.5-turbo")
 BASE_URL = os.getenv("MINER_BASE_URL", "https://api.openai.com/v1")
-KEY = os.getenv("MINER_API_KEY")
+KEY = os.getenv("MINER_KEY")
 
 
 class Miner(BaseMinerNeuron):
@@ -27,7 +27,10 @@ class Miner(BaseMinerNeuron):
                 self.config.miner.min_stake,
             )
         )
-        self.miner_info = logicnet.miner.set_info(self)
+        self.miner_info = {
+            "epoch_volume": self.config.miner.total_volume,
+            "category": "Logic",
+        }
         self.num_processing_requests = 0
         self.total_request_in_interval = 0
         bt.logging.info(f"Miner info: {self.miner_info}")
@@ -70,17 +73,6 @@ class Miner(BaseMinerNeuron):
                     f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
                 )
                 return True, "Unrecognized hotkey"
-            if (
-                self.num_processing_requests
-                >= self.config.miner.max_concurrent_requests
-            ):
-                bt.logging.info(
-                    f"Serving {self.num_processing_requests} requests, max concurrent requests: {self.config.miner.max_concurrent_requests}"
-                )
-                bt.logging.trace(
-                    f"Blacklisting {synapse.dendrite.hotkey} for exceeding the limit of concurrent requests"
-                )
-                return True, "Max concurrent requests exceeded"
 
             validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
             stake = self.metagraph.stake[validator_uid].item()
