@@ -24,7 +24,7 @@ typesense
 clean-text[gpl]
 jinja2
 insightface
-onnxruntime-gpu==1.18.0
+onnxruntime-gpu
 openai
 sentencepiece
 redis==5.0.6
