@@ -20,3 +20,23 @@ class LogicSynapse(bt.Synapse):
         title="Logic Answer",
         description="",
     )
+
+    category: str = pydantic.Field(
+        "",
+        title="Category",
+        description="",
+    )
+
+    raw_logic_question: str = pydantic.Field(
+        "",
+        title="Raw Logic Question",
+        description="",
+    )
+    timeout: int = pydantic.Field(
+        12,
+        title="Timeout",
+        description="",
+    )
+
+    def miner_synapse(self):
+        self.raw_logic_question = ""

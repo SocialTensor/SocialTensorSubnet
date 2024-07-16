@@ -10,12 +10,12 @@ class QueryItem:
 
 
 class QueryQueue:
-    def __init__(self, model_names: list[str], time_per_loop: int = 600):
+    def __init__(self, categories: list[str], time_per_loop: int = 600):
         self.synthentic_queue: dict[str, queue.Queue[QueryItem]] = {
-            model_name: queue.Queue() for model_name in model_names
+            category: queue.Queue() for category in categories
         }
         self.proxy_queue: dict[str, queue.Queue[QueryItem]] = {
-            model_name: queue.Queue() for model_name in model_names
+            category: queue.Queue() for category in categories
         }
         self.synthentic_rewarded = []
         self.time_per_loop = time_per_loop
@@ -29,13 +29,13 @@ class QueryQueue:
         for q in self.proxy_queue.values():
             q.queue.clear()
         for uid, info in all_uids_info.items():
-            if not info["model_name"]:
+            if not info["category"]:
                 continue
             synthentic_model_queue = self.synthentic_queue.setdefault(
-                info["model_name"], queue.Queue()
+                info["category"], queue.Queue()
             )
             proxy_model_queue = self.proxy_queue.setdefault(
-                info["model_name"], queue.Queue()
+                info["category"], queue.Queue()
             )
             synthetic_rate_limit, proxy_rate_limit = self.get_rate_limit_by_type(
                 info["rate_limit"]
@@ -45,16 +45,16 @@ class QueryQueue:
             for _ in range(int(proxy_rate_limit)):
                 proxy_model_queue.put(QueryItem(uid=uid))
         # Shuffle the queue
-        for model_name, q in self.synthentic_queue.items():
+        for category, q in self.synthentic_queue.items():
             random.shuffle(q.queue)
             self.total_uids_remaining += len(q.queue)
             bt.logging.info(
-                f"- Model {model_name} has {len(q.queue)} uids remaining for synthentic"
+                f"- Model {category} has {len(q.queue)} uids remaining for synthentic"
             )
-        for model_name, q in self.proxy_queue.items():
+        for category, q in self.proxy_queue.items():
             random.shuffle(q.queue)
             bt.logging.info(
-                f"- Model {model_name} has {len(q.queue)} uids remaining for organic"
+                f"- Model {category} has {len(q.queue)} uids remaining for organic"
             )
 
     def get_batch_query(self, batch_size: int):
@@ -63,7 +63,7 @@ class QueryQueue:
         more_data = True
         while more_data:
             more_data = False
-            for model_name, q in self.synthentic_queue.items():
+            for category, q in self.synthentic_queue.items():
                 if q.empty():
                     continue
                 time_to_sleep = self.time_per_loop * (
@@ -82,11 +82,11 @@ class QueryQueue:
                         should_rewards.append(True)
                         self.synthentic_rewarded.append(query_item.uid)
 
-                yield model_name, uids_to_query, should_rewards, time_to_sleep
+                yield category, uids_to_query, should_rewards, time_to_sleep
 
-    def get_query_for_proxy(self, model_name):
-        synthentic_q = self.synthentic_queue[model_name]
-        proxy_q = self.proxy_queue[model_name]
+    def get_query_for_proxy(self, category):
+        synthentic_q = self.synthentic_queue[category]
+        proxy_q = self.proxy_queue[category]
         while not synthentic_q.empty():
             query_item = synthentic_q.get()
             should_reward = query_item.uid not in self.synthentic_rewarded

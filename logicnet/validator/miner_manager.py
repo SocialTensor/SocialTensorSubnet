@@ -19,6 +19,7 @@ class MinerInfo:
         self.scores: list[float] = scores
         self.epoch_volume: int = epoch_volume
         self.rate_limit = {}
+        self.category: str = ""
 
 
 class MinerManager:

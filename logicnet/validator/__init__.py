@@ -1,18 +1,9 @@
-from .forward import (
-    get_reward,
-    get_challenge,
-    add_time_penalty,
-)
-from .offline_reward import get_reward_GoJourney, get_reward_dalle
+from .challenger import LogicChallenger
 from .miner_manager import MinerManager
-from .offline_challenge import get_promptGoJouney
+from .rewarder import LogicRewarder
 
 __all__ = [
-    "get_reward",
-    "get_challenge",
-    "add_time_penalty",
-    "get_reward_GoJourney",
     "MinerManager",
-    "get_promptGoJouney",
-    "get_reward_dalle",
+    "LogicChallenger",
+    "LogicRewarder",
 ]
