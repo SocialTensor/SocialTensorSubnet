@@ -8,7 +8,7 @@ import bittensor as bt
 from .human_noise import get_condition
 from .math_generator.topics import TOPICS as topics
 from latex2sympy2 import latex2sympy
-
+import mathgenerator
 
 load_dotenv()
 MODEL = os.getenv("CHALLENGE_MODEL", "gpt-3.5-turbo")
@@ -36,6 +36,7 @@ class LogicChallenger:
         selected_topic = random.choice(topics)
         subtopic = selected_topic["subtopic"]
         topic = selected_topic["topic"]
+        bt.logging.debug(f"Using {mathgenerator.__name__} to generate math problem")
         atom_problem, atom_answer = eval(f"mathgenerator.{topic}.{subtopic}()")
         bt.logging.info(f"Generated atom math problem: {atom_problem}")
         atom_problem = atom_problem.replace("$", "")
@@ -58,18 +59,26 @@ class LogicChallenger:
                 synapse.logic_answer_preprocess_function = "eval"
             except Exception as e:
                 bt.logging.debug(f"Error converting answer to python type: {e}")
-                synapse.logic_ground_truth = atom_answer
+                synapse.logic_ground_truth = str(atom_answer)
                 synapse.logic_answer_type = "str"
                 synapse.logic_answer_preprocess_function = "none"
+
+        bt.logging.debug(
+            f"Generated atom math answer: {atom_answer}, type: {synapse.logic_answer_type}, preprocess function: {synapse.logic_answer_preprocess_function}"
+        )
+
         return atom_problem
 
     def get_revised_math_question(self, math_problem: str, conditions: dict) -> str:
-        prompt = "Please paraphrase by adding word or expression to this question as if you were a {profile} who is {mood} and write in a {tone} tone. You can use incorrect grammar, typo or add more context! Don't add your solution!".format(
+        prompt = "Please paraphrase by adding word or expression to this question as if you were a {profile} who is {mood} and write in a {tone} tone. You can use incorrect grammar, typo or add more context! Don't add your solution! Just say the revised version, you don't need to be polite.".format(
             **conditions
         )
         bt.logging.debug(f"Revising prompt: {prompt}")
         messages = [
-            {"role": "user", "content": self.math_generator_prompt},
+            {
+                "role": "user",
+                "content": "Generate a math problem that required logic to solve.",
+            },
             {"role": "assistant", "content": math_problem},
             {
                 "role": "user",

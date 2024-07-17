@@ -1,6 +1,5 @@
 import bittensor as bt
 import pydantic
-import sympy
 from typing import Union
 
 
@@ -16,7 +15,7 @@ class LogicSynapse(bt.Synapse):
     """
 
     logic_question: str = pydantic.Field("", title="Logic Question", description="")
-    logic_answer: Union[sympy.Expr, str, object] = pydantic.Field(
+    logic_answer: Union[str, object] = pydantic.Field(
         "", title="Logic Reasoning", description=""
     )
     logic_reasoning: str = pydantic.Field(
@@ -55,7 +54,7 @@ class LogicSynapse(bt.Synapse):
         description="",
     )
 
-    logic_ground_truth: str = pydantic.Field(
+    logic_ground_truth: Union[str, object] = pydantic.Field(
         "",
         title="Logic Ground Truth",
         description="",

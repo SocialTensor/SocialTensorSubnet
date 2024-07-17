@@ -28,14 +28,17 @@ class LogicRewarder:
         response_texts = [response.logic_reasoning for response in responses]
         similarities = self._get_similarity(ref_ground_truth, response_texts)
         correctness = self._get_correctness(base_synapse, responses)
-        process_times = [response.process_time for response in responses]
-
+        process_times = [response.dendrite.process_time for response in responses]
+        timeout = base_synapse.timeout
         rewards = []
         for i in range(len(responses)):
             reward = (
                 SIMILARITY_WEIGHT * similarities[i]
                 + CORRECTNESS_WEIGHT * correctness[i]
-                + PROCESSING_TIME_WEIGHT * process_times[i]
+                + PROCESSING_TIME_WEIGHT * process_times[i] / timeout
+            )
+            bt.logging.debug(
+                f"SIMILARITY: {similarities[i]}, CORRECTNESS: {correctness[i]}, PROCESSING TIME: {process_times[i]}"
             )
             rewards.append(reward)
         return rewards
