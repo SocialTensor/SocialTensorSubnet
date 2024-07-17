@@ -10,6 +10,10 @@ def get_rate_limit_per_validator(
     min_stake: int,
     log: bool = True,
 ) -> dict:
+    """
+    Calculate the rate limit for each validator based on the epoch volume and the stake of the validators.
+    The rate limit is the number of requests that a validator can process in a single epoch.
+    """
     all_stakes = [stake for stake in metagraph.total_stake.tolist()]
     all_uids = [uid for uid in range(len(all_stakes))]
     valid_stakes = [stake for stake in all_stakes if stake >= min_stake]

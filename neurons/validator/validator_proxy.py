@@ -14,6 +14,10 @@ import threading
 
 
 class ValidatorProxy:
+    """
+    TODO. NOT IMPLEMENTED FOR LOGICNET
+    """
+
     def __init__(
         self,
         validator,

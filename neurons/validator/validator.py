@@ -26,6 +26,9 @@ def init_category():
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
+        """
+        MAIN VALIDATOR that run the synthetic epoch and opening a proxy for receiving queries from the world.
+        """
         super(Validator, self).__init__(config=config)
         bt.logging.info("load_state()")
         self.categories = init_category()
@@ -49,7 +52,10 @@ class Validator(BaseValidatorNeuron):
                 )
 
     def forward(self):
-        """ """
+        """
+        Query miners by batched from the serving queue then process challenge-generating -> querying -> rewarding in background by threads
+        DEFAULT: 16 miners per batch, 600 seconds per loop.
+        """
 
         bt.logging.info("Updating available models & uids")
         async_batch_size = self.config.async_batch_size
@@ -152,6 +158,9 @@ class Validator(BaseValidatorNeuron):
                 self.miner_manager.update_scores(reward_uids, rewards)
 
     def prepare_challenge(self, uids_should_rewards, category):
+        """
+        Prepare the challenge for the miners. Continue batching to smaller.
+        """
         synapse_type = self.categories[category]["synapse_type"]
         challenger = self.categories[category]["challenger"]
         timeout = self.categories[category]["timeout"]

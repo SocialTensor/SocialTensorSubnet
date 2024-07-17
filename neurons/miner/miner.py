@@ -38,6 +38,10 @@ class Miner(BaseMinerNeuron):
         self.openai_client = openai.AsyncOpenAI(base_url=BASE_URL, api_key=KEY)
 
     async def forward(self, synapse: LogicSynapse) -> LogicSynapse:
+        """
+        Forward pass for the miner neuron. This function is called when a synapse is received by the miner neuron.
+        By default, Miner will utilize the LLM API to solve the logic problem.
+        """
         try:
             synapse = await solve(synapse=synapse, openai_client=self.openai_client)
             self.num_processing_requests += 1

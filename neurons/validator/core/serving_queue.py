@@ -10,6 +10,11 @@ class QueryItem:
 
 
 class QueryQueue:
+    """
+    QueryQueue is a queue for storing the uids for the synthetic and proxy model.
+    Created based on the rate limit of miners.
+    """
+
     def __init__(self, categories: list[str], time_per_loop: int = 600):
         self.synthentic_queue: dict[str, queue.Queue[QueryItem]] = {
             category: queue.Queue() for category in categories

@@ -20,8 +20,13 @@ class MinerInfo:
         *args,
         **kwargs,
     ):
-        """
-        TODO
+        """Miner Infomation to be refreshed every epoch
+
+        Args:
+            category (str, optional): Category of running miner. Defaults to "" if this uid is inactive.
+            scores (list[float], optional): Some recent scores of miner. Defaults to [] if this uid is inactive.
+            epoch_volume (int, optional): No of requests / epoch commited by miner. Defaults to 42.
+            reward_scale (float, optional): The scale value applied to miner reward each epoch. Defaults to 0.0.
         """
         self.scores: list[float] = scores
         self.epoch_volume: int = epoch_volume
@@ -53,7 +58,7 @@ class MinerManager:
 
     def get_miner_info(self):
         """
-        TODO
+        QUERY MINER's INFORMATION SYNAPSE
         """
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
         uid_to_axon = dict(zip(self.all_uids, self.validator.metagraph.axons))
@@ -75,7 +80,8 @@ class MinerManager:
 
     def update_miners_identity(self):
         """
-        TODO
+        Update miner's identity with new information
+        VALIDATOR calculates the rate limit and reward scale for each miner based on the epoch volume
         """
         try:
             valid_miners_info = self.get_miner_info()
@@ -110,6 +116,9 @@ class MinerManager:
             return False
 
     def get_miner_uids(self, category: str):
+        """
+        Get miner uids based on category, useful if subnet has multiple categories
+        """
         print(self.all_uids_info)
         available_uids = [
             int(uid)
@@ -119,6 +128,9 @@ class MinerManager:
         return available_uids
 
     def update_scores(self, uids, rewards):
+        """
+        Update miner's scores with new rewards
+        """
         for uid, reward in zip(uids, rewards):
             self.all_uids_info[uid].scores.append(reward)
             self.all_uids_info[uid].scores = self.all_uids_info[uid].scores[
@@ -126,6 +138,9 @@ class MinerManager:
             ]
 
     def get_on_chain_weights(self, category) -> torch.Tensor:
+        """
+        Get on-chain weights for miners based on their scores, do some normalization and clipping. Useful when have multiple categories
+        """
         weights = torch.zeros(len(self.all_uids))
         for uid, info in self.get_miner_uids(category):
             weights[int(uid)] = (
@@ -138,6 +153,9 @@ class MinerManager:
         return weights
 
     def get_model_specific_weights(self, category, normalize=True):
+        """
+        Get model specific weights for miners running this model based on their scores, do some normalization and clipping. Useful when have multiple categories
+        """
         model_specific_weights = torch.zeros(len(self.all_uids))
         for uid in self.get_miner_uids(category):
             num_past_to_check = 10

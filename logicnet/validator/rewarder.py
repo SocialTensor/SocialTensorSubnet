@@ -20,10 +20,25 @@ PROCESSING_TIME_WEIGHT = -0.1
 
 class LogicRewarder:
     def __init__(self):
+        """
+        READ HERE TO LEARN HOW VALIDATOR REWARD THE MINER
+        """
         self.openai_client = openai.OpenAI(base_url=BASE_URL, api_key=KEY)
         self.embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
     def __call__(self, uids, responses: list[LogicSynapse], base_synapse: LogicSynapse):
+        """Calculate reward for each response using similarity, correctness and processing time
+            1. Similarity: Calculate cosine similarity between self-generate ground truth and miner response
+            2. Correctness: Ask LLM to rate to correctness of the answer based on raw logic question and ground truth
+            3. Processing time: Calculate the ratio of processing time of each response to the timeout
+        Args:
+            uids (list[int]): list of miner uids
+            responses (list[LogicSynapse]): Synapse responses from miners
+            base_synapse (LogicSynapse): Base synapse that contain the ground truth and raw logic question
+
+        Returns:
+            list[float]: list of rewards for each response
+        """
         ref_ground_truth: str = self._get_ground_truth(base_synapse.raw_logic_question)
         response_texts = [response.logic_reasoning for response in responses]
         similarities = self._get_similarity(ref_ground_truth, response_texts)
@@ -35,10 +50,10 @@ class LogicRewarder:
             reward = (
                 SIMILARITY_WEIGHT * similarities[i]
                 + CORRECTNESS_WEIGHT * correctness[i]
-                + PROCESSING_TIME_WEIGHT * process_times[i] / timeout
+                + PROCESSING_TIME_WEIGHT * min(process_times[i] / timeout, 1)
             )
-            bt.logging.success(
-                f"SIMILARITY: {similarities[i]}, CORRECTNESS: {correctness[i]}, PROCESSING TIME: {process_times[i]}"
+            bt.logging.debug(
+                f"[REWARDER] similarity: {similarities[i]}, correctness: {correctness[i]}, processing time: {process_times[i]}"
             )
             rewards.append(reward)
         return rewards
@@ -46,8 +61,17 @@ class LogicRewarder:
     def _get_correctness(
         self, base_synapse: LogicSynapse, responses: list[LogicSynapse]
     ):
+        """Ask LLM to rate the correctness of the answer based on raw logic question and ground truth
+
+        Args:
+            base_synapse (LogicSynapse): _description_
+            responses (list[LogicSynapse]): _description_
+
+        Returns:
+            list[bool]: list of correctness rating for each response
+        """
         ground_truth_answer = base_synapse.ground_truth_answer
-        bt.logging.success(f"Ground truth answer: {ground_truth_answer}")
+        bt.logging.debug(f"[CORRECTNESS] Ground truth: {ground_truth_answer}")
         batch_messages = [
             [
                 {
@@ -57,7 +81,7 @@ class LogicRewarder:
             ]
             for response in responses
         ]
-        bt.logging.success(f"Batch messages: {batch_messages}")
+        bt.logging.debug(f"[CORRECTNESS] Batch messages: {batch_messages}")
         correctness = []
         # USE OPENAI API TO RATE THE ANSWER
         with futures.ThreadPoolExecutor() as executor:
@@ -73,7 +97,7 @@ class LogicRewarder:
             for result in results:
                 response_str = result.choices[0].message.content
                 response_str = response_str.strip().lower()
-                bt.logging.info(f"Correctness response: {response_str}")
+                bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
                 if "incorrect" in response_str:
                     correctness.append(0)
                 elif "correct" in response_str:
@@ -82,38 +106,16 @@ class LogicRewarder:
                     correctness.append(0.3)
         return correctness
 
-    def _get_is_correct_str_answer(
-        self, ground_truth: str, response: str, question: str
-    ):
-        messages = [
-            {
-                "role": "user",
-                "content": question,
-            },
-            {
-                "role": "assistant",
-                "content": ground_truth,
-            },
-            {
-                "role": "user",
-                "content": f"Is this solution equivalent? Say only Yes or No.\n---\n{response}\n---",
-            },
-        ]
-        response = self.openai_client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
-            max_tokens=32,
-            temperature=0.7,
-        )
-        response_str = response.choices[0].message.content
-        response_str = response_str.strip().lower()
-        bt.logging.debug(f"Correctness response: {response_str}")
-        if "yes" in response_str:
-            return 1
-        else:
-            return 0
-
     def _get_similarity(self, ground_truth: str, responses: list[str]):
+        """Calculate cosine similarity between self-generate ground truth and miner response
+
+        Args:
+            ground_truth (str): groud_truth generated by self
+            responses (list[str]): list of responses from miners
+
+        Returns:
+            list[float]: list of similarity score for each response
+        """
         ground_truth_embedding = self.embedder.encode(ground_truth)
         response_embeddings = self.embedder.encode(responses)
 
@@ -129,6 +131,14 @@ class LogicRewarder:
         return similarities
 
     def _get_ground_truth(self, question: str):
+        """Generate self-generate ground truth based on the question
+
+        Args:
+            question (str): raw logic question
+
+        Returns:
+            str: self-generate ground truth
+        """
         messages = [
             {"role": "user", "content": question},
         ]
@@ -139,5 +149,5 @@ class LogicRewarder:
             temperature=0.7,
         )
         response = response.choices[0].message.content
-        bt.logging.info(f"Generated ground truth: {response}")
+        bt.logging.info(f"[SIMILARITY] Self-generated ground truth: {response}")
         return response
