@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 import bittensor as bt
 from .human_noise import get_condition
 from .math_generator.topics import TOPICS as topics
-from latex2sympy2 import latex2sympy
 import mathgenerator
 
 load_dotenv()
@@ -39,33 +38,15 @@ class LogicChallenger:
         bt.logging.debug(f"Using {mathgenerator.__name__} to generate math problem")
         atom_problem, atom_answer = eval(f"mathgenerator.{topic}.{subtopic}()")
         bt.logging.info(f"Generated atom math problem: {atom_problem}")
-        atom_problem = atom_problem.replace("$", "")
+        atom_problem = atom_problem.replace("$", "").strip()
         atom_problem = (
             f"Find the solution of this math problem:\n---\n{atom_problem}\n---\n"
         )
         synapse.raw_logic_question = atom_problem
 
-        try:
-            atom_answer = latex2sympy(atom_answer)
-            synapse.logic_ground_truth = atom_answer
-            synapse.logic_answer_type = "sympy"
-            synapse.logic_answer_preprocess_function = "latex2sympy"
-        except Exception as e:
-            bt.logging.debug(f"Error converting answer to sympy: {e}")
-            try:
-                atom_answer = eval(atom_answer)
-                synapse.logic_ground_truth = atom_answer
-                synapse.logic_answer_type = "python_object"
-                synapse.logic_answer_preprocess_function = "eval"
-            except Exception as e:
-                bt.logging.debug(f"Error converting answer to python type: {e}")
-                synapse.logic_ground_truth = str(atom_answer)
-                synapse.logic_answer_type = "str"
-                synapse.logic_answer_preprocess_function = "none"
+        synapse.ground_truth_answer = str(atom_answer).replace("$", "").strip()
 
-        bt.logging.debug(
-            f"Generated atom math answer: {atom_answer}, type: {synapse.logic_answer_type}, preprocess function: {synapse.logic_answer_preprocess_function}"
-        )
+        bt.logging.debug(f"Generated atom math answer: {atom_answer}")
 
         return atom_problem
 

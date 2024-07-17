@@ -91,10 +91,11 @@ if __name__ == "__main__":
         print(f"Topic: {topic}, Subtopic: {subtopic}")
         print(f"Generated atom math problem: {atom_problem}")
         print(f"Answer: {atom_answer}")
-        atom_problem = atom_problem.replace("$", "").replace("=", "").strip()
+        atom_answer = atom_answer.replace("$", "").replace("=", "").strip()
         try:
             atom_answer = latex2sympy(atom_answer)
             print(f"Sympy Answer: {atom_answer}")
+            print(type(atom_answer))
         except Exception:
             try:
                 atom_answer = atom_answer.replace("$", "").replace("=", "").strip()

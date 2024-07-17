@@ -5,7 +5,7 @@ from logicnet.protocol import LogicSynapse
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 import bittensor as bt
-from latex2sympy2 import latex2sympy
+from concurrent import futures
 
 load_dotenv()
 # RECOMMENDED MODEL GPT4 - OPENAI
@@ -37,7 +37,7 @@ class LogicRewarder:
                 + CORRECTNESS_WEIGHT * correctness[i]
                 + PROCESSING_TIME_WEIGHT * process_times[i] / timeout
             )
-            bt.logging.debug(
+            bt.logging.success(
                 f"SIMILARITY: {similarities[i]}, CORRECTNESS: {correctness[i]}, PROCESSING TIME: {process_times[i]}"
             )
             rewards.append(reward)
@@ -46,30 +46,40 @@ class LogicRewarder:
     def _get_correctness(
         self, base_synapse: LogicSynapse, responses: list[LogicSynapse]
     ):
-        logic_ground_truth = base_synapse.logic_ground_truth
-        logic_answer_type = base_synapse.logic_answer_type
-
+        ground_truth_answer = base_synapse.ground_truth_answer
+        bt.logging.success(f"Ground truth answer: {ground_truth_answer}")
+        batch_messages = [
+            [
+                {
+                    "role": "user",
+                    "content": f"{base_synapse.raw_logic_question}\n The ground truth is {ground_truth_answer}\n\n Your task is rate the correctness of this answer into 'correct' or 'incorrect'. The correct answer need have numerical or reasoning nearly equivalent to ground truth above. Just say your rating, don't reasoning anymore!.\n---{response.logic_answer}\n---",
+                },
+            ]
+            for response in responses
+        ]
+        bt.logging.success(f"Batch messages: {batch_messages}")
         correctness = []
-        for response in responses:
-            try:
-                if logic_answer_type == "sympy":
-                    logic_answer = latex2sympy(response.logic_answer)
-                    is_correct = logic_ground_truth.compare(logic_answer)
-                elif logic_answer_type == "python_object":
-                    logic_answer = eval(response.logic_answer)
-                    is_correct = logic_ground_truth == logic_answer
-                elif logic_answer_type == "str":
-                    is_correct = self._get_is_correct_str_answer(
-                        logic_ground_truth,
-                        response.logic_answer,
-                        base_synapse.raw_logic_question,
-                    )
+        # USE OPENAI API TO RATE THE ANSWER
+        with futures.ThreadPoolExecutor() as executor:
+            results = executor.map(
+                lambda messages: self.openai_client.chat.completions.create(
+                    model=MODEL,
+                    messages=messages,
+                    max_tokens=32,
+                    temperature=0.7,
+                ),
+                batch_messages,
+            )
+            for result in results:
+                response_str = result.choices[0].message.content
+                response_str = response_str.strip().lower()
+                bt.logging.info(f"Correctness response: {response_str}")
+                if "incorrect" in response_str:
+                    correctness.append(0)
+                elif "correct" in response_str:
+                    correctness.append(1)
                 else:
-                    is_correct = 0
-            except Exception as e:
-                bt.logging.debug(f"Error comparing answer: {e}")
-                is_correct = 0
-            correctness.append(is_correct)
+                    correctness.append(0.3)
         return correctness
 
     def _get_is_correct_str_answer(
