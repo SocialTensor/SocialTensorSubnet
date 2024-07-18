@@ -35,19 +35,9 @@ pip uninstall uvloop -y
 3. Setup LLM Configuration
 - Self host a vLLM server
 ```bash
-vllm serve Qwen/Qwen2-7B-Instruct --port vllm-port --host vllm-host # change port and host to your preference
+vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0 # change port and host to your preference
 ```
-4. Change `*_BASE_URL`, `*_KEY` in `set_env.sh` file to connect to vLLM
-```bash
-MINER_BASE_URL=http://vllm-host:vllm-port/v1
-MINER_MODEL="Qwen/Qwen2-7B-Instruct"
-MINER_KEY="xxx"
-```
-5. Create `.env` file
-```bash
-. set_env.sh
-```
-6. Run the following command to start mining
+4. Run the following command to start mining
 ```bash
 pm2 start python --name "sn35-miner" -- neurons/miner/miner.py \
 --netuid 35 --wallet.name "wallet-name" --wallet.hotkey "wallet-hotkey" \
@@ -55,6 +45,8 @@ pm2 start python --name "sn35-miner" -- neurons/miner/miner.py \
 --axon.port an-open-port \
 --miner.category Logic \ # specify the category to join. Currently, only Logic is supported
 --miner.epoch_volume 50 \ # commit no of requests to be solved in an epoch. It will affect the reward calculation
+--miner.llm_client.base_url http://localhost:8000/v1 \ # vLLM server base url
+--miner.llm_client.model Qwen/Qwen2-7B-Instruct \ # vLLM model name
 ```
 
 

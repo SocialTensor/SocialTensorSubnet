@@ -1,17 +1,9 @@
 import torch
-import os
 import openai
 from logicnet.protocol import LogicSynapse
 from sentence_transformers import SentenceTransformer
-from dotenv import load_dotenv
 import bittensor as bt
 from concurrent import futures
-
-load_dotenv(override=True)
-# RECOMMENDED MODEL GPT4 - OPENAI
-MODEL = os.getenv("REWARD_MODEL", "Qwen/Qwen2-7B-Instruct")
-BASE_URL = os.getenv("REWARD_BASE_URL", "http://localhost:8000/v1")
-KEY = os.getenv("REWARD_KEY")
 
 SIMILARITY_WEIGHT = 0.4
 CORRECTNESS_WEIGHT = 0.6
@@ -19,11 +11,15 @@ PROCESSING_TIME_WEIGHT = -0.1
 
 
 class LogicRewarder:
-    def __init__(self):
+    def __init__(self, base_url: str, api_key: str, model: str):
         """
         READ HERE TO LEARN HOW VALIDATOR REWARD THE MINER
         """
-        self.openai_client = openai.OpenAI(base_url=BASE_URL, api_key=KEY)
+        bt.logging.info(
+            f"Logic Rewarder initialized with model: {model}, base_url: {base_url}"
+        )
+        self.openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        self.model = model
         self.embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
     def __call__(self, uids, responses: list[LogicSynapse], base_synapse: LogicSynapse):
@@ -39,26 +35,44 @@ class LogicRewarder:
         Returns:
             list[float]: list of rewards for each response
         """
-        ref_ground_truth: str = self._get_ground_truth(base_synapse.raw_logic_question)
-        response_texts = [response.logic_reasoning for response in responses]
-        similarities = self._get_similarity(ref_ground_truth, response_texts)
-        correctness = self._get_correctness(base_synapse, responses)
-        process_times = [response.dendrite.process_time for response in responses]
-        timeout = base_synapse.timeout
-        rewards = []
-        for i in range(len(responses)):
-            reward = (
-                SIMILARITY_WEIGHT * similarities[i]
-                + CORRECTNESS_WEIGHT * correctness[i]
-                + PROCESSING_TIME_WEIGHT * min(process_times[i] / timeout, 1)
+
+        valid_uids = [
+            uid for uid, response in zip(uids, responses) if response.is_success
+        ]
+        valid_responses = [response for response in responses if response.is_success]
+        invalid_uids = [
+            uid for uid, response in zip(uids, responses) if not response.is_success
+        ]
+        invalid_rewards = [0 for _ in invalid_uids]
+        valid_rewards = []
+        if valid_uids:
+            ref_ground_truth: str = self._get_ground_truth(
+                base_synapse.raw_logic_question
             )
-            # Scale up the reward
-            reward = reward / 2 + 0.5
-            bt.logging.debug(
-                f"[REWARDER] similarity: {similarities[i]}, correctness: {correctness[i]}, processing time: {process_times[i]}"
-            )
-            rewards.append(reward)
-        return rewards
+            response_texts = [response.logic_reasoning for response in valid_responses]
+            similarities = self._get_similarity(ref_ground_truth, response_texts)
+            correctness = self._get_correctness(base_synapse, valid_responses)
+            process_times = [
+                response.dendrite.process_time for response in valid_responses
+            ]
+            timeout = base_synapse.timeout
+
+            for i in range(len(valid_responses)):
+                reward = (
+                    SIMILARITY_WEIGHT * similarities[i]
+                    + CORRECTNESS_WEIGHT * correctness[i]
+                    + PROCESSING_TIME_WEIGHT * min(process_times[i] / timeout, 1)
+                )
+                # Scale up the reward
+                reward = reward / 2 + 0.5
+                bt.logging.debug(
+                    f"[REWARDER] similarity: {similarities[i]}, correctness: {correctness[i]}, processing time: {process_times[i]}"
+                )
+                valid_rewards.append(reward)
+
+        total_uids = valid_uids + invalid_uids
+        rewards = valid_rewards + invalid_rewards
+        return total_uids, rewards
 
     def _get_correctness(
         self, base_synapse: LogicSynapse, responses: list[LogicSynapse]
@@ -89,7 +103,7 @@ class LogicRewarder:
         with futures.ThreadPoolExecutor() as executor:
             results = executor.map(
                 lambda messages: self.openai_client.chat.completions.create(
-                    model=MODEL,
+                    model=self.model,
                     messages=messages,
                     max_tokens=32,
                     temperature=0.7,
@@ -145,7 +159,7 @@ class LogicRewarder:
             {"role": "user", "content": question},
         ]
         response = self.openai_client.chat.completions.create(
-            model=MODEL,
+            model=self.model,
             messages=messages,
             max_tokens=1024,
             temperature=0.7,

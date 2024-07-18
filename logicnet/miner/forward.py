@@ -1,20 +1,12 @@
-import os
 from logicnet.protocol import LogicSynapse
 import openai
 import bittensor as bt
 import traceback
 import re
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
-
-MODEL = os.getenv("MINER_MODEL", "gpt-3.5-turbo")
-BASE_URL = os.getenv("MINER_BASE_URL", "https://api.openai.com/v1")
-KEY = os.getenv("MINER_KEY")
 
 
 async def solve(
-    synapse: LogicSynapse, openai_client: openai.AsyncOpenAI
+    synapse: LogicSynapse, openai_client: openai.AsyncOpenAI, model: str
 ) -> LogicSynapse:
     try:
         bt.logging.info(f"Received synapse: {synapse}")
@@ -23,7 +15,7 @@ async def solve(
             {"role": "user", "content": logic_question},
         ]
         response = await openai_client.chat.completions.create(
-            model=MODEL,
+            model=model,
             messages=messages,
             max_tokens=2048,
             temperature=0.8,
@@ -41,7 +33,7 @@ async def solve(
         )
 
         response = await openai_client.chat.completions.create(
-            model=MODEL,
+            model=model,
             messages=messages,
             max_tokens=512,
             temperature=0.7,

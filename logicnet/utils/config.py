@@ -136,6 +136,27 @@ def add_args(cls, parser):
             default=MIN_STAKE,
         )
 
+        parser.add_argument(
+            "--llm_client.base_url",
+            type=str,
+            help="The base url for the LLM client",
+            default="http://localhost:8000/v1",
+        )
+
+        parser.add_argument(
+            "--llm_client.model",
+            type=str,
+            help="The model for the LLM client",
+            default="Qwen/Qwen2-7B-Instruct",
+        )
+
+        parser.add_argument(
+            "--llm_client.key",
+            type=str,
+            help="The key for the LLM client",
+            default="",
+        )
+
     else:
         parser.add_argument(
             "--miner.category",
@@ -163,6 +184,27 @@ def add_args(cls, parser):
             type=int,
             help="The interval to limit the number of requests",
             default=600,
+        )
+
+        parser.add_argument(
+            "--miner.llm_client.base_url",
+            type=str,
+            help="The base url for the LLM client",
+            default="http://localhost:8000/v1",
+        )
+
+        parser.add_argument(
+            "--miner.llm_client.model",
+            type=str,
+            help="The model for the LLM client",
+            default="Qwen/Qwen2-7B-Instruct",
+        )
+
+        parser.add_argument(
+            "--miner.llm_client.key",
+            type=str,
+            help="The key for the LLM client",
+            default="",
         )
 
 

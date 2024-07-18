@@ -1,25 +1,20 @@
 # Challenge for Synthetic Request
 import openai
 import random
-import os
 from logicnet.protocol import LogicSynapse
-from dotenv import load_dotenv
 import bittensor as bt
 from .human_noise import get_condition
 from .math_generator.topics import TOPICS as topics
 import mathgenerator
 
-load_dotenv(override=True)
-MODEL = os.getenv("CHALLENGE_MODEL", "Qwen/Qwen2-7B-Instruct")
-BASE_URL = os.getenv("CHALLENGE_BASE_URL", "http://localhost:8000/v1")
-KEY = os.getenv("CHALLENGE_KEY")
-
-print(MODEL, BASE_URL)
-
 
 class LogicChallenger:
-    def __init__(self):
-        self.openai_client = openai.OpenAI(base_url=BASE_URL, api_key=KEY)
+    def __init__(self, base_url: str, api_key: str, model: str):
+        bt.logging.info(
+            f"Logic Challenger initialized with model: {model}, base_url: {base_url}"
+        )
+        self.model = model
+        self.openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
 
     def __call__(self, synapse: LogicSynapse) -> LogicSynapse:
         self.get_challenge(synapse)
@@ -69,7 +64,7 @@ class LogicChallenger:
             },
         ]
         response = self.openai_client.chat.completions.create(
-            model=MODEL,
+            model=self.model,
             messages=messages,
             max_tokens=256,
             temperature=0.5,

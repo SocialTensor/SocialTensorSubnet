@@ -7,14 +7,6 @@ from logicnet.protocol import LogicSynapse, Information
 from logicnet.miner.forward import solve
 import traceback
 import openai
-import os
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
-
-MODEL = os.getenv("MINER_MODEL", "gpt-3.5-turbo")
-BASE_URL = os.getenv("MINER_BASE_URL", "https://api.openai.com/v1")
-KEY = os.getenv("MINER_KEY")
 
 
 class Miner(BaseMinerNeuron):
@@ -35,7 +27,10 @@ class Miner(BaseMinerNeuron):
         self.num_processing_requests = 0
         self.total_request_in_interval = 0
         bt.logging.info(f"Miner info: {self.miner_info}")
-        self.openai_client = openai.AsyncOpenAI(base_url=BASE_URL, api_key=KEY)
+        self.openai_client = openai.AsyncOpenAI(
+            base_url=self.config.miner.llm_client.base_url,
+            api_key=self.config.miner.llm_client.key,
+        )
 
     async def forward(self, synapse: LogicSynapse) -> LogicSynapse:
         """
@@ -43,7 +38,11 @@ class Miner(BaseMinerNeuron):
         By default, Miner will utilize the LLM API to solve the logic problem.
         """
         try:
-            synapse = await solve(synapse=synapse, openai_client=self.openai_client)
+            synapse = await solve(
+                synapse=synapse,
+                openai_client=self.openai_client,
+                model=self.config.miner.llm_client.model,
+            )
             self.num_processing_requests += 1
             self.total_request_in_interval += 1
         except Exception as e:

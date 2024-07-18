@@ -11,13 +11,21 @@ import threading
 from neurons.validator.core.serving_queue import QueryQueue
 
 
-def init_category():
+def init_category(config=None):
     category = {
         "Logic": {
             "synapse_type": ln.protocol.LogicSynapse,
             "incentive_weight": 1.0,
-            "challenger": LogicChallenger(),
-            "rewarder": LogicRewarder(),
+            "challenger": LogicChallenger(
+                config.llm_client.base_url,
+                config.llm_client.key,
+                config.llm_client.model,
+            ),
+            "rewarder": LogicRewarder(
+                config.llm_client.base_url,
+                config.llm_client.key,
+                config.llm_client.model,
+            ),
             "timeout": 64,
         }
     }
@@ -31,7 +39,7 @@ class Validator(BaseValidatorNeuron):
         """
         super(Validator, self).__init__(config=config)
         bt.logging.info("load_state()")
-        self.categories = init_category()
+        self.categories = init_category(self.config)
         self.miner_manager = MinerManager(self)
         self.load_state()
         self.update_scores_on_chain()
@@ -142,7 +150,7 @@ class Validator(BaseValidatorNeuron):
             )
 
             if reward_uids:
-                rewards = self.categories[category]["rewarder"](
+                uids, rewards = self.categories[category]["rewarder"](
                     reward_uids, reward_responses, base_synapse
                 )
 
@@ -155,7 +163,7 @@ class Validator(BaseValidatorNeuron):
 
                 bt.logging.info(f"Scored responses: {rewards}")
 
-                self.miner_manager.update_scores(reward_uids, rewards)
+                self.miner_manager.update_scores(uids, rewards)
 
     def prepare_challenge(self, uids_should_rewards, category):
         """
