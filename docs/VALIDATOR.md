@@ -56,6 +56,7 @@ pm2 start python --name "sn35-validator" -- neurons/validator/validator.py \
 --axon.port an-open-port \
 --llm_client.base_url http://localhost:8000/v1 \ # vLLM server base url
 --llm_client.model Qwen/Qwen2-7B-Instruct \ # vLLM model name
+--logging.debug \ # Optional: Enable debug logging
 ```
 
 

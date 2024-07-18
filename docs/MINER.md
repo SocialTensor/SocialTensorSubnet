@@ -58,6 +58,7 @@ pm2 start python --name "sn35-miner" -- neurons/miner/miner.py \
 --miner.epoch_volume 50 \ # commit no of requests to be solved in an epoch. It will affect the reward calculation
 --miner.llm_client.base_url http://localhost:8000/v1 \ # vLLM server base url
 --miner.llm_client.model Qwen/Qwen2-7B-Instruct \ # vLLM model name
+--logging.debug \ # Optional: Enable debug logging
 ```
 
 

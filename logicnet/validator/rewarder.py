@@ -165,5 +165,5 @@ class LogicRewarder:
             temperature=0.7,
         )
         response = response.choices[0].message.content
-        bt.logging.info(f"[SIMILARITY] Self-generated ground truth: {response}")
+        bt.logging.debug(f"[SIMILARITY] Self-generated ground truth: {response}")
         return response

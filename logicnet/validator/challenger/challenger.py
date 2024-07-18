@@ -38,7 +38,7 @@ class LogicChallenger:
         topic = topic.replace("_", " ").capitalize()
         atom_problem = atom_problem.replace("$", "").strip()
         atom_problem = f"Find the solution of this math problem:\n---\nTopic: {topic}, Subtopic: {subtopic}.\n{atom_problem}\n---\n"
-        bt.logging.info(f"Generated atom math problem: {atom_problem}")
+        bt.logging.debug(f"Generated atom math problem: {atom_problem}")
         synapse.raw_logic_question = atom_problem
 
         synapse.ground_truth_answer = str(atom_answer).replace("$", "").strip()
@@ -70,5 +70,5 @@ class LogicChallenger:
             temperature=0.5,
         )
         response = response.choices[0].message.content
-        bt.logging.info(f"Generated revised math question: {response}")
+        bt.logging.debug(f"Generated revised math question: {response}")
         return response
