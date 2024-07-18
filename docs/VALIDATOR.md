@@ -21,24 +21,35 @@ The Validator is responsible for generating challenges for the Miner to solve. T
 ### Minimum Compute Requirements
 - 1x GPU 24G (RTX 4090, A100, A6000, etc)
 - Storage: 100GB
+- Python 3.10
 
 ### Setup for Validator
 1. Git clone the repository
 ```bash
-git clone xxx
+git clone https://github.com/LogicNet-Subnet/LogicNet-prod
 ```
 2. Install the requirements
 ```bash
+python -m venv main
+. main/bin/activate
 pip install -e .
 pip uninstall uvloop -y
 ```
-3. Setup LLM Configuration
+3. Create env for vLLM
+```bash
+python -m venv vllm
+. vllm/bin/activate
+pip install vllm
+```
+4. Setup LLM Configuration
 - Self host a vLLM server
 ```bash
+. vllm/bin/activate
 pm2 start "vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm" # change port and host to your preference
 ```
-4. Run the following command to start the validator
+5. Run the following command to start the validator
 ```bash
+. main/bin/activate
 pm2 start python --name "sn35-validator" -- neurons/validator/validator.py \
 --netuid 35 --wallet.name "wallet-name" --wallet.hotkey "wallet-hotkey" \
 --subtensor.network finney \
