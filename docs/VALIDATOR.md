@@ -15,7 +15,7 @@ The Validator is responsible for generating challenges for the Miner to solve. T
 
 **Reward Structure**:
 - `correctness (bool)`: Validator ask LLM to check the matching between `logic_answer` and the ground truth.
-- `similarity (float)`: Validator ask LLM to check the similarity between `logic_reasoning` and validator's reasoning.
+- `similarity (float)`: Validator compute cosine similarity between `logic_reasoning` and validator's reasoning.
 - `time_penalty (float)`: Penalty for late response. It's value of `process_time / timeout * MAX_PENALTY`.
 
 ### Minimum Compute Requirements
