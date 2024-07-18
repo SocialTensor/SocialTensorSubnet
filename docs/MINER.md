@@ -47,7 +47,7 @@ pip install vllm
 - Self host a vLLM server
 ```bash
 . vllm/bin/activate
-vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0 # change port and host to your preference
+pm2 start "vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm" # change port and host to your preference
 ```
 4. Run the following command to start mining
 ```bash
