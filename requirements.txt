@@ -10,3 +10,4 @@ openai==1.35.14
 vllm>=0.4.3
 sentence-transformers==3.0.1
 python-dotenv==1.0.1
+mathgenerator==1.5.0

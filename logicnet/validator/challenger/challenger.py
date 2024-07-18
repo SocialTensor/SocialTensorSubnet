@@ -34,11 +34,11 @@ class LogicChallenger:
         topic = selected_topic["topic"]
         bt.logging.debug(f"Using {mathgenerator.__name__} to generate math problem")
         atom_problem, atom_answer = eval(f"mathgenerator.{topic}.{subtopic}()")
-        bt.logging.info(f"Generated atom math problem: {atom_problem}")
         subtopic = subtopic.replace("_", " ").capitalize()
         topic = topic.replace("_", " ").capitalize()
         atom_problem = atom_problem.replace("$", "").strip()
-        atom_problem = f"Find the solution of this math problem from topic {subtopic}, {topic}:\n---\n{atom_problem}\n---\n"
+        atom_problem = f"Find the solution of this math problem:\n---\nTopic: {topic}, Subtopic: {subtopic}.\n{atom_problem}\n---\n"
+        bt.logging.info(f"Generated atom math problem: {atom_problem}")
         synapse.raw_logic_question = atom_problem
 
         synapse.ground_truth_answer = str(atom_answer).replace("$", "").strip()
