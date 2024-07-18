@@ -26,7 +26,8 @@ The Validator is responsible for generating challenges for the Miner to solve. T
 ### Setup for Validator
 1. Git clone the repository
 ```bash
-git clone https://github.com/LogicNet-Subnet/LogicNet-prod
+git clone https://github.com/LogicNet-Subnet/LogicNet-prod logicnet
+cd logicnet
 ```
 2. Install the requirements
 ```bash
@@ -34,6 +35,7 @@ python -m venv main
 . main/bin/activate
 pip install -e .
 pip uninstall uvloop -y
+pip install git+https://github.com/lukew3/mathgenerator.git
 ```
 3. Create env for vLLM
 ```bash
@@ -53,7 +55,7 @@ pm2 start "vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name 
 pm2 start python --name "sn35-validator" -- neurons/validator/validator.py \
 --netuid 35 --wallet.name "wallet-name" --wallet.hotkey "wallet-hotkey" \
 --subtensor.network finney \
---axon.port an-open-port \
+--axon.port "your-open-port" \
 --llm_client.base_url http://localhost:8000/v1 \ # vLLM server base url
 --llm_client.model Qwen/Qwen2-7B-Instruct \ # vLLM model name
 --logging.debug \ # Optional: Enable debug logging
