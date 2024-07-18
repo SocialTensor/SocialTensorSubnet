@@ -9,8 +9,8 @@ from concurrent import futures
 
 load_dotenv(override=True)
 # RECOMMENDED MODEL GPT4 - OPENAI
-MODEL = os.getenv("REWARD_MODEL", "gpt-3.5-turbo")
-BASE_URL = os.getenv("REWARD_BASE_URL", "https://api.openai.com/v1")
+MODEL = os.getenv("REWARD_MODEL", "Qwen/Qwen2-7B-Instruct")
+BASE_URL = os.getenv("REWARD_BASE_URL", "http://localhost:8000/v1")
 KEY = os.getenv("REWARD_KEY")
 
 SIMILARITY_WEIGHT = 0.4
@@ -52,6 +52,8 @@ class LogicRewarder:
                 + CORRECTNESS_WEIGHT * correctness[i]
                 + PROCESSING_TIME_WEIGHT * min(process_times[i] / timeout, 1)
             )
+            # Scale up the reward
+            reward = reward / 2 + 0.5
             bt.logging.debug(
                 f"[REWARDER] similarity: {similarities[i]}, correctness: {correctness[i]}, processing time: {process_times[i]}"
             )

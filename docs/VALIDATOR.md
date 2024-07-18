@@ -35,14 +35,14 @@ pip uninstall uvloop -y
 3. Setup LLM Configuration
 - Self host a vLLM server
 ```bash
-vllm serve Qwen/Qwen2-7B-Instruct --port vllm-port --host vllm-host # change port and host to your preference
+pm2 start "vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm" # change port and host to your preference
 ```
 4. Change `*_BASE_URL`, `*_KEY` in `set_env.sh` file to connect to vLLM
 ```bash
-REWARD_BASE_URL=http://vllm-host:vllm-port/v1
+REWARD_BASE_URL=http://localhost:8000/v1
 REWARD_MODEL="Qwen/Qwen2-7B-Instruct"
 REWARD_KEY="xxx"
-CHALLENGE_BASE_URL=http://vllm-host:vllm-port/v1
+CHALLENGE_BASE_URL=http://localhost:80000/v1
 CHALLENGE_MODEL="Qwen/Qwen2-7B-Instruct"
 CHALLENGE_KEY="xxx"
 ```

@@ -47,11 +47,12 @@ MINER_KEY="xxx"
 ```bash
 . set_env.sh
 ```
-6. Run the following command to start the validator
+6. Run the following command to start mining
 ```bash
 pm2 start python --name "sn35-miner" -- neurons/miner/miner.py \
 --netuid 35 --wallet.name "wallet-name" --wallet.hotkey "wallet-hotkey" \
 --subtensor.network finney \
+--axon.port an-open-port \
 --miner.category Logic \ # specify the category to join. Currently, only Logic is supported
 --miner.epoch_volume 50 \ # commit no of requests to be solved in an epoch. It will affect the reward calculation
 ```
