@@ -35,10 +35,10 @@ class MinerInfo:
         self.reward_scale: float = reward_scale
 
     def __str__(self):
-        return f"MinerInfo: {self.category} {self.scores} {self.epoch_volume} {self.rate_limit} {self.reward_scale}"
+        return str(self.to_dict()) + "\n"
 
     def __repr__(self):
-        return f"MinerInfo: {self.category} {self.scores} {self.epoch_volume} {self.rate_limit} {self.reward_scale}"
+        return str(self.to_dict()) + "\n"
 
     def to_dict(self):
         return {
