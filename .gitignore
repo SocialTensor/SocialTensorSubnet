@@ -169,6 +169,7 @@ wandb/*
 
 comfyui/*
 vllm/*
+main/*
 *.pkl
 *.bin
 *.1
