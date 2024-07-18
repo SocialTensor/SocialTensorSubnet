@@ -10,7 +10,7 @@ import openai
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 MODEL = os.getenv("MINER_MODEL", "gpt-3.5-turbo")
 BASE_URL = os.getenv("MINER_BASE_URL", "https://api.openai.com/v1")

@@ -9,10 +9,12 @@ from .human_noise import get_condition
 from .math_generator.topics import TOPICS as topics
 import mathgenerator
 
-load_dotenv()
+load_dotenv(override=True)
 MODEL = os.getenv("CHALLENGE_MODEL", "gpt-3.5-turbo")
 BASE_URL = os.getenv("CHALLENGE_BASE_URL", "https://api.openai.com/v1")
 KEY = os.getenv("CHALLENGE_KEY")
+
+print(MODEL, BASE_URL)
 
 
 class LogicChallenger:

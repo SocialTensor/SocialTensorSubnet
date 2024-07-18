@@ -7,5 +7,6 @@ tqdm==4.65.0
 httpx==0.26.0
 numpy==1.26.4
 openai==1.35.14
-sentence-transformers
-python-dotenv
+vllm>=0.4.3
+sentence-transformers==3.0.1
+python-dotenv==1.0.1

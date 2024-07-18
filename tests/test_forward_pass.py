@@ -4,6 +4,9 @@ import os
 import asyncio
 import copy
 import time
+from dotenv import load_dotenv
+
+load_dotenv(override=True)
 
 
 def get_or_create_loop():
@@ -18,6 +21,8 @@ def get_or_create_loop():
 MODEL = os.getenv("MINER_MODEL", "gpt-3.5-turbo")
 BASE_URL = os.getenv("MINER_BASE_URL", "https://api.openai.com/v1")
 KEY = os.getenv("MINER_KEY")
+
+print(MODEL, BASE_URL)
 
 synapse = logicnet.protocol.LogicSynapse()
 

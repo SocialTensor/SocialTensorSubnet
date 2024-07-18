@@ -7,14 +7,14 @@ from dotenv import load_dotenv
 import bittensor as bt
 from concurrent import futures
 
-load_dotenv()
+load_dotenv(override=True)
 # RECOMMENDED MODEL GPT4 - OPENAI
 MODEL = os.getenv("REWARD_MODEL", "gpt-3.5-turbo")
 BASE_URL = os.getenv("REWARD_BASE_URL", "https://api.openai.com/v1")
 KEY = os.getenv("REWARD_KEY")
 
-SIMILARITY_WEIGHT = 0.2
-CORRECTNESS_WEIGHT = 0.8
+SIMILARITY_WEIGHT = 0.4
+CORRECTNESS_WEIGHT = 0.6
 PROCESSING_TIME_WEIGHT = -0.1
 
 
