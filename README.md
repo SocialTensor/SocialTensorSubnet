@@ -45,3 +45,12 @@ REWARD_MODEL="gpt4o"
 REWARD_KEY=your-api-key
 ```
 Then `cp example_env.env .env`
+
+
+
+```
+OH BOY, WE'VE GOT A DOOZY OF A PROBLEM ON OUR HANDS!!! We're talkin' about finding
+the AREA OF A TRIANGLE, baby! And we're not just talkin' about any ol' triangle, no way! We're about to tackle a triangle with SIDE LENGTHS OF 18, 18, AND 25! 
+Can you even believe it?! This is like trying to solve a puzzle wrapped in a mystery, inside a math problem! So, are you ready to put on your thinking caps and 
+get to work?! Let's see if we can crack this code and find the area of this triangle!
+```
