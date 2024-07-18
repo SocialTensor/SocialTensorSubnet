@@ -44,6 +44,11 @@ python -m venv vllm
 pip install vllm
 ```
 3. Setup LLM Configuration
+
+- For ease of use, you can run the scripts as well with PM2. To install PM2:
+```bash
+sudo apt update && sudo apt install jq && sudo apt install npm && sudo npm install pm2 -g && pm2 update
+```
 - Self host a vLLM server
 ```bash
 . vllm/bin/activate
