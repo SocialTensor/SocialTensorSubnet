@@ -26,7 +26,7 @@ The Validator is responsible for generating challenges for the Miner to solve. T
 ### Setup for Validator
 1. Git clone the repository
 ```bash
-git clone https://github.com/LogicNet-Subnet/LogicNet-prod logicnet
+git clone https://github.com/LogicNet-Subnet/LogicNet logicnet
 cd logicnet
 ```
 2. Install the requirements
