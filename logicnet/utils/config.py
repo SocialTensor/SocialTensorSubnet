@@ -154,7 +154,7 @@ def add_args(cls, parser):
             "--llm_client.key",
             type=str,
             help="The key for the LLM client",
-            default="",
+            default="xyz",
         )
 
     else:
@@ -204,7 +204,7 @@ def add_args(cls, parser):
             "--miner.llm_client.key",
             type=str,
             help="The key for the LLM client",
-            default="",
+            default="xyz",
         )
 
 
