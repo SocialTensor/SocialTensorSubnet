@@ -10,7 +10,6 @@ import traceback
 import threading
 from neurons.validator.core.serving_queue import QueryQueue
 
-
 def init_category(config=None):
     category = {
         "Logic": {
@@ -30,7 +29,6 @@ def init_category(config=None):
         }
     }
     return category
-
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -52,7 +50,7 @@ class Validator(BaseValidatorNeuron):
         if self.config.proxy.port:
             try:
                 self.validator_proxy = ValidatorProxy(self)
-                bt.logging.info("Validator proxy started succesfully")
+                bt.logging.info("Validator proxy started successfully")
             except Exception:
                 bt.logging.warning(
                     "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
@@ -122,7 +120,7 @@ class Validator(BaseValidatorNeuron):
         )
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
             uids, should_rewards = zip(*uids_should_rewards)
-            bt.logging.info(f"Quering {uids}, Should reward: {should_rewards}")
+            bt.logging.info(f"Querying {uids}, Should reward: {should_rewards}")
             if not synapse:
                 continue
             base_synapse = synapse.copy()
@@ -240,11 +238,10 @@ class Validator(BaseValidatorNeuron):
             state = torch.load(path)
             self.step = state["step"]
             self.miner_manager.all_uids_info = state["all_uids_info"]
-            bt.logging.info("Succesfully loaded state")
+            bt.logging.info("Successfully loaded state")
         except Exception as e:
             self.step = 0
             bt.logging.info("Could not find previously saved state.", e)
-
 
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
