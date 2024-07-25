@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel
+from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -12,6 +14,10 @@ import traceback
 import httpx
 import threading
 
+class OrganicRequest(BaseModel):
+    authorization: str
+    payload: Optional[logicnet.protocol.LogicSynapse] = None
+    re_check: bool = False
 
 class ValidatorProxy:
     """
@@ -107,21 +113,19 @@ class ValidatorProxy:
 
         self.validator.miner_manager.update_scores(uids, rewards)
 
-    async def forward(self, data: dict = {}):
-        self.authenticate_token(data["authorization"])
-        payload = data.get("payload")
-        if "recheck" in payload:
+    async def forward(self, data: OrganicRequest):
+        self.authenticate_token(data.authorization)
+        synapse = data.payload
+        if data.re_check:
             bt.logging.info("Rechecking validators")
             self.get_credentials()
             return {"message": "done"}
         bt.logging.info("Received an organic request!")
 
-        category = payload["category"]
+        category = synapse.category
         category_config = self.validator.categories[category]
-        synapse_cls = category_config["synapse_type"]
-        if not payload.get("logic_question"):
-            payload["logic_question"] = payload["raw_logic_question"]
-        synapse = synapse_cls(**payload)
+        if not synapse.logic_question:
+            synapse.logic_question = synapse.raw_logic_question
 
         timeout = category_config["timeout"]
         rewarder = category_config["rewarder"]
