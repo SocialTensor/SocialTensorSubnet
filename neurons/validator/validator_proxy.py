@@ -1,4 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel
+from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -12,6 +14,10 @@ import traceback
 import httpx
 import threading
 
+class OrganicRequest(BaseModel):
+    authorization: str
+    payload: Optional[logicnet.protocol.LogicSynapse] = None
+    re_check: bool = False
 
 class ValidatorProxy:
     """
@@ -85,68 +91,54 @@ class ValidatorProxy:
             )
 
     def organic_reward(
-        self, synapse, response, uid, should_reward, reward_url, timeout
+        self, synapse, response, uid, rewarder, timeout
     ):
-        if (
-            random.random() < self.validator.config.proxy.checking_probability
-            or should_reward
-        ):
-            if callable(reward_url):
-                uids, rewards = reward_url(synapse, [response], [uid])
-            else:
-                (
-                    uids,
-                    rewards,
-                ) = logicnet.validator.get_reward(
-                    reward_url,
-                    synapse,
-                    [response],
-                    [uid],
-                    timeout,
-                    self.validator.miner_manager,
-                )
-            bt.logging.info(
-                f"Proxy: Updating scores of miners {uids} with rewards {rewards}, should_reward: {should_reward}"
-            )
-            # Scale Reward based on Miner Volume
-            for i, uid in enumerate(uids):
-                if rewards[i] > 0:
-                    rewards[i] = rewards[i] * (
-                        0.6
-                        + 0.4
-                        * self.validator.miner_manager.all_uids_info[uid][
-                            "reward_scale"
-                        ]
-                    )
-            self.validator.miner_manager.update_scores(uids, rewards)
+        if callable(rewarder):
+            uids, rewards = rewarder([uid], [response], synapse)
+        else:
+            raise Exception("Rewarder not supported !!")
+        bt.logging.info(
+            f"Proxy: Updating scores of miners {uids} with rewards {rewards}"
+        )
 
-    async def forward(self, data: dict = {}):
-        self.authenticate_token(data["authorization"])
-        payload = data.get("payload")
-        if "recheck" in payload:
+        # Scale Reward based on Miner Volume
+        for i, uid in enumerate(uids):
+            if rewards[i] > 0:
+                rewards[i] = rewards[i] * (
+                    0.9
+                    + 0.1 * self.validator.miner_manager.all_uids_info[uid].reward_scale
+                )
+
+        bt.logging.info(f"Scored responses: {rewards}")
+
+        self.validator.miner_manager.update_scores(uids, rewards)
+
+    async def forward(self, data: OrganicRequest):
+        self.authenticate_token(data.authorization)
+        synapse = data.payload
+        if data.re_check:
             bt.logging.info("Rechecking validators")
             self.get_credentials()
             return {"message": "done"}
         bt.logging.info("Received an organic request!")
-        if "seed" not in payload:
-            payload["seed"] = random.randint(0, 1e9)
-        model_name = payload["model_name"]
-        model_config = self.validator.categories[model_name]
-        synapse_cls = model_config["synapse_type"]
-        synapse = synapse_cls(**payload)
-        synapse.limit_params()
 
-        timeout = model_config["timeout"]
-        reward_url = model_config["reward_url"]
+        category = synapse.category
+        category_config = self.validator.categories[category]
+        if not synapse.logic_question:
+            synapse.logic_question = synapse.raw_logic_question
+
+        timeout = category_config["timeout"]
+        rewarder = category_config["rewarder"]
 
         metagraph = self.validator.metagraph
 
         output = None
         for uid, should_reward in self.validator.query_queue.get_query_for_proxy(
-            model_name
-        ):
+            category
+        ):  
+            should_reward = random.random() < self.validator.config.proxy.checking_probability or should_reward
             bt.logging.info(
-                f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
+                f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid].scores}"
             )
             axon = metagraph.axons[uid]
             bt.logging.info(f"Sending request to axon: {axon}")
@@ -157,11 +149,12 @@ class ValidatorProxy:
             bt.logging.info(
                 f"Received response from miner {uid}, status: {response.is_success}"
             )
-            reward_thread = threading.Thread(
-                target=self.organic_reward,
-                args=(synapse, response, uid, should_reward, reward_url, timeout),
-            )
-            reward_thread.start()
+            if should_reward:
+                reward_thread = threading.Thread(
+                    target=self.organic_reward,
+                    args=(synapse, response, uid, rewarder, timeout),
+                )
+                reward_thread.start()
 
             if response.is_success:
                 output = response

@@ -55,3 +55,9 @@ class LogicSynapse(bt.Synapse):
         self.raw_logic_question = ""
         self.ground_truth_answer = None
         return self
+
+    def deserialize_response(self):
+        return {
+            "logic_answer": self.logic_answer,
+            "logic_reasoning": self.logic_reasoning,
+        }
