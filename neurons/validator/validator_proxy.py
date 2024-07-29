@@ -16,8 +16,12 @@ import threading
 
 class OrganicRequest(BaseModel):
     authorization: str
-    synapse_request: logicnet.protocol.LogicRequest = None
-    re_check: bool = False
+    synapse_request: logicnet.protocol.LogicRequest
+
+
+class Recheck(BaseModel):
+    authorization: str
+    re_check: bool
 
 
 class ValidatorProxy:
@@ -37,6 +41,12 @@ class ValidatorProxy:
         self.app.add_api_route(
             "/validator_proxy",
             self.forward,
+            methods=["POST"],
+            dependencies=[Depends(self.get_self)],
+        )
+        self.app.add_api_route(
+            "/recheck",
+            self.re_check,
             methods=["POST"],
             dependencies=[Depends(self.get_self)],
         )
@@ -91,6 +101,12 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
+    def re_check(self, data: Recheck):
+        self.authenticate_token(data.authorization)
+        bt.logging.info("Rechecking validators")
+        self.get_credentials()
+        return {"message": "done"}
+
     def organic_reward(self, synapse, response, uid, rewarder, timeout):
         if callable(rewarder):
             uids, rewards = rewarder([uid], [response], synapse)
@@ -114,10 +130,6 @@ class ValidatorProxy:
 
     async def forward(self, data: OrganicRequest):
         self.authenticate_token(data.authorization)
-        if data.re_check:
-            bt.logging.info("Rechecking validators")
-            self.get_credentials()
-            return {"message": "done"}
         bt.logging.info("Received an organic request!")
         synapse = logicnet.protocol.LogicSynapse(**data.synapse_request.dict())
 
