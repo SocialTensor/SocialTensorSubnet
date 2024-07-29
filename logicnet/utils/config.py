@@ -119,7 +119,7 @@ def add_args(cls, parser):
             "--proxy.proxy_client_url",
             type=str,
             help="The url initialize credentials for proxy.",
-            default="http://logicapi.aitprotocol.ai/proxy_client",
+            default="http://logicnet.aitprotocol.ai/proxy_client",
         )
 
         parser.add_argument(

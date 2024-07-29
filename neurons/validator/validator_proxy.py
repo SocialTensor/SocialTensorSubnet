@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -14,10 +13,12 @@ import traceback
 import httpx
 import threading
 
+
 class OrganicRequest(BaseModel):
     authorization: str
-    payload: Optional[logicnet.protocol.LogicSynapse] = None
+    synapse_request: logicnet.protocol.LogicRequest = None
     re_check: bool = False
+
 
 class ValidatorProxy:
     """
@@ -90,9 +91,7 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def organic_reward(
-        self, synapse, response, uid, rewarder, timeout
-    ):
+    def organic_reward(self, synapse, response, uid, rewarder, timeout):
         if callable(rewarder):
             uids, rewards = rewarder([uid], [response], synapse)
         else:
@@ -115,7 +114,7 @@ class ValidatorProxy:
 
     async def forward(self, data: OrganicRequest):
         self.authenticate_token(data.authorization)
-        synapse = data.payload
+        synapse = logicnet.protocol.LogicSynapse(**data.synapse_request.dict())
         if data.re_check:
             bt.logging.info("Rechecking validators")
             self.get_credentials()
@@ -135,8 +134,11 @@ class ValidatorProxy:
         output = None
         for uid, should_reward in self.validator.query_queue.get_query_for_proxy(
             category
-        ):  
-            should_reward = random.random() < self.validator.config.proxy.checking_probability or should_reward
+        ):
+            should_reward = (
+                random.random() < self.validator.config.proxy.checking_probability
+                or should_reward
+            )
             bt.logging.info(
                 f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid].scores}"
             )
