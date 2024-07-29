@@ -42,7 +42,7 @@ class MinerInfo:
 
     def to_dict(self):
         # Round score to 4 decimal places
-        self.scores = [round(score, 3) for score in self.scores]
+        self.scores = [round(score, 3) for score in self.scores][-NO_OF_RECENT_SCORES:]
         return {
             "category": self.category,
             "scores": self.scores,
