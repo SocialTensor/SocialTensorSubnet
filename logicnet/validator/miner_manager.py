@@ -58,6 +58,9 @@ class MinerManager:
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
         self.all_uids_info = {uid: MinerInfo() for uid in self.all_uids}
 
+    def to_dict(self):
+        return {uid: info.to_dict() for uid, info in self.all_uids_info.items()}
+
     def get_miner_info(self):
         """
         QUERY MINER's INFORMATION SYNAPSE

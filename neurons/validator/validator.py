@@ -248,7 +248,7 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info("Could not find previously saved state.", e)
 
     def store_miner_infomation(self):
-        miner_informations = self.miner_manager.all_uids_info
+        miner_informations = self.miner_manager.to_dict()
 
         def _post_miner_informations(miner_informations):
             requests.post(
