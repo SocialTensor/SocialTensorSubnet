@@ -114,12 +114,12 @@ class ValidatorProxy:
 
     async def forward(self, data: OrganicRequest):
         self.authenticate_token(data.authorization)
-        synapse = logicnet.protocol.LogicSynapse(**data.synapse_request.dict())
         if data.re_check:
             bt.logging.info("Rechecking validators")
             self.get_credentials()
             return {"message": "done"}
         bt.logging.info("Received an organic request!")
+        synapse = logicnet.protocol.LogicSynapse(**data.synapse_request.dict())
 
         category = synapse.category
         category_config = self.validator.categories[category]
