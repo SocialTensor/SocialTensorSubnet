@@ -21,7 +21,6 @@ class OrganicRequest(BaseModel):
 
 class Recheck(BaseModel):
     authorization: str
-    re_check: bool
 
 
 class ValidatorProxy:
@@ -85,8 +84,8 @@ class ValidatorProxy:
         )
 
     def authenticate_token(self, public_key_bytes):
-        public_key_bytes = base64.b64decode(public_key_bytes)
         try:
+            public_key_bytes = base64.b64decode(public_key_bytes)
             self.verify_credentials(public_key_bytes)
             bt.logging.info("Successfully authenticated token")
             return public_key_bytes
