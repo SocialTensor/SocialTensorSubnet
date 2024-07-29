@@ -59,11 +59,7 @@ class ValidatorProxy:
             response = client.post(
                 f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
                 json={
-                    "postfix": (
-                        f":{self.validator.config.proxy.port}/validator_proxy"
-                        if self.validator.config.proxy.port
-                        else ""
-                    ),
+                    "port": self.validator.proxy.port,
                     "uid": self.validator.uid,
                 },
             )
