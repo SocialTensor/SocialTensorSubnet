@@ -122,7 +122,7 @@ def add_args(cls, parser):
             default="https://logicnet.aitprotocol.ai/proxy_client",
         )
 
-        parser.add_arugment(
+        parser.add_argument(
             "--storage.storage_url",
             type=str,
             help="The url initialize to store miner's information.",
