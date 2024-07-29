@@ -9,6 +9,8 @@ from logicnet.validator import MinerManager, LogicChallenger, LogicRewarder
 import traceback
 import threading
 from neurons.validator.core.serving_queue import QueryQueue
+import requests
+
 
 def init_category(config=None):
     category = {
@@ -29,6 +31,7 @@ def init_category(config=None):
         }
     }
     return category
+
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -97,6 +100,21 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info(
             "Loop completed, uids info:\n",
             str(self.miner_manager.all_uids_info).replace("},", "},\n"),
+        )
+
+        miner_informations = self.miner_manager.all_uids_info
+
+        def _post_miner_informations(miner_informations):
+            requests.post(
+                self.config.storage.storage_url,
+                {
+                    "miner_informations": miner_informations,
+                },
+            )
+
+        thread = threading.Thread(
+            target=_post_miner_informations,
+            args=(miner_informations,),
         )
 
         actual_time_taken = time.time() - loop_start
@@ -242,6 +260,7 @@ class Validator(BaseValidatorNeuron):
         except Exception as e:
             self.step = 0
             bt.logging.info("Could not find previously saved state.", e)
+
 
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":
