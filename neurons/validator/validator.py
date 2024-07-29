@@ -106,9 +106,10 @@ class Validator(BaseValidatorNeuron):
 
         def _post_miner_informations(miner_informations):
             requests.post(
-                self.config.storage.storage_url,
-                {
-                    "miner_informations": miner_informations,
+                url=self.config.storage.storage_url,
+                json={
+                    "miner_information": miner_informations,
+                    "validator_uid": int(self.uid),
                 },
             )
 
