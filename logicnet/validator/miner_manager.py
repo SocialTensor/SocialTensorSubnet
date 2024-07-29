@@ -41,6 +41,8 @@ class MinerInfo:
         return str(self.to_dict()) + "\n"
 
     def to_dict(self):
+        # Round score to 4 decimal places
+        self.scores = [round(score, 3) for score in self.scores]
         return {
             "category": self.category,
             "scores": self.scores,
