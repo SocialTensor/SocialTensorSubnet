@@ -9,6 +9,8 @@ from logicnet.validator import MinerManager, LogicChallenger, LogicRewarder
 import traceback
 import threading
 from neurons.validator.core.serving_queue import QueryQueue
+import requests
+
 
 def init_category(config=None):
     category = {
@@ -29,6 +31,7 @@ def init_category(config=None):
         }
     }
     return category
+
 
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
@@ -62,7 +65,7 @@ class Validator(BaseValidatorNeuron):
         Query miners by batched from the serving queue then process challenge-generating -> querying -> rewarding in background by threads
         DEFAULT: 16 miners per batch, 600 seconds per loop.
         """
-
+        self.store_miner_infomation()
         bt.logging.info("Updating available models & uids")
         async_batch_size = self.config.async_batch_size
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
@@ -98,6 +101,7 @@ class Validator(BaseValidatorNeuron):
             "Loop completed, uids info:\n",
             str(self.miner_manager.all_uids_info).replace("},", "},\n"),
         )
+        self.store_miner_infomation()
 
         actual_time_taken = time.time() - loop_start
 
@@ -242,6 +246,25 @@ class Validator(BaseValidatorNeuron):
         except Exception as e:
             self.step = 0
             bt.logging.info("Could not find previously saved state.", e)
+
+    def store_miner_infomation(self):
+        miner_informations = self.miner_manager.to_dict()
+
+        def _post_miner_informations(miner_informations):
+            requests.post(
+                url=self.config.storage.storage_url,
+                json={
+                    "miner_information": miner_informations,
+                    "validator_uid": int(self.uid),
+                },
+            )
+
+        thread = threading.Thread(
+            target=_post_miner_informations,
+            args=(miner_informations,),
+        )
+        thread.start()
+
 
 # The main function parses the configuration and runs the validator.
 if __name__ == "__main__":

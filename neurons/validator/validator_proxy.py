@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
-from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
 import uvicorn
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -14,10 +13,15 @@ import traceback
 import httpx
 import threading
 
+
 class OrganicRequest(BaseModel):
     authorization: str
-    payload: Optional[logicnet.protocol.LogicSynapse] = None
-    re_check: bool = False
+    synapse_request: logicnet.protocol.LogicRequest
+
+
+class Recheck(BaseModel):
+    authorization: str
+
 
 class ValidatorProxy:
     """
@@ -39,6 +43,12 @@ class ValidatorProxy:
             methods=["POST"],
             dependencies=[Depends(self.get_self)],
         )
+        self.app.add_api_route(
+            "/recheck",
+            self.re_check,
+            methods=["POST"],
+            dependencies=[Depends(self.get_self)],
+        )
         self.loop = asyncio.get_event_loop()
         if self.validator.config.proxy.port:
             self.start_server()
@@ -48,11 +58,7 @@ class ValidatorProxy:
             response = client.post(
                 f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
                 json={
-                    "postfix": (
-                        f":{self.validator.config.proxy.port}/validator_proxy"
-                        if self.validator.config.proxy.port
-                        else ""
-                    ),
+                    "port": self.validator.config.proxy.port,
                     "uid": self.validator.uid,
                 },
             )
@@ -78,8 +84,8 @@ class ValidatorProxy:
         )
 
     def authenticate_token(self, public_key_bytes):
-        public_key_bytes = base64.b64decode(public_key_bytes)
         try:
+            public_key_bytes = base64.b64decode(public_key_bytes)
             self.verify_credentials(public_key_bytes)
             bt.logging.info("Successfully authenticated token")
             return public_key_bytes
@@ -90,9 +96,13 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def organic_reward(
-        self, synapse, response, uid, rewarder, timeout
-    ):
+    def re_check(self, data: Recheck):
+        self.authenticate_token(data.authorization)
+        bt.logging.info("Rechecking validators")
+        self.get_credentials()
+        return {"message": "done"}
+
+    def organic_reward(self, synapse, response, uid, rewarder, timeout):
         if callable(rewarder):
             uids, rewards = rewarder([uid], [response], synapse)
         else:
@@ -115,12 +125,8 @@ class ValidatorProxy:
 
     async def forward(self, data: OrganicRequest):
         self.authenticate_token(data.authorization)
-        synapse = data.payload
-        if data.re_check:
-            bt.logging.info("Rechecking validators")
-            self.get_credentials()
-            return {"message": "done"}
         bt.logging.info("Received an organic request!")
+        synapse = logicnet.protocol.LogicSynapse(**data.synapse_request.dict())
 
         category = synapse.category
         category_config = self.validator.categories[category]
@@ -135,8 +141,11 @@ class ValidatorProxy:
         output = None
         for uid, should_reward in self.validator.query_queue.get_query_for_proxy(
             category
-        ):  
-            should_reward = random.random() < self.validator.config.proxy.checking_probability or should_reward
+        ):
+            should_reward = (
+                random.random() < self.validator.config.proxy.checking_probability
+                or should_reward
+            )
             bt.logging.info(
                 f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid].scores}"
             )

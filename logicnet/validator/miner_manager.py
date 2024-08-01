@@ -41,6 +41,8 @@ class MinerInfo:
         return str(self.to_dict()) + "\n"
 
     def to_dict(self):
+        # Round score to 4 decimal places
+        self.scores = [round(score, 3) for score in self.scores][-NO_OF_RECENT_SCORES:]
         return {
             "category": self.category,
             "scores": self.scores,
@@ -55,6 +57,9 @@ class MinerManager:
         self.validator = validator
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
         self.all_uids_info = {uid: MinerInfo() for uid in self.all_uids}
+
+    def to_dict(self):
+        return {uid: info.to_dict() for uid, info in self.all_uids_info.items()}
 
     def get_miner_info(self):
         """
