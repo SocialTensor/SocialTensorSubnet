@@ -5,7 +5,6 @@
 ### Description
 Our goal is to develop an open-source AI model capable of complex mathematics and detailed data analysis, enhanced by incentivized human feedback for continuous improvement.
 
-
 - 📚 [Albert Frontend App](https://albert.aitprotocol.ai/)
 - 📚 [Learn more about LogicNet](https://tonylvh.notion.site/LogicNet_SN35-1b44e52d308f47e7983af25bff6df90e)
     - More about the roadmap,
