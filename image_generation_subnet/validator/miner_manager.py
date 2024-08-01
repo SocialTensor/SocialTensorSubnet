@@ -127,7 +127,7 @@ class MinerManager:
                 sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
                 / num_past_to_check
             )
-        model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
+        model_specific_weights = torch.clamp(model_specific_weights, 0.45, 1)
         if normalize:
             tensor_sum = torch.sum(model_specific_weights)
             # Normalizing the tensor
