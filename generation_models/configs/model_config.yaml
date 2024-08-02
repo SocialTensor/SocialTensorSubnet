@@ -75,3 +75,9 @@ DallE:
   params:
     supporting_pipelines:
       - "txt2img"
+
+Flux:
+  target: generation_models.Flux
+  params:
+    supporting_pipelines:
+      - "txt2img"

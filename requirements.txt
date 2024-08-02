@@ -1,7 +1,7 @@
 bittensor==6.9.3
-diffusers==0.28.0
-transformers==4.40.0
-accelerate==0.27.2
+git+https://github.com/huggingface/diffusers.git
+transformers==4.42.4
+accelerate==0.32.0
 cryptography==42.0.0
 ImageHash==4.3.1
 loguru==0.7.0
