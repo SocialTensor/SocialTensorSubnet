@@ -34,4 +34,4 @@ def inference(text_encoder, denoise_model, prompt):
 
 This approach ensures that FluxSchnell runs efficiently on a 24GB VRAM GPU, leveraging both the Text Encoder and Denoise Model to their fullest potential without exceeding memory constraints.
 
-Explore the potential of FluxSchnell and experience the power of advanced image generation with NicheImage.
+**Miner feels free to customize the deployment!**
