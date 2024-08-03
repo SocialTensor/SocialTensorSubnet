@@ -11,17 +11,19 @@ import gc
 
 MAX_SEED = np.iinfo(np.int32).max
 MAX_IMAGE_SIZE = 2048
+MAX_INFERENCE_STEPS = 8
+
 
 def flush():
     gc.collect()
     torch.cuda.empty_cache()
 
-class Flux:
+class FluxSchnell:
     class FluxInput:
         def __init__( 
             self,  
-            prompt: str = "A board with the text 'It's NicheImage Time!'",
-            generator: str = torch.Generator().manual_seed(random.randint(0, MAX_SEED)),
+            prompt = "A board with the text 'It's NicheImage Time!'",
+            generator = torch.Generator().manual_seed(random.randint(0, MAX_SEED)),
             width: int = 1024,
             height: int = 1024,
             guidance_scale: float = 0.0,
@@ -34,18 +36,22 @@ class Flux:
             self.height = height
             self.guidance_scale = guidance_scale
             self.num_inference_steps = num_inference_steps
-            
+            self._check_inputs()
+
+        def _check_inputs(self):
+            self.width = min(self.width, MAX_IMAGE_SIZE)
+            self.height = min(self.height, MAX_IMAGE_SIZE)
+            self.num_inference_steps = min(self.num_inference_steps, MAX_INFERENCE_STEPS)
 
     def __init__(self, **kwargs):
         t5_encoder = T5EncoderModel.from_pretrained(
-            "black-forest-labs/FLUX.1-schnell", subfolder="text_encoder_2", revision="refs/pr/7", torch_dtype=torch.bfloat16
+            "black-forest-labs/FLUX.1-schnell", subfolder="text_encoder_2", torch_dtype=torch.bfloat16
         )
         self.text_encoder = diffusers.DiffusionPipeline.from_pretrained(
             "black-forest-labs/FLUX.1-schnell",
             text_encoder_2=t5_encoder,
             transformer=None,
             vae=None,
-            revision="refs/pr/7",
         )
         pipeline = diffusers.DiffusionPipeline.from_pretrained(
             "black-forest-labs/FLUX.1-schnell", 
@@ -81,5 +87,4 @@ class Flux:
             num_inference_steps=inputs.num_inference_steps
         )
         image = output.images[0]
-        image.save("fig.jpg")
         return image
