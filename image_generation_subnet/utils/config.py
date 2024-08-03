@@ -259,6 +259,14 @@ def add_args(cls, parser):
             help="",
             default="http://nicheimage.nichetensor.com/reward/JuggernautXL",
         )
+
+        parser.add_argument(
+            "--reward_url.FluxSchnell",
+            type=str,
+            help="",
+            default="http://nicheimage.nichetensor.com/reward/FluxSchnell",
+        )
+        
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(
