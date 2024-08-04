@@ -16,6 +16,7 @@ import io
 import importlib
 import torch
 import bittensor as bt
+import cv2
 
 def make_inpaint_condition(image, image_mask):
     image = np.array(image.convert("RGB")).astype(np.float32) / 255.0
@@ -138,3 +139,22 @@ def download_checkpoint(download_url, checkpoint_file):
                 progress_bar.update(len(data))
 
     bt.logging.info("Download completed successfully.")
+
+def upscale_image(input_image, upscale, max_size=None, unit_resolution=64):
+    H, W, C = input_image.shape
+    H = float(H)
+    W = float(W)
+    H *= upscale
+    W *= upscale
+    
+    if max_size is not None:
+        if max(H, W) > max_size:
+            _upsacle = max_size / max(W, H)
+            W *= _upsacle
+            H *= _upsacle
+
+    H = int(np.round(H / unit_resolution)) * unit_resolution
+    W = int(np.round(W / unit_resolution)) * unit_resolution
+    img = cv2.resize(input_image, (W, H), interpolation=cv2.INTER_LANCZOS4 if upscale > 1 else cv2.INTER_AREA)
+    img = img.round().clip(0, 255).astype(np.uint8)
+    return img

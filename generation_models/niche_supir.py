@@ -1,7 +1,8 @@
 from PIL import Image
 from .base_model import BaseModel
 from .utils import (
-    base64_to_pil_image
+    base64_to_pil_image,
+    upscale_image
 )
 import os
 import torch
@@ -18,11 +19,12 @@ import yaml
 class NicheSUPIR(BaseModel):
     def load_model(self, checkpoint_file, supporting_pipelines, **kwargs):
         sys.path.append("generation_models/custom_pipelines/SUPIR")
-        from .custom_pipelines.SUPIR.SUPIR.util import HWC3, upscale_image, fix_resize, convert_dtype, create_SUPIR_model, load_QF_ckpt
+        from .custom_pipelines.SUPIR.SUPIR.util import HWC3, fix_resize, convert_dtype, create_SUPIR_model, load_QF_ckpt
         
         self.device = "cuda"
         self.use_llava = False
         self.supporting_pipelines = supporting_pipelines
+        self.max_size = 2048
 
         if not os.path.exists(checkpoint_file):
             os.makedirs(checkpoint_file, exist_ok=True)
@@ -48,6 +50,7 @@ class NicheSUPIR(BaseModel):
         # Load SUPIR
         self.model, default_setting = create_SUPIR_model(self.opt_file, SUPIR_sign='Q', load_default_setting=True)
         self.model = self.model.half()
+    
         self.model.init_tile_vae(encoder_tile_size=512, decoder_tile_size=64)
         self.model.to(self.device)
         self.model.first_stage_model.denoise_encoder_s1 = copy.deepcopy(self.model.first_stage_model.denoise_encoder)
@@ -99,7 +102,7 @@ class NicheSUPIR(BaseModel):
                     self.model.current_model = 'v0-F'
             input_image = HWC3(input_image)
             input_image = upscale_image(input_image, upscale, unit_resolution=32,
-                                        min_size=1024)
+                                        max_size=self.max_size)
 
             LQ = np.array(input_image) / 255.0
             LQ = np.power(LQ, gamma_correction)
@@ -147,6 +150,7 @@ class NicheSUPIR(BaseModel):
                 "s_stage1": -1.0,
                 "s_stage2": 1.0,
                 "s_cfg": self.config["default_setting"]["s_cfg_Quality"],
+                # "seed": "",
                 "s_churn": 5,
                 "s_noise": 1.003,
                 "color_fix_type": "Wavelet",
@@ -167,6 +171,7 @@ class NicheSUPIR(BaseModel):
                 return Image.new("RGB", (512, 512), (255, 255, 255))
             else:
                 output = Image.fromarray(output)
+                output.save('new_image.png')
             return output
 
         return inference_function
