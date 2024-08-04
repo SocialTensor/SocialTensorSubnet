@@ -150,7 +150,6 @@ class NicheSUPIR(BaseModel):
                 "s_stage1": -1.0,
                 "s_stage2": 1.0,
                 "s_cfg": self.config["default_setting"]["s_cfg_Quality"],
-                # "seed": "",
                 "s_churn": 5,
                 "s_noise": 1.003,
                 "color_fix_type": "Wavelet",
@@ -171,7 +170,6 @@ class NicheSUPIR(BaseModel):
                 return Image.new("RGB", (512, 512), (255, 255, 255))
             else:
                 output = Image.fromarray(output)
-                output.save('new_image.png')
             return output
 
         return inference_function
