@@ -30,3 +30,6 @@ sentencepiece
 redis==5.0.6
 ctranslate2==4.3.1
 ninja==1.10.2
+k-diffusion==0.1.1.post1
+pytorch-lightning==2.1.2
+open-clip-torch==2.17.1

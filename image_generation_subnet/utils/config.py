@@ -259,6 +259,13 @@ def add_args(cls, parser):
             help="",
             default="http://nicheimage.nichetensor.com/reward/JuggernautXL",
         )
+
+        parser.add_argument(
+            "--reward_url.SUPIR",
+            type=str,
+            help="",
+            default="http://nicheimage.nichetensor.com/reward/SUPIR",
+        )
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(

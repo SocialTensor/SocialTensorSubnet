@@ -75,3 +75,10 @@ DallE:
   params:
     supporting_pipelines:
       - "txt2img"
+  
+SUPIR:
+  target: generation_models.NicheSUPIR
+  params:
+    checkpoint_file: "/opt/data/private/AIGC_pretrain"
+    supporting_pipelines:
+      - "upscale"

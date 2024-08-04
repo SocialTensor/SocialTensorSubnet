@@ -296,7 +296,19 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "model_incentive_weight": 0.04,
+        },
+        "SUPIR": {
+            "supporting_pipelines": MODEL_CONFIGS["SUPIR"]["params"][
+                "supporting_pipelines"
+            ],
+            "reward_url": config.reward_url.SUPIR,
+            "reward_type": "image_online",
+            "timeout": 200,
+            "inference_params": {},
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "model_incentive_weight": 0.00,
         }
+
     }
     return nicheimage_catalogue
 
