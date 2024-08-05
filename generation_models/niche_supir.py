@@ -150,20 +150,19 @@ class NicheSUPIR(BaseModel):
                 "s_stage1": -1.0,
                 "s_stage2": 1.0,
                 "s_cfg": self.config["default_setting"]["s_cfg_Quality"],
-                "s_churn": 5,
-                "s_noise": 1.003,
+                "s_churn": sampler_config["s_churn"],
+                "s_noise": sampler_config["s_noise"],
                 "color_fix_type": "Wavelet",
-                "diff_dtype": "fp16",
-                "ae_dtype": "bf16",
+                "diff_dtype": model_params["diffusion_dtype"],
+                "ae_dtype": model_params["ae_dtype"],
                 "gamma_correction": 1,
                 "linear_CFG": True,
                 "linear_s_stage2": False,
-                "spt_linear_CFG": 4.0,
+                "spt_linear_CFG": self.config["default_setting"]["spt_linear_CFG_Quality"],
                 "spt_linear_s_stage2": 0.,
                 "model_select": "v0-Q"
             })
             
-            a = kwargs
             output = stage2_process(input_image, **kwargs)
             
             if output is None:

@@ -160,6 +160,10 @@ def initialize_challenge_urls(config):
             "main": [config.challenge.prompt, config.challenge.image],
             "backup": [get_backup_prompt, get_backup_image],
         },
+        "upscale": {
+            "main": [config.challenge.image],
+            "backup": [get_backup_image]
+        }
     }
     return challenge_urls
 
@@ -303,7 +307,7 @@ def initialize_nicheimage_catalogue(config):
             ],
             "reward_url": config.reward_url.SUPIR,
             "reward_type": "image_online",
-            "timeout": 200,
+            "timeout": 150,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "model_incentive_weight": 0.00,
