@@ -36,3 +36,14 @@ This approach ensures that FluxSchnell runs efficiently on a 24GB VRAM GPU, leve
 
 
 ## Kolors: Text To Image, ControlNet
+
+![Kolors Samples](/assets/images/kolors.png)
+
+Kolors is a large-scale text-to-image generation model based on latent diffusion, developed by the Kuaishou Kolors team. Trained on billions of text-image pairs, Kolors exhibits significant advantages over both open-source and proprietary models in visual quality, complex semantic accuracy, and text rendering for both Chinese and English characters. Furthermore, Kolors supports both Chinese and English inputs, demonstrating strong performance in understanding and generating Chinese-specific content.
+
+### Model Architecture
+
+Kolors = SDXL + ChatGLM Text Encoder
+By default setup, the text encoder is quatized.
+### Pipelines
+Kolors supports 3 pipelines: Text To Image, ControlNet (Depth, Canny Edge) and IP Adapter.
