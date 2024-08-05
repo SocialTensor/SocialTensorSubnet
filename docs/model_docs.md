@@ -1,6 +1,6 @@
 # Models Description
 Welcome to the technical documentation for models used in NicheImage. Below, we provide a detailed description of models available in NicheImage
-
+**Miner feels free to customize the deployment as long as the output is still the same!**
 ## FluxSchnell
 ![Flux Samples](/assets/images/flux-1.png)
 The FluxSchnell model boasts an impressive 12 billion parameters, making it a powerful tool for advanced image generation. It is designed to run on GPUs with 24GB of VRAM.
@@ -34,4 +34,5 @@ def inference(text_encoder, denoise_model, prompt):
 
 This approach ensures that FluxSchnell runs efficiently on a 24GB VRAM GPU, leveraging both the Text Encoder and Denoise Model to their fullest potential without exceeding memory constraints.
 
-**Miner feels free to customize the deployment!**
+
+## Kolors: Text To Image, ControlNet
