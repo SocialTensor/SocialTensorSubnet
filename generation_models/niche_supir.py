@@ -22,7 +22,6 @@ class NicheSUPIR(BaseModel):
         from .custom_pipelines.SUPIR.SUPIR.util import HWC3, fix_resize, convert_dtype, create_SUPIR_model, load_QF_ckpt
         
         self.device = "cuda"
-        self.use_llava = False
         self.supporting_pipelines = supporting_pipelines
         self.max_size = 2048
 
@@ -110,10 +109,7 @@ class NicheSUPIR(BaseModel):
             LQ = LQ.round().clip(0, 255).astype(np.uint8)
             LQ = LQ / 255 * 2 - 1
             LQ = torch.tensor(LQ, dtype=torch.float32).permute(2, 0, 1).unsqueeze(0).to(self.device)[:, :3, :, :]
-            if self.use_llava:
-                captions = [prompt]
-            else:
-                captions = ['']
+            captions = [prompt]
 
             self.model.ae_dtype = convert_dtype(ae_dtype)
             self.model.model.dtype = convert_dtype(diff_dtype)
@@ -136,7 +132,7 @@ class NicheSUPIR(BaseModel):
             if pipeline_type not in self.supporting_pipelines:
                 raise ValueError(f"Pipeline type {pipeline_type} is not supported")
             
-            input_image = np.array(base64_to_pil_image(kwargs["image"]))
+            input_image = np.array(base64_to_pil_image(kwargs["conditional_image"]))
             # stage1_result = stage1_process(input_image=input_image, **kwargs)
             
             model_params = self.config["model"]["params"]
