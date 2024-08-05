@@ -4,7 +4,6 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 
 
 ### Incentive Distribution
-**More details [here](model_docs.md)**
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | RealitiesEdgeXL | 29%                    | 12 |
