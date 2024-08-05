@@ -9,27 +9,30 @@ from pydantic import BaseModel
 import time
 import gc
 import os
+from optimum.quanto import freeze, qfloat8, quantize
 
 MAX_SEED = np.iinfo(np.int32).max
 MAX_IMAGE_SIZE = 2048
 MAX_INFERENCE_STEPS = 8
-HIGH_VRAM = os.environ.get('HIGH_VRAM', 0)
+HIGH_VRAM = os.environ.get("HIGH_VRAM", 0)
+
 
 def flush():
     gc.collect()
     torch.cuda.empty_cache()
 
+
 class FluxSchnell:
     class FluxInput:
-        def __init__( 
-            self,  
-            prompt = "A board with the text 'It's NicheImage Time!'",
-            generator = torch.Generator().manual_seed(random.randint(0, MAX_SEED)),
+        def __init__(
+            self,
+            prompt="A board with the text 'It's NicheImage Time!'",
+            generator=torch.Generator().manual_seed(random.randint(0, MAX_SEED)),
             width: int = 1024,
             height: int = 1024,
             guidance_scale: float = 0.0,
             num_inference_steps: int = 4,
-            **kwargs
+            **kwargs,
         ):
             self.prompt = prompt
             self.generator = generator
@@ -42,46 +45,55 @@ class FluxSchnell:
         def _check_inputs(self):
             self.width = min(self.width, MAX_IMAGE_SIZE)
             self.height = min(self.height, MAX_IMAGE_SIZE)
-            self.num_inference_steps = min(self.num_inference_steps, MAX_INFERENCE_STEPS)
+            self.num_inference_steps = min(
+                self.num_inference_steps, MAX_INFERENCE_STEPS
+            )
 
     def __init__(self, **kwargs):
+        self.text_encoder = self._load_text_encoder()
+        self.pipeline = self._load_pipeline()
+
+    def _load_text_encoder(self):
         t5_encoder = T5EncoderModel.from_pretrained(
-            "black-forest-labs/FLUX.1-schnell", subfolder="text_encoder_2", torch_dtype=torch.bfloat16
+            "black-forest-labs/FLUX.1-schnell",
+            subfolder="text_encoder_2",
+            torch_dtype=torch.bfloat16,
         )
-        self.text_encoder = diffusers.DiffusionPipeline.from_pretrained(
+        quantize(t5_encoder, qfloat8)
+        freeze(t5_encoder)
+        t5_encoder.to("cuda")
+        return diffusers.DiffusionPipeline.from_pretrained(
             "black-forest-labs/FLUX.1-schnell",
             text_encoder_2=t5_encoder,
             transformer=None,
             vae=None,
         )
-        if HIGH_VRAM:
-            self.text_encoder.to("cuda")
+
+    def _load_pipeline(self):
         pipeline = diffusers.DiffusionPipeline.from_pretrained(
-            "black-forest-labs/FLUX.1-schnell", 
+            "black-forest-labs/FLUX.1-schnell",
             torch_dtype=torch.bfloat16,
             revision="refs/pr/1",
             text_encoder_2=None,
             text_encoder=None,
         )
-        pipeline.enable_model_cpu_offload()
+        quantize(pipeline.transformer, qfloat8)
+        freeze(pipeline.transformer)
+        pipeline.to("cuda")
+        return pipeline
 
-        self.pipeline = pipeline
+    def _encode_prompt(self, prompt):
+        start = time.time()
+        prompt_embeds, pooled_prompt_embeds, _ = self.text_encoder.encode_prompt(
+            prompt=prompt, prompt_2=None, max_sequence_length=256
+        )
+        print(f"Prompt encoding time: {time.time() - start}")
+        return prompt_embeds, pooled_prompt_embeds
 
     @torch.inference_mode()
     def __call__(self, *args, **kwargs):
         inputs = self.FluxInput(**kwargs)
-        if not HIGH_VRAM:
-            self.text_encoder.to("cuda")
-        start = time.time()
-        (
-            prompt_embeds,
-            pooled_prompt_embeds,
-            _,
-        ) = self.text_encoder.encode_prompt(prompt=inputs.prompt, prompt_2=None, max_sequence_length=256)
-        if not HIGH_VRAM:
-            self.text_encoder.to("cpu")
-            flush()
-        print(f"Prompt encoding time: {time.time() - start}")
+        prompt_embeds, pooled_prompt_embeds = self._encode_prompt(inputs.prompt)
         output = self.pipeline(
             prompt_embeds=prompt_embeds.bfloat16(),
             pooled_prompt_embeds=pooled_prompt_embeds.bfloat16(),
@@ -89,7 +101,6 @@ class FluxSchnell:
             width=inputs.width,
             height=inputs.height,
             guidance_scale=inputs.guidance_scale,
-            num_inference_steps=inputs.num_inference_steps
+            num_inference_steps=inputs.num_inference_steps,
         )
-        image = output.images[0]
-        return image
+        return output.images[0]
