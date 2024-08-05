@@ -138,3 +138,24 @@ def download_checkpoint(download_url, checkpoint_file):
                 progress_bar.update(len(data))
 
     bt.logging.info("Download completed successfully.")
+
+
+def resize_image(input_image, resolution, short = False, interpolation=None):
+    W,H = input_image.size
+
+    H = float(H)
+    W = float(W)
+    if short:
+        k = float(resolution) / min(H, W) # k>1 放大， k<1 缩小
+    else:
+        k = float(resolution) / max(H, W) # k>1 放大， k<1 缩小
+    H *= k 
+    W *= k
+    H = int(np.round(H / 64.0)) * 64
+    W = int(np.round(W / 64.0)) * 64
+
+    if interpolation is None:
+        interpolation = PIL.Image.LANCZOS if k > 1 else PIL.Image.BILINEAR
+    img = input_image.resize((W, H), resample=interpolation)
+    
+    return img
