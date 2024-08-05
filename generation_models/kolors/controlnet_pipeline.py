@@ -58,7 +58,7 @@ from diffusers.pipelines.pipeline_utils import DiffusionPipeline, StableDiffusio
 from diffusers.pipelines.stable_diffusion_xl.pipeline_output import StableDiffusionXLPipelineOutput
 from diffusers.pipelines.controlnet import MultiControlNetModel
 
-from ..models.controlnet import ControlNetModel
+from .controlnet import ControlNetModel
 
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name

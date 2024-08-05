@@ -17,7 +17,8 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | FaceToMany      | 3%                     | 64 |
-| FluxSchnell | x% | 48 |
+| FluxSchnell | 0% | 48 |
+| Kolors | 0% | 24 |
 
 
 ## Step by Step Guide
@@ -28,6 +29,8 @@ cd NicheImage
 python -m venv main_env
 source main_env/bin/activate
 pip install -e .
+pip install git+https://github.com/huggingface/diffusers.git
+pip install git+https://github.com/toilaluan/controlnet_aux.git
 pip uninstall uvloop -y
 git submodule update --init --recursive
 . generation_models/custom_pipelines/scripts/download_antelopev2.sh
@@ -35,7 +38,7 @@ git submodule update --init --recursive
 2. Select miner based on incentive distribution and subnet state at https://nicheimage.streamlit.app/
 3. Setup prequisites if needed
 - For StickerMaker & FaceToMany, find the guide [here](comfyui_category.md)
-- For Gemma7b, find the guide [here](vllm_category.md)
+- For Gemma7b & Llama3_70b, find the guide [here](vllm_category.md)
 - For GoJourney, register [here](https://www.goapi.ai/midjourney-api) and get the `GOJOURNEY_API_KEY`
 
 4. Start the endpoint

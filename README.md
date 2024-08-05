@@ -26,7 +26,8 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | 👥 FaceToMany      | 3%                     | ComfyUI workflow, [FaceToMany](https://replicate.com/fofr/face-to-many) |
 | 🏷️ StickerMaker    | 3%                     | ComfyUI workflow, [StickerMaker](https://replicate.com/fofr/sticker-maker) |
 | DallE    | 4%                     | [OpenAI's Dall-E 3](https://openai.com/index/dall-e-3/) |
-| FluxSchnell | x% | 12B image model, 4 steps |
+| FluxSchnell | 0% | 12B image model |
+| Kolors | 0% | SDXL with bigger Text Encoder |
 
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.
