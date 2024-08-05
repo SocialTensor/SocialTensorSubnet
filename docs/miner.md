@@ -29,8 +29,7 @@ cd NicheImage
 python -m venv main_env
 source main_env/bin/activate
 pip install -e .
-pip install git+https://github.com/huggingface/diffusers.git
-pip install git+https://github.com/toilaluan/controlnet_aux.git
+. install_custom_requirements.sh
 pip uninstall uvloop -y
 git submodule update --init --recursive
 . generation_models/custom_pipelines/scripts/download_antelopev2.sh
@@ -46,12 +45,10 @@ git submodule update --init --recursive
 **For Image Generation Category**
 - Important notes
     - For the DallE model, you need to set `--num_gpus 0` and `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
-    - For **Flux** model, add `HIGH_VRAM=1` to the command to enable high VRAM mode (> 24GB VRAM). By default it is set to 0.
 ```bash
 source main_env/bin/activate
 GOJOURNEY_API_KEY=<your-gojourney-api-key> \ # set if you use GoJourney model
 OPENAI_API_KEY=<your-openai-api-key> \ # set if you use DallE model
-HIGH_VRAM=1 \ # set if you use Flux model and have more than 24GB VRAM
 RAY_SERVE_QUEUE_LENGTH_RESPONSE_DEADLINE_S=1.0 \
 PROCESS_MODE=<your-task-type> \ # set if you use GoJourney model
 pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app \
