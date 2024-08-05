@@ -17,7 +17,7 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | FaceToMany      | 3%                     | 64 |
-
+| SUPIR     | x%                     | 64 |
 
 ## Step by Step Guide
 1. Git clone and install requirements
@@ -30,6 +30,7 @@ pip install -e .
 pip uninstall uvloop -y
 git submodule update --init --recursive
 . generation_models/custom_pipelines/scripts/download_antelopev2.sh
+. generation_models/custom_pipelines/scripts/setup_supir.sh
 ```
 2. Select miner based on incentive distribution and subnet state at https://nicheimage.streamlit.app/
 3. Setup prequisites if needed
