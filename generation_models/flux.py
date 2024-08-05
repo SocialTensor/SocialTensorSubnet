@@ -8,11 +8,12 @@ from transformers import T5EncoderModel, BitsAndBytesConfig
 from pydantic import BaseModel
 import time
 import gc
+import os
 
 MAX_SEED = np.iinfo(np.int32).max
 MAX_IMAGE_SIZE = 2048
 MAX_INFERENCE_STEPS = 8
-
+HIGH_VRAM = os.environ.get('HIGH_VRAM', 0)
 
 def flush():
     gc.collect()
@@ -53,6 +54,8 @@ class FluxSchnell:
             transformer=None,
             vae=None,
         )
+        if HIGH_VRAM:
+            self.text_encoder.to("cuda")
         pipeline = diffusers.DiffusionPipeline.from_pretrained(
             "black-forest-labs/FLUX.1-schnell", 
             torch_dtype=torch.bfloat16,
@@ -67,15 +70,17 @@ class FluxSchnell:
     @torch.inference_mode()
     def __call__(self, *args, **kwargs):
         inputs = self.FluxInput(**kwargs)
-        self.text_encoder.to("cuda")
+        if not HIGH_VRAM:
+            self.text_encoder.to("cuda")
         start = time.time()
         (
             prompt_embeds,
             pooled_prompt_embeds,
             _,
         ) = self.text_encoder.encode_prompt(prompt=inputs.prompt, prompt_2=None, max_sequence_length=256)
-        self.text_encoder.to("cpu")
-        flush()
+        if not HIGH_VRAM:
+            self.text_encoder.to("cpu")
+            flush()
         print(f"Prompt encoding time: {time.time() - start}")
         output = self.pipeline(
             prompt_embeds=prompt_embeds.bfloat16(),
