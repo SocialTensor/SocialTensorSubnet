@@ -1,5 +1,5 @@
 bittensor==6.9.3
-diffusers
+diffusers==0.29.0
 transformers==4.42.4
 accelerate==0.32.0
 cryptography==42.0.0
