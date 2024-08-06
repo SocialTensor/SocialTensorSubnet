@@ -160,6 +160,13 @@ def initialize_challenge_urls(config):
             "main": [config.challenge.prompt, config.challenge.image],
             "backup": [get_backup_prompt, get_backup_image],
         },
+        "ip_adapter": {
+            "main": [
+                config.challenge.prompt,
+                config.challenge.image,
+            ],
+            "backup": [get_backup_prompt, get_backup_image],
+        },
     }
     return challenge_urls
 
@@ -296,7 +303,39 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "model_incentive_weight": 0.04,
-        }
+        },
+        "FluxSchnell": {
+            "supporting_pipelines": MODEL_CONFIGS["FluxSchnell"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.0,
+            "reward_url": config.reward_url.FluxSchnell,
+            "reward_type": "image",
+            "inference_params": {
+                "num_inference_steps": 4,
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 0.0,
+            },
+            "timeout": 48,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "Kolors": {
+            "supporting_pipelines": MODEL_CONFIGS["Kolors"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.0,
+            "reward_url": config.reward_url.Kolors,
+            "reward_type": "image",
+            "inference_params": {
+                "num_inference_steps": 30,
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 5.0,
+            },
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
     }
     return nicheimage_catalogue
 
@@ -583,25 +622,10 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
-            
-            # Smoothing update incentive
-            temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2024, 6, 6, 0, 0, 0):
-                temp_incentive_weight = {
-                    "DallE": 0.01,
-                    "AnimeV3": 0.30,
-                }
-
-            if model_name in temp_incentive_weight:
-                bt.logging.info(f"Using temp_incentive_weight: {temp_incentive_weight} for {model_name}")
-                model_specific_weights = (
-                    model_specific_weights * temp_incentive_weight[model_name]
-                )
-            else:
-                model_specific_weights = (
-                    model_specific_weights
-                    * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
-                )
+            model_specific_weights = (
+                model_specific_weights
+                * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
+            )
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )

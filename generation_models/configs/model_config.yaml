@@ -69,9 +69,20 @@ JuggernautXL:
     scheduler: "dpm++2m_karras"
     supporting_pipelines:
       - "txt2img"
-
 DallE:
   target: generation_models.NicheDallE
   params:
     supporting_pipelines:
       - "txt2img"
+FluxSchnell:
+  target: generation_models.FluxSchnell
+  params:
+    supporting_pipelines:
+      - "txt2img"
+Kolors:
+  target: generation_models.Kolors
+  params:
+    supporting_pipelines:
+      - "txt2img"
+      - "controlnet"
+      - "ip_adapter"
