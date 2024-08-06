@@ -23,7 +23,7 @@ class NicheSUPIR(BaseModel):
         
         self.device = "cuda"
         self.supporting_pipelines = supporting_pipelines
-        self.max_size = 2048
+        self.max_size_input = 1024
 
         if not os.path.exists(checkpoint_file):
             os.makedirs(checkpoint_file, exist_ok=True)
@@ -61,8 +61,7 @@ class NicheSUPIR(BaseModel):
                     linear_CFG, linear_s_stage2, spt_linear_CFG, spt_linear_s_stage2, model_select, **kwargs):
 
             input_image = HWC3(input_image)
-            input_image = upscale_image(input_image, upscale, unit_resolution=32,
-                                        max_size=self.max_size)
+            input_image = upscale_image(input_image, upscale, max_size_input=self.max_size_input)
 
             LQ = np.array(input_image) / 255.0
             LQ = np.power(LQ, gamma_correction)
