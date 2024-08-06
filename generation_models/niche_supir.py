@@ -31,13 +31,11 @@ class NicheSUPIR(BaseModel):
             path_clip_bigG = os.path.join(checkpoint_file, "CLIP-ViT-bigG-14-laion2B-39B-b160k")
             path_clip_large = os.path.join(checkpoint_file, "clip-vit-large-patch14")
             path_SUPIR_cache = os.path.join(checkpoint_file, "SUPIR_cache")
-            path_SDXL_cache = os.path.join(checkpoint_file, "SDXL_cache")
             path_SDXL_lightning_cache = os.path.join(checkpoint_file, "SDXL_lightning_cache")
-            for path in [path_clip_bigG, path_clip_large, path_SUPIR_cache, path_SDXL_cache]:
+            for path in [path_clip_bigG, path_clip_large, path_SUPIR_cache, path_SDXL_lightning_cache]:
                 os.makedirs(path, exist_ok=True)
             snapshot_download(repo_id="openai/clip-vit-large-patch14", local_dir=path_clip_large)
             hf_hub_download(repo_id="laion/CLIP-ViT-bigG-14-laion2B-39B-b160k", filename="open_clip_pytorch_model.bin", local_dir=path_clip_bigG)
-            hf_hub_download(repo_id="camenduru/SUPIR", filename="sd_xl_base_1.0_0.9vae.safetensors", local_dir=path_SDXL_cache)
             hf_hub_download(repo_id="camenduru/SUPIR", filename="SUPIR-v0Q.ckpt", local_dir=path_SUPIR_cache)
 
             hf_hub_download(repo_id="RunDiffusion/Juggernaut-XL-Lightning", filename="Juggernaut_RunDiffusionPhoto2_Lightning_4Steps.safetensors", local_dir=path_SDXL_lightning_cache)
@@ -54,6 +52,7 @@ class NicheSUPIR(BaseModel):
         self.ckpt_Q = load_QF_ckpt(self.opt_file)
         print('load v0-Q')
         self.model.load_state_dict(self.ckpt_Q, strict=False)
+        self.model.current_model = 'v0-Q'
         self.config = yaml.load(open(self.opt_file), yaml.FullLoader)
 
         def stage2_process(input_image, prompt, a_prompt, n_prompt, num_samples, upscale, edm_steps, s_stage1, s_stage2,
