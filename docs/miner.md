@@ -6,19 +6,19 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 ### Incentive Distribution
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
-| RealitiesEdgeXL | 29%                    | 12 |
+| RealitiesEdgeXL (deprecated soon) | 29%                    | 12 |
 | AnimeV3         | 27%                    | 12 |
 | JuggernautXL | 17%                    | 12 |
 | DreamShaperXL     | 6%                     | 16 |
 | GoJourney       | 4%                     | 12 |
 | Llama3_70b         | 4%                     | 128 |
-| DallE    | 4%                     | 32 |
+| DallE (deprecated soon)    | 2%                     | 32 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
-| FaceToMany      | 3%                     | 64 |
-| SUPIR     | 0%                     | 64 |
-| FluxSchnell | 0% | 48 |
-| Kolors | 0% | 24 |
+| FaceToMany (deprecated soon)      | 1%                     | 64 |
+| SUPIR     | 2%                     | 64 |
+| FluxSchnell | 2% | 48 |
+| Kolors | 2% | 24 |
 
 
 ## Step by Step Guide
@@ -29,7 +29,6 @@ cd NicheImage
 python -m venv main_env
 source main_env/bin/activate
 pip install -e .
-. install_custom_requirements.sh
 pip uninstall uvloop -y
 git submodule update --init --recursive
 . generation_models/custom_pipelines/scripts/download_antelopev2.sh
@@ -48,10 +47,11 @@ git submodule update --init --recursive
     - For the DallE model, you need to set `--num_gpus 0` and `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
 ```bash
 source main_env/bin/activate
-GOJOURNEY_API_KEY=<your-gojourney-api-key> \ # set if you use GoJourney model
-OPENAI_API_KEY=<your-openai-api-key> \ # set if you use DallE model
-RAY_SERVE_QUEUE_LENGTH_RESPONSE_DEADLINE_S=1.0 \
-PROCESS_MODE=<your-task-type> \ # set if you use GoJourney model
+pip install xformers # run if you selected SUPIR model.
+export GOJOURNEY_API_KEY=<your-gojourney-api-key> # set if you use GoJourney model.
+export OPENAI_API_KEY=<your-openai-api-key> # set if you use DallE model.
+export RAY_SERVE_QUEUE_LENGTH_RESPONSE_DEADLINE_S=1.0
+export PROCESS_MODE=<your-task-type> # set if you use GoJourney model
 pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.app \
 --model_name <selected-model-name> \
 --num_replicas X --num_gpus Y \ # num_gpus * num_replicas = your_total_gpus_count
