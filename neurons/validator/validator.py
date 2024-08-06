@@ -665,6 +665,8 @@ class Validator(BaseValidatorNeuron):
                     "FluxSchnell": 0.02,
                 }
 
+            bt.logging.success(f"Using temp incentive distribution: {temp_incentive_weight}")
+
             if model_name in temp_incentive_weight:
                 bt.logging.info(f"Using temp_incentive_weight: {temp_incentive_weight} for {model_name}")
                 model_specific_weights = (
