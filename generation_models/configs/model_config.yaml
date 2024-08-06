@@ -69,7 +69,6 @@ JuggernautXL:
     scheduler: "dpm++2m_karras"
     supporting_pipelines:
       - "txt2img"
-
 DallE:
   target: generation_models.NicheDallE
   params:
@@ -82,3 +81,15 @@ SUPIR:
     checkpoint_file: "checkpoints/SUPIR"
     supporting_pipelines:
       - "upscale"
+FluxSchnell:
+  target: generation_models.FluxSchnell
+  params:
+    supporting_pipelines:
+      - "txt2img"
+Kolors:
+  target: generation_models.Kolors
+  params:
+    supporting_pipelines:
+      - "txt2img"
+      - "controlnet"
+      - "ip_adapter"
