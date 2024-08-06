@@ -19,8 +19,8 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | 🧭 GoJourney       | 4%                     | API based - MidJourney Image Generation                                                                                        |
 | 🌀 AnimeV3         | 27%                    | SDXL Architecture                                                                                  |
 | ⚔️ JuggernautXL | 17%                    | SDXL Architecture                                                            |
-| 🏞️ RealitiesEdgeXL (deprecated soon) | 27%                    | SDXL Turbo Architecture                                                      |
-| 🌙 DreamShaperXL     | 6%                     | SDXL Architecture                           |
+| 🏞️ RealitiesEdgeXL  | 29%                    | SDXL Turbo Architecture                                                      |
+| 🌙 DreamShaperXL (deprecated soon)    | 4%                     | SDXL Architecture                           |
 | 💎 Gemma7b         | 3%                     | Transformer LLM                                                     |
 | 🦙 Llama3_70b      | 4%                     | Transformer LLM|
 | 👥 FaceToMany (deprecated soon)      | 1%                     | ComfyUI workflow, [FaceToMany](https://replicate.com/fofr/face-to-many) |

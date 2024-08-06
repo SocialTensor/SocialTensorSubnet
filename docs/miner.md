@@ -6,19 +6,19 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 ### Incentive Distribution
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
-| RealitiesEdgeXL (deprecated soon) | 29%                    | 12 |
+| RealitiesEdgeXL  | 29%                    | 12 |
 | AnimeV3         | 27%                    | 12 |
 | JuggernautXL | 17%                    | 12 |
-| DreamShaperXL     | 6%                     | 16 |
+| DreamShaperXL (deprecated soon)    | 4%                     | 16 |
 | GoJourney       | 4%                     | 12 |
 | Llama3_70b         | 4%                     | 128 |
 | DallE (deprecated soon)    | 2%                     | 32 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | FaceToMany (deprecated soon)      | 1%                     | 64 |
-| SUPIR     | 2%                     | 64 |
-| FluxSchnell | 2% | 48 |
-| Kolors | 2% | 24 |
+| SUPIR     | 2%                     | 180 |
+| FluxSchnell | 2% | 24 |
+| Kolors | 2% | 32 |
 
 
 ## Step by Step Guide
@@ -44,10 +44,10 @@ git submodule update --init --recursive
 
 **For Image Generation Category**
 - Important notes
-    - For the DallE model, you need to set `--num_gpus 0` and `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
+    - For the DallE, GoJourney model, you need to set `--num_gpus 0` and `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
 ```bash
 source main_env/bin/activate
-pip install xformers # run if you selected SUPIR model.
+pip install xformers==0.0.28.dev863 # run if you selected SUPIR model.
 export GOJOURNEY_API_KEY=<your-gojourney-api-key> # set if you use GoJourney model.
 export OPENAI_API_KEY=<your-openai-api-key> # set if you use DallE model.
 export RAY_SERVE_QUEUE_LENGTH_RESPONSE_DEADLINE_S=1.0
