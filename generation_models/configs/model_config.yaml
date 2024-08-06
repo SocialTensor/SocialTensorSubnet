@@ -79,6 +79,6 @@ DallE:
 SUPIR:
   target: generation_models.NicheSUPIR
   params:
-    checkpoint_file: "/opt/data/private/AIGC_pretrain"
+    checkpoint_file: "checkpoints/SUPIR"
     supporting_pipelines:
       - "upscale"
