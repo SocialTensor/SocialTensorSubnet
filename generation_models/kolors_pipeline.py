@@ -49,7 +49,10 @@ class Kolors:
             self.controlnet_conditioning_scale = controlnet_conditioning_scale
             self.control_guidance_end = control_guidance_end
             self.strength = strength
-            self.ip_adapter_scale = ip_adapter_scale
+            if pipeline_type == "ip_adapter":
+                self.ip_adapter_scale = ip_adapter_scale
+            else:
+                self.ip_adapter_scale = 0.0
             self._check_inputs()
 
         def _process_conditional_image(self, conditional_image):
@@ -149,6 +152,7 @@ class Kolors:
             return self._run_standard_pipeline(inputs)
 
     def _run_controlnet_pipeline(self, inputs):
+        self.pipeline.set_ip_adapter_scale(inputs.ip_adapter_scale)
         processed_images = [
             processor(inputs.conditional_image) for processor in self.processors
         ]
