@@ -16,7 +16,7 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | FaceToMany (deprecated soon)      | 1%                     | 64 |
-| SUPIR     | 2%                     | 64 |
+| SUPIR     | 2%                     | 120 |
 | FluxSchnell | 2% | 48 |
 | Kolors | 2% | 24 |
 
