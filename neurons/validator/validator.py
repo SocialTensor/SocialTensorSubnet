@@ -160,6 +160,10 @@ def initialize_challenge_urls(config):
             "main": [config.challenge.prompt, config.challenge.image],
             "backup": [get_backup_prompt, get_backup_image],
         },
+        "upscale": {
+            "main": [config.challenge.image],
+            "backup": [get_backup_image]
+        }
         "ip_adapter": {
             "main": [
                 config.challenge.prompt,
@@ -304,6 +308,17 @@ def initialize_nicheimage_catalogue(config):
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "model_incentive_weight": 0.04,
         },
+        "SUPIR": {
+            "supporting_pipelines": MODEL_CONFIGS["SUPIR"]["params"][
+                "supporting_pipelines"
+            ],
+            "reward_url": config.reward_url.SUPIR,
+            "reward_type": "image",
+            "timeout": 64,
+            "inference_params": {},
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "model_incentive_weight": 0.00,
+        }
         "FluxSchnell": {
             "supporting_pipelines": MODEL_CONFIGS["FluxSchnell"]["params"][
                 "supporting_pipelines"

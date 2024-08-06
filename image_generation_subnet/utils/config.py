@@ -261,6 +261,12 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--reward_url.SUPIR",
+            type=str,
+            help="",
+            default="http://nicheimage.nichetensor.com/reward/SUPIR",
+        )
+        parser.add_argument(
             "--reward_url.FluxSchnell",
             type=str,
             help="",

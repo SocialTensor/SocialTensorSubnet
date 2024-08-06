@@ -74,6 +74,13 @@ DallE:
   params:
     supporting_pipelines:
       - "txt2img"
+  
+SUPIR:
+  target: generation_models.NicheSUPIR
+  params:
+    checkpoint_file: "checkpoints/SUPIR"
+    supporting_pipelines:
+      - "upscale"
 FluxSchnell:
   target: generation_models.FluxSchnell
   params:
