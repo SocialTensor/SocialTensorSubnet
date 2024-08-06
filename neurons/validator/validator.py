@@ -306,7 +306,7 @@ def initialize_nicheimage_catalogue(config):
                 "supporting_pipelines"
             ],
             "reward_url": config.reward_url.SUPIR,
-            "reward_type": "image_online",
+            "reward_type": "image",
             "timeout": 64,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
