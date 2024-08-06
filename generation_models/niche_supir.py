@@ -23,7 +23,7 @@ class NicheSUPIR(BaseModel):
         
         self.device = "cuda"
         self.supporting_pipelines = supporting_pipelines
-        self.max_size = 2048
+        self.max_size_input = 1024
 
         if not os.path.exists(checkpoint_file):
             os.makedirs(checkpoint_file, exist_ok=True)
@@ -31,13 +31,11 @@ class NicheSUPIR(BaseModel):
             path_clip_bigG = os.path.join(checkpoint_file, "CLIP-ViT-bigG-14-laion2B-39B-b160k")
             path_clip_large = os.path.join(checkpoint_file, "clip-vit-large-patch14")
             path_SUPIR_cache = os.path.join(checkpoint_file, "SUPIR_cache")
-            path_SDXL_cache = os.path.join(checkpoint_file, "SDXL_cache")
             path_SDXL_lightning_cache = os.path.join(checkpoint_file, "SDXL_lightning_cache")
-            for path in [path_clip_bigG, path_clip_large, path_SUPIR_cache, path_SDXL_cache]:
+            for path in [path_clip_bigG, path_clip_large, path_SUPIR_cache, path_SDXL_lightning_cache]:
                 os.makedirs(path, exist_ok=True)
             snapshot_download(repo_id="openai/clip-vit-large-patch14", local_dir=path_clip_large)
             hf_hub_download(repo_id="laion/CLIP-ViT-bigG-14-laion2B-39B-b160k", filename="open_clip_pytorch_model.bin", local_dir=path_clip_bigG)
-            hf_hub_download(repo_id="camenduru/SUPIR", filename="sd_xl_base_1.0_0.9vae.safetensors", local_dir=path_SDXL_cache)
             hf_hub_download(repo_id="camenduru/SUPIR", filename="SUPIR-v0Q.ckpt", local_dir=path_SUPIR_cache)
 
             hf_hub_download(repo_id="RunDiffusion/Juggernaut-XL-Lightning", filename="Juggernaut_RunDiffusionPhoto2_Lightning_4Steps.safetensors", local_dir=path_SDXL_lightning_cache)
@@ -62,8 +60,7 @@ class NicheSUPIR(BaseModel):
                     linear_CFG, linear_s_stage2, spt_linear_CFG, spt_linear_s_stage2, model_select, **kwargs):
 
             input_image = HWC3(input_image)
-            input_image = upscale_image(input_image, upscale, unit_resolution=32,
-                                        max_size=self.max_size)
+            input_image = upscale_image(input_image, upscale, max_size_input=self.max_size_input)
 
             LQ = np.array(input_image) / 255.0
             LQ = np.power(LQ, gamma_correction)

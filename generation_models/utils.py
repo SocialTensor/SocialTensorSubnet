@@ -141,11 +141,11 @@ def download_checkpoint(download_url, checkpoint_file):
 
     bt.logging.info("Download completed successfully.")
 
-def upscale_image(input_image, upscale, max_size=None, unit_resolution=64):
+def upscale_image(input_image, upscale, max_size_input=None):
     H, W, C = input_image.shape
     H = float(H)
     W = float(W)
-    k = float(max_size) / max(H, W)
+    k = float(max_size_input) / max(H, W)
     H *= k
     W *= k
     H = int(np.round(H / 64.0)) * 64
