@@ -85,3 +85,4 @@ Kolors:
     supporting_pipelines:
       - "txt2img"
       - "controlnet"
+      - "ip_adapter"

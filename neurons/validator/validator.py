@@ -320,6 +320,22 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 48,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
+        "Kolors": {
+            "supporting_pipelines": MODEL_CONFIGS["Kolors"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.0,
+            "reward_url": config.reward_url.Kolors,
+            "reward_type": "image",
+            "inference_params": {
+                "num_inference_steps": 30,
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 5.0,
+            },
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
     }
     return nicheimage_catalogue
 
