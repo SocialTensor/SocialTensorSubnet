@@ -62,12 +62,14 @@ class FluxSchnell:
         quantize(t5_encoder, qfloat8)
         freeze(t5_encoder)
         t5_encoder.to("cuda")
-        return diffusers.DiffusionPipeline.from_pretrained(
+        te_pipeline = diffusers.DiffusionPipeline.from_pretrained(
             "black-forest-labs/FLUX.1-schnell",
             text_encoder_2=t5_encoder,
             transformer=None,
             vae=None,
         )
+        te_pipeline.to("cuda")
+        return te_pipeline
 
     def _load_pipeline(self):
         pipeline = diffusers.DiffusionPipeline.from_pretrained(
