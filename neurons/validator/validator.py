@@ -163,7 +163,7 @@ def initialize_challenge_urls(config):
         "upscale": {
             "main": [config.challenge.image],
             "backup": [get_backup_image]
-        }
+        },
         "ip_adapter": {
             "main": [
                 config.challenge.prompt,
@@ -318,7 +318,7 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
             "model_incentive_weight": 0.00,
-        }
+        },
         "FluxSchnell": {
             "supporting_pipelines": MODEL_CONFIGS["FluxSchnell"]["params"][
                 "supporting_pipelines"

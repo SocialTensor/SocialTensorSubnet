@@ -178,3 +178,4 @@ __pycache__
 data
 bin/
 main/
+checkpoints/

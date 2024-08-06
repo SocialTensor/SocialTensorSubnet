@@ -19,16 +19,16 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | 🧭 GoJourney       | 4%                     | API based - MidJourney Image Generation                                                                                        |
 | 🌀 AnimeV3         | 27%                    | SDXL Architecture                                                                                  |
 | ⚔️ JuggernautXL | 17%                    | SDXL Architecture                                                            |
-| 🏞️ RealitiesEdgeXL | 29%                    | SDXL Turbo Architecture                                                      |
+| 🏞️ RealitiesEdgeXL (deprecated soon) | 27%                    | SDXL Turbo Architecture                                                      |
 | 🌙 DreamShaperXL     | 6%                     | SDXL Architecture                           |
 | 💎 Gemma7b         | 3%                     | Transformer LLM                                                     |
 | 🦙 Llama3_70b      | 4%                     | Transformer LLM|
-| 👥 FaceToMany      | 3%                     | ComfyUI workflow, [FaceToMany](https://replicate.com/fofr/face-to-many) |
+| 👥 FaceToMany (deprecated soon)      | 1%                     | ComfyUI workflow, [FaceToMany](https://replicate.com/fofr/face-to-many) |
 | 🏷️ StickerMaker    | 3%                     | ComfyUI workflow, [StickerMaker](https://replicate.com/fofr/sticker-maker) |
-| DallE    | 4%                     | [OpenAI's Dall-E 3](https://openai.com/index/dall-e-3/) |
-| 🌟 SUPIR    | 0%                     | Super-res upscaler |
-| FluxSchnell | 0% | 12B image model |
-| Kolors | 0% | SDXL with bigger Text Encoder |
+| DallE (deprecated soon)    | 2%                     | [OpenAI's Dall-E 3](https://openai.com/index/dall-e-3/) |
+| 🌟 SUPIR    | 2%                     | Super-res upscaler |
+| 🌟 Kolors | 2% | SDXL with bigger Text Encoder |
+| 🌟🌟 FluxSchnell | 2% | 12B image model |
 
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.
