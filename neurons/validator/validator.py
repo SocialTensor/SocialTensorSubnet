@@ -662,7 +662,7 @@ class Validator(BaseValidatorNeuron):
                     "Kolors": 0.01,
                     "FluxSchnell": 0.01,
                 }
-            elif datetime(2024, 8, 14, 14, 0, 0) < datetime.utcnow() < datetime(2024, 8, 15, 18, 0, 0): # Activate from 14/8 -> 15/8
+            elif datetime(2024, 8, 14, 14, 0, 0) < datetime.utcnow() < datetime(2024, 8, 15, 14, 0, 0): # Activate from 14/8 -> 15/8
                 temp_incentive_weight = {
                     "DallE": 0.02,
                     "DreamShaperXL": 0.04,
@@ -671,7 +671,7 @@ class Validator(BaseValidatorNeuron):
                     "Kolors": 0.02,
                     "FluxSchnell": 0.02,
                 }
-            elif datetime(2024, 8, 15, 18, 0, 0) < datetime.utcnow() < datetime(2024, 8, 22, 18, 0, 0): # Activate on 15/8 -> 22/8
+            elif datetime(2024, 8, 15, 14, 0, 0) < datetime.utcnow() < datetime(2024, 8, 22, 14, 0, 0): # Activate on 15/8 -> 22/8
                 temp_incentive_weight = {
                     "DallE": 0.00, 
                     "DreamShaperXL": 0.00,
