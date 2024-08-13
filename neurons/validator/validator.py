@@ -357,7 +357,7 @@ def initialize_nicheimage_catalogue(config):
     for k, v in nicheimage_catalogue.items():
         sum_incentive += v["model_incentive_weight"]
     bt.logging.info(f"Sum incentive in code: {sum_incentive}")
-    assert abs(sum_incentive, 1) < 1e-4
+    assert abs(sum_incentive - 1) < 1e-4
 
     return nicheimage_catalogue
 
