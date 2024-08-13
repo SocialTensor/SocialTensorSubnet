@@ -650,7 +650,7 @@ class Validator(BaseValidatorNeuron):
                     "FaceToMany": 0.01,
                     "AnimeV3": 0.27,
                     "RealitiesEdgeXL": 0.29,
-                    "JuggernautXL": 0.17,
+                    "JuggernautXL": 0.18,
                     "SUPIR": 0.02,
                     "Kolors": 0.02,
                     "FluxSchnell": 0.02,
