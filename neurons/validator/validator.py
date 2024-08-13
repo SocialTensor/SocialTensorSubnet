@@ -643,35 +643,19 @@ class Validator(BaseValidatorNeuron):
             )
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime(2024, 8, 8, 14, 0, 0) < datetime.utcnow() < datetime(2024, 8, 10, 14, 0, 0): # Activate on 8/8
-                # ORIGINAL: Dalle - 0.04, DreamShaperXL - 0.06, FaceToMany - 0.03
-                temp_incentive_weight = {
-                    "DallE": 0.035, 
-                    "DreamShaperXL": 0.055,
-                    "FaceToMany": 0.025,
-                    "SUPIR": 0.005,
-                    "Kolors": 0.005,
-                    "FluxSchnell": 0.005,
-                }
-            elif datetime(2024, 8, 10, 14, 0, 0) < datetime.utcnow() < datetime(2024, 8, 13, 14, 0, 0): # Activate from 10/8 -> 13/8
-                temp_incentive_weight = {
-                    "DallE": 0.03, 
-                    "DreamShaperXL": 0.05,
-                    "FaceToMany": 0.02,
-                    "SUPIR": 0.01,
-                    "Kolors": 0.01,
-                    "FluxSchnell": 0.01,
-                }
-            elif datetime(2024, 8, 13, 14, 0, 0) < datetime.utcnow() < datetime(2024, 8, 15, 14, 0, 0): # Activate from 13/8 -> 15/8
+            if  datetime.utcnow() < datetime(2024, 8, 15, 14, 0, 0): # Activate from 14/8 -> 15/8
                 temp_incentive_weight = {
                     "DallE": 0.02,
                     "DreamShaperXL": 0.04,
                     "FaceToMany": 0.01,
+                    "AnimeV3": 0.27,
+                    "RealitiesEdgeXL": 0.29,
+                    "JuggernautXL": 0.17,
                     "SUPIR": 0.02,
                     "Kolors": 0.02,
                     "FluxSchnell": 0.02,
                 }
-            elif datetime(2024, 8, 15, 14, 0, 0) < datetime.utcnow() < datetime(2024, 8, 22, 14, 0, 0): # Activate on 15/8 -> 22/8
+            elif datetime.utcnow() < datetime(2024, 8, 22, 14, 0, 0): # Activate on 15/8 -> 22/8
                 temp_incentive_weight = {
                     "DallE": 0.00, 
                     "DreamShaperXL": 0.00,
