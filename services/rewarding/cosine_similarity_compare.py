@@ -47,7 +47,7 @@ class CosineSimilarityReward(nn.Module):
             if cosine_similarity.item() > self.threshold:
                 reward = 1.0
             elif cosine_similarity.item() > 0.4:
-                reward = (cosine_similarity.item()+0.1)**2
+                reward = (cosine_similarity.item()+0.1)**3
             else:
                 reward = 0.0
 
