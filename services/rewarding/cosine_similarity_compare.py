@@ -50,6 +50,8 @@ class CosineSimilarityReward(nn.Module):
                 reward = (cosine_similarity.item()+0.1)**2
             else:
                 reward = 0.0
+
+            print(f"Sim: {cosine_similarity.item()} -> reward: {reward}")
             return reward
         
         return float(cosine_similarity.item())
