@@ -19,7 +19,7 @@ The Validator is responsible for generating challenges for the Miner to solve. T
 - `time_penalty (float)`: Penalty for late response. It's value of `process_time / timeout * MAX_PENALTY`.
 
 ### Minimum Compute Requirements
-- 1x GPU 24G (RTX 4090, A100, A6000, etc)
+- 1x GPU 24GB VRAM (RTX 4090, A100, A6000, etc)
 - Storage: 100GB
 - Python 3.10
 
