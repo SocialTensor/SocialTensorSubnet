@@ -50,6 +50,12 @@ cd logicnet
 ```bash
 python -m venv main
 . main/bin/activate
+
+bash install.sh
+```
+
+or manually install the requirements
+```bash
 pip install -e .
 pip uninstall uvloop -y
 pip install bittensor=6.9.3
