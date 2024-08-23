@@ -35,6 +35,8 @@ python -m venv main
 . main/bin/activate
 pip install -e .
 pip uninstall uvloop -y
+pip install bittensor=6.9.3
+pip install git+https://github.com/opentensor/bittensor.git@release/6.9.4
 pip install git+https://github.com/lukew3/mathgenerator.git
 ```
 3. Create env for vLLM
