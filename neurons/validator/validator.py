@@ -351,6 +351,17 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
+        "OpenCategory": {
+            "supporting_pipelines": MODEL_CONFIGS["OpenCategory"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.0,
+            "reward_url": config.reward_url.OpenCategory,
+            "reward_type": "open_category",
+            "inference_params": {},
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        }
     }
 
     sum_incentive = 0

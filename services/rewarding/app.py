@@ -12,6 +12,7 @@ from ray import serve
 from ray.serve.handle import DeploymentHandle
 from functools import partial
 from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
+from services.rewarding.open_category_reward import OpenCategoryReward
 from services.rewarding.notice import notice_discord
 import random
 import asyncio
@@ -37,7 +38,7 @@ def get_args():
     parser.add_argument(
         "--model_name",
         type=str,
-        default="RealisticVision",
+        default="",
     )
     parser.add_argument(
         "--num_gpus",
@@ -77,12 +78,9 @@ class RewardRequest(BaseModel):
     miner_data: List[Prompt]
     base_data: Prompt
 
-
-class RewardApp:
-    def __init__(self, model_handle: DeploymentHandle, args):
-        self.model_handle = model_handle
+class BaseRewardApp:
+    def __init__(self, args):
         self.args = args
-        self.rewarder = CosineSimilarityReward()
         self.app = FastAPI()
         self.app.add_api_route("/", self.__call__, methods=["POST"])
         self.app.middleware("http")(partial(filter_allowed_ips, self))
@@ -104,6 +102,15 @@ class RewardApp:
             self.allowed_ips_thread.start()
 
     async def __call__(self, reward_request: RewardRequest):
+        raise NotImplementedError("This method should be implemented by subclasses")
+
+class RewardApp(BaseRewardApp):
+    def __init__(self, model_handle: DeploymentHandle, args):
+        super().__init__(args)
+        self.rewarder = CosineSimilarityReward()
+        self.model_handle = model_handle
+
+    async def __call__(self, reward_request: RewardRequest):
         base_data = reward_request.base_data
         miner_data = reward_request.miner_data
         validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
@@ -111,27 +118,40 @@ class RewardApp:
         rewards = self.rewarder.get_reward(validator_image, miner_images, base_data.pipeline_type)
         rewards = [float(reward) for reward in rewards]
         print(rewards, flush=True)
-        return {
-            "rewards": rewards,
-        }
+        return {"rewards": rewards}
 
+class OpenCategoryRewardApp(BaseRewardApp):
+    def __init__(self, args):
+        super().__init__(args)
+        self.rewarder = OpenCategoryReward()
+
+    async def __call__(self, reward_request: RewardRequest):
+        base_data = reward_request.base_data
+        miner_data = reward_request.miner_data
+        rewards = self.rewarder.get_reward(base_data.prompt, [x.image for x in miner_data])
+        rewards = [float(reward) for reward in rewards]
+        print(rewards, flush=True)
+        return {"rewards": rewards}  
 
 if __name__ == "__main__":
     args = get_args()
-    model_deployment = serve.deployment(
-        ModelDeployment,
-        name="model_deployment",
-        num_replicas=args.num_replicas,
-        ray_actor_options={"num_gpus": args.num_gpus},
-    )
-    serve.run(
-        model_deployment.bind(
-            MODEL_CONFIG[args.model_name],
-        ),
-        name="model_deployment",
-    )
-    model_handle = serve.get_deployment_handle("model_deployment", "model_deployment")
-    app = RewardApp(model_handle, args)
+    if args.model_name:
+        model_deployment = serve.deployment(
+            ModelDeployment,
+            name="model_deployment",
+            num_replicas=args.num_replicas,
+            ray_actor_options={"num_gpus": args.num_gpus},
+        )
+        serve.run(
+            model_deployment.bind(
+                MODEL_CONFIG[args.model_name],
+            ),
+            name="model_deployment",
+        )
+        model_handle = serve.get_deployment_handle("model_deployment", "model_deployment")
+        app = RewardApp(model_handle, args)
+    else:
+        app = OpenCategoryRewardApp(args)
     uvicorn.run(
         app.app,
         host="0.0.0.0",

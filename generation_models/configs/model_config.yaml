@@ -93,3 +93,9 @@ Kolors:
       - "txt2img"
       - "controlnet"
       - "ip_adapter"
+
+OpenCategory:
+  target: generation_models.OpenCategoryPipeline
+  params:
+    supporting_pipelines:
+      - "txt2img"
