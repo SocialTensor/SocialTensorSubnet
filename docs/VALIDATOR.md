@@ -69,10 +69,12 @@ pm2 start "vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name 
 pm2 start python --name "sn35-validator" -- neurons/validator/validator.py \
 --netuid 35 --wallet.name "wallet-name" --wallet.hotkey "wallet-hotkey" \
 --subtensor.network finney \
---axon.port "your-open-port" \
 --llm_client.base_url http://localhost:8000/v1 \ # vLLM server base url
 --llm_client.model Qwen/Qwen2-7B-Instruct \ # vLLM model name
 --logging.debug \ # Optional: Enable debug logging
 ```
 
-
+6. (Optional) Enable public access to the validator. Add this to the above step along with your publicly exposed port. This will enable a validator proxy.
+```bash
+--axon.port "your-public-open-port"
+```
