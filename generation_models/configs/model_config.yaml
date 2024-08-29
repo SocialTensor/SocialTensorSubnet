@@ -99,3 +99,4 @@ OpenCategory:
   params:
     supporting_pipelines:
       - "txt2img"
+    repo_id: "stabilityai/sdxl-turbo" ### update repo_id
