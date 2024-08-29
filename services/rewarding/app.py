@@ -104,7 +104,7 @@ class BaseRewardApp:
     async def __call__(self, reward_request: RewardRequest):
         raise NotImplementedError("This method should be implemented by subclasses")
 
-class RewardApp(BaseRewardApp):
+class FixedCategoryRewardApp(BaseRewardApp):
     def __init__(self, model_handle: DeploymentHandle, args):
         super().__init__(args)
         self.rewarder = CosineSimilarityReward()
@@ -149,7 +149,7 @@ if __name__ == "__main__":
             name="model_deployment",
         )
         model_handle = serve.get_deployment_handle("model_deployment", "model_deployment")
-        app = RewardApp(model_handle, args)
+        app = FixedCategoryRewardApp(model_handle, args)
     else:
         app = OpenCategoryRewardApp(args)
     uvicorn.run(
