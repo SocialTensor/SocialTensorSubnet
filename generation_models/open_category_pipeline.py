@@ -1,5 +1,4 @@
 from PIL import Image
-from .base_model import BaseModel
 from .utils import pil_image_to_base64
 import diffusers
 import argparse
@@ -39,6 +38,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--port", default=10006, type=int
+    )
+    parser.add_argument(
+        "--model_id", default=""
     )
 
     args = parser.parse_args()
