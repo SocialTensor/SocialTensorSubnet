@@ -1,43 +1,47 @@
 from PIL import Image
 from .base_model import BaseModel
-from .utils import convert_image_to_png_format
-
+from .utils import pil_image_to_base64
 import diffusers
-class OpenCategoryPipeline(BaseModel):
-    def load_model(self, repo_id, supporting_pipelines, **kwargs):
-        ### Miner update code here. Currently, only the txt2img pipeline is applied, using the default diffusers.DiffusionPipeline. 
-        ### If using the default pipeline, update repo_id in generation_models/configs/model_config.yaml to change model.
+import argparse
+import litserve as ls
 
-        txt2img_pipeline = diffusers.DiffusionPipeline.from_pretrained(repo_id)
-        txt2img_pipeline.to("cuda")
-        pipelines = {
-            "txt2img": txt2img_pipeline
-        }
+class OpenModel(ls.LitAPI):
+    def setup(self, model_id, num_inference_steps=30, guidance_scale=7.0):
+        self.pipeline = diffusers.DiffusionPipeline.from_pretrained(repo_id, torch_dtype=torch.float16)
+        self.pipeline.to("cuda")
+        self.num_inference_steps = num_inference_steps
+        self.guidance_scale = guidance_scale
 
-        def inference_function(*args, **kwargs) -> Image.Image:
-            pipeline_type = kwargs["pipeline_type"]
-            pipeline = pipelines.get(pipeline_type)
-            if not pipeline:
-                raise ValueError(f"Pipeline type {pipeline_type} is not supported")
-            
-            output = pipeline(*args, **kwargs)
-            if output is None:
-                return Image.new("RGB", (512, 512), (255, 255, 255))
-            
-            
-            image_output = convert_image_to_png_format(output.images[0])
-            image_width, image_height = image_output.size
-            image_format = image_output.format
-            print("aaaa :",image_output, image_width, image_height)
-            # WARNING: The image must be saved in PNG format. 
-            assert image_format == "PNG"  
+    def decode_request(self, request):
+        prompt = request.get("prompt")
+        width = request["pipeline_params"].get("width")
+        height = request["pipeline_params"].get("height")
+        return prompt, width, height
 
-            # WARNING: The image must match the specified width.
-            if kwargs.get("width"):
-                assert image_width == kwargs["width"]
-            # WARNING: The image must match the specified height.
-            if kwargs.get("height"):
-                assert image_height == kwargs["height"]
-            return image_output
+    def predict(self, prompt, width, height):
+        image = self.pipeline(
+            prompt=prompt,
+            num_inference_steps=self.num_inference_steps,
+            guidance_scale=self.guidance_scale,
+            width=width,
+            height=height,
+        ).images[0]
+        return image
 
-        return inference_function
+    def encode_response(self, image):
+        base64_image = pil_image_to_base64(image, format="PNG")
+        return base64_image
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--num_gpus", default=1, type=int
+    )
+    parser.add_argument(
+        "--port", default=10006, type=int
+    )
+
+    args = parser.parse_args()
+
+    server = ls.LitServer(SimpleLitAPI(), accelerator="auto", max_batch_size=1, devices=args.num_gpus)
+    server.run(port=args.port)
