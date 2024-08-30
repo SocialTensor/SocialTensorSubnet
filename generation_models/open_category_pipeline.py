@@ -1,5 +1,5 @@
 from PIL import Image
-from .utils import pil_image_to_base64
+from generation_models.utils import pil_image_to_base64
 import diffusers
 import argparse
 import litserve as ls
