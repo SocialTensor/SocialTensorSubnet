@@ -1,5 +1,7 @@
 from PIL import Image
 from .base_model import BaseModel
+from .utils import convert_image_to_png_format
+
 import diffusers
 class OpenCategoryPipeline(BaseModel):
     def load_model(self, repo_id, supporting_pipelines, **kwargs):
@@ -19,9 +21,23 @@ class OpenCategoryPipeline(BaseModel):
                 raise ValueError(f"Pipeline type {pipeline_type} is not supported")
             
             output = pipeline(*args, **kwargs)
-            output = None
             if output is None:
                 return Image.new("RGB", (512, 512), (255, 255, 255))
-            return output.images[0]
+            
+            
+            image_output = convert_image_to_png_format(output.images[0])
+            image_width, image_height = image_output.size
+            image_format = image_output.format
+            print("aaaa :",image_output, image_width, image_height)
+            # WARNING: The image must be saved in PNG format. 
+            assert image_format == "PNG"  
+
+            # WARNING: The image must match the specified width.
+            if kwargs.get("width"):
+                assert image_width == kwargs["width"]
+            # WARNING: The image must match the specified height.
+            if kwargs.get("height"):
+                assert image_height == kwargs["height"]
+            return image_output
 
         return inference_function

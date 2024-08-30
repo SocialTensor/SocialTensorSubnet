@@ -65,20 +65,20 @@ def benchmark_open_category(n_times, model_name, n_concurrent_requests, generate
             result = response.json()
         return result, response.status_code, end - start
     
-    def _get_prompt_challenge(url):
+    def _get_prompt_challenge(url, sleep_time = 60):
         prompt = None
         while not prompt:
             response = requests.post(url, json={})
             if response.status_code == 200:
                 prompt = response.json()["prompt"]
             else:
-                sleep_time = 15
-                print(f"Sleeping for {sleep_time} sec due to rate limit on challenge prompt server !")
+                
+                print(f"Rate Limit Exceeded! Sleeping for {sleep_time} sec due to rate limit on challenge prompt server !")
                 time.sleep(sleep_time)
-        
+        # time.sleep(sleep_time)
         return prompt
 
-    def _get_reward(base_synapse, synapses, url):
+    def _get_reward(base_synapse, synapses, url, sleep_time = 60):
         rewards= None
         while not rewards:
             data = {
@@ -87,9 +87,8 @@ def benchmark_open_category(n_times, model_name, n_concurrent_requests, generate
             }
             response = requests.post(url, json=data)
             if response.status_code != 200:
-                print(f"Error in get_reward: {response.json()}")
-                sleep_time = 30
-                print(f"Sleeping for {sleep_time} sec until query reward server again!")
+                print(f"Error in get_reward: {response.text}")
+                print(f"Rate Limit Exceeded! Sleeping for {sleep_time} sec until query reward server again!")
                 time.sleep(sleep_time)
             else:
                 rewards = response.json()

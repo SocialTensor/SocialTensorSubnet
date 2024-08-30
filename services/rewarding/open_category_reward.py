@@ -230,8 +230,10 @@ class IQA:
         import pyiqa
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model = pyiqa.create_metric(model_name, device=device)
-    def __call__(self, image_path):
-        return self.model(image_path)
+    def __call__(self, image):
+        if image.format != "PNG":
+            return 0
+        return self.model(image).item()
 
 class OpenCategoryReward():
     def __init__(self):
@@ -261,7 +263,7 @@ class OpenCategoryReward():
         #TODO: update this funtion
         prompt_adherence_scores, questions = self.prompt_adherence_metric.get_reward(questions, dependencies, images)
         prompt_adherence_scores = [sum(scores)/len(scores) if len(scores) > 0 else 1 for i, scores in prompt_adherence_scores.items()]
-        iqa_scores = [self.iqa_metric(image).item() for image in images]
+        iqa_scores = [self.iqa_metric(image) for image in images]
         iqa_scores = OpenCategoryReward.normalize_score(iqa_scores, max_val=7.0, min_val=4.0)
         final_scores = []
         for pa_score, iqa_score in zip(prompt_adherence_scores, iqa_scores):
