@@ -3,6 +3,7 @@ from generation_models.utils import pil_image_to_base64
 import diffusers
 import argparse
 import litserve as ls
+import torch
 
 class OpenModel(ls.LitAPI):
     def __init__(self, model_id, num_inference_steps=30, guidance_scale=7.0):
