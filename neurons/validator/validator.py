@@ -5,7 +5,7 @@ import torch
 from logicnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
 import logicnet as ln
-from logicnet.validator import MinerManager, LogicChallenger, LogicRewarder
+from logicnet.validator import MinerManager, LogicChallenger, LogicRewarder, MinerInfo
 import traceback
 import threading
 from neurons.validator.core.serving_queue import QueryQueue
@@ -241,7 +241,9 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info("Loading validator state from: " + path)
             state = torch.load(path)
             self.step = state["step"]
-            self.miner_manager.all_uids_info = state["all_uids_info"]
+            all_uids_info = state["all_uids_info"]
+            for k, v in all_uids_info.items():
+                self.miner_manager.all_uids_info[k] = MinerInfo(**v)
             bt.logging.info("Successfully loaded state")
         except Exception as e:
             self.step = 0
