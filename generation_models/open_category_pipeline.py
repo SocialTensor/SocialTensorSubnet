@@ -16,8 +16,8 @@ class OpenModel(ls.LitAPI):
 
     def decode_request(self, request):
         prompt = request.get("prompt")
-        width = request["pipeline_params"].get("width")
-        height = request["pipeline_params"].get("height")
+        width = request.get("pipeline_params", {}).get("width", 1024)
+        height = request.get("pipeline_params", {}).get("height", 1024)
         return prompt, width, height
 
     def predict(self, prompt, width, height):
