@@ -22,6 +22,7 @@ from image_generation_subnet.validator.offline_challenge import (
 from datetime import datetime
 from services.offline_rewarding.redis_client import RedisClient
 from services.offline_rewarding.reward_app import RewardApp
+from generation_models.utils import random_image_size
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -351,6 +352,17 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
+        "OpenCategory": {
+            "supporting_pipelines": MODEL_CONFIGS["OpenCategory"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.0,
+            "reward_url": config.reward_url.OpenCategory,
+            "reward_type": "open_category",
+            "inference_params": {},
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        }
     }
 
     sum_incentive = 0
@@ -606,6 +618,12 @@ class Validator(BaseValidatorNeuron):
             synapse.pipeline_params.update(
                 self.nicheimage_catalogue[model_name]["inference_params"]
             )
+            if model_name == "OpenCategory":
+                width, height = random_image_size()
+                synapse.pipeline_params.update({
+                    "width": width,
+                    "height": height
+                })
             synapse.seed = random.randint(0, 1e9)
         for challenge_url, backup_func in zip(
             self.challenge_urls[pipeline_type]["main"],

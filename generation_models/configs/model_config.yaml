@@ -93,3 +93,10 @@ Kolors:
       - "txt2img"
       - "controlnet"
       - "ip_adapter"
+
+OpenCategory:
+  target: generation_models.OpenCategoryPipeline
+  params:
+    supporting_pipelines:
+      - "txt2img"
+    repo_id: "stabilityai/sdxl-turbo" ### update repo_id
