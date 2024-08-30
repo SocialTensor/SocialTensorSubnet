@@ -23,6 +23,7 @@ class OpenModel(ls.LitAPI):
             "width": width,
             "height": height,
         }
+        print(params)
         return params
 
     def predict(self, params):
@@ -36,22 +37,3 @@ class OpenModel(ls.LitAPI):
     def encode_response(self, image):
         base64_image = pil_image_to_base64(image, format="PNG")
         return base64_image
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--num_gpus", default=1, type=int
-    )
-    parser.add_argument(
-        "--port", default=10006, type=int
-    )
-    parser.add_argument(
-        "--model_id", default=""
-    )
-
-    args = parser.parse_args()
-
-    core = OpenModel(args.model_id)
-
-    server = ls.LitServer(core, accelerator="auto", max_batch_size=1, devices=args.num_gpus)
-    server.run(port=args.port)
