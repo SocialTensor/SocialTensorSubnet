@@ -7,7 +7,7 @@ from .niche_dalle import NicheDallE
 from .niche_supir import NicheSUPIR
 from .flux import FluxSchnell
 from .kolors_pipeline import Kolors
-from .open_category_pipeline import OpenCategoryPipeline
+from .open_category_pipeline import OpenModel
 __all__ = [
     "NicheStableDiffusion",
     "NicheStableDiffusionXL",
@@ -17,5 +17,5 @@ __all__ = [
     "NicheSUPIR"
     "FluxSchnell",
     "Kolors",
-    "OpenCategoryPipeline"
+    "OpenModel"
 ]
