@@ -165,7 +165,7 @@ class Validator(BaseValidatorNeuron):
 
                 bt.logging.info(f"Scored responses: {rewards}")
 
-                self.miner_manager.update_scores(uids, rewards)
+                self.miner_manager.update_scores(uids, rewards, reward_logs)
 
     def prepare_challenge(self, uids_should_rewards, category):
         """
