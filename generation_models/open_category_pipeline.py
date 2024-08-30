@@ -5,12 +5,14 @@ import argparse
 import litserve as ls
 
 class OpenModel(ls.LitAPI):
-    def setup(self, model_id, num_inference_steps=30, guidance_scale=7.0):
+    def __init__(self, model_id, num_inference_steps=30, guidance_scale=7.0):
         self.pipeline = diffusers.DiffusionPipeline.from_pretrained(repo_id, torch_dtype=torch.float16)
-        self.pipeline.to("cuda")
         self.num_inference_steps = num_inference_steps
         self.guidance_scale = guidance_scale
 
+    def setup(self, device):
+        self.pipeline.to(device)
+        
     def decode_request(self, request):
         prompt = request.get("prompt")
         width = request["pipeline_params"].get("width")
