@@ -44,7 +44,8 @@ class LogicRewarder:
             uid for uid, response in zip(uids, responses) if not response.is_success
         ]
         invalid_rewards = [0 for _ in invalid_uids]
-        valid_rewards = []
+        reward_logs = []
+
         if valid_uids:
             ref_ground_truth: str = self._get_ground_truth(
                 base_synapse.raw_logic_question
@@ -63,6 +64,13 @@ class LogicRewarder:
                     + CORRECTNESS_WEIGHT * correctness[i]
                     + PROCESSING_TIME_WEIGHT * min(process_times[i] / timeout, 1)
                 )
+                reward_logs.append(
+                    {
+                        "similarity": similarities[i],
+                        "correctness": correctness[i],
+                        "process_time": process_times[i],
+                    }
+                )
                 # Scale up the reward
                 reward = reward / 2 + 0.5
                 bt.logging.debug(
@@ -72,7 +80,7 @@ class LogicRewarder:
 
         total_uids = valid_uids + invalid_uids
         rewards = valid_rewards + invalid_rewards
-        return total_uids, rewards
+        return total_uids, rewards, reward_logs
 
     def _get_correctness(
         self, base_synapse: LogicSynapse, responses: list[LogicSynapse]

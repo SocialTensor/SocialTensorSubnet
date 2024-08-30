@@ -152,7 +152,7 @@ class Validator(BaseValidatorNeuron):
             )
 
             if reward_uids:
-                uids, rewards = self.categories[category]["rewarder"](
+                uids, rewards, reward_logs = self.categories[category]["rewarder"](
                     reward_uids, reward_responses, base_synapse
                 )
 
