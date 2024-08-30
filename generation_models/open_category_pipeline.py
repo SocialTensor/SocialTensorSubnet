@@ -45,5 +45,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    server = ls.LitServer(OpenModel(), accelerator="auto", max_batch_size=1, devices=args.num_gpus)
+    core = OpenModel(args.model_id)
+
+    server = ls.LitServer(, accelerator="auto", max_batch_size=1, devices=args.num_gpus)
     server.run(port=args.port)
