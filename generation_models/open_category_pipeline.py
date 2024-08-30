@@ -18,15 +18,18 @@ class OpenModel(ls.LitAPI):
         prompt = request.get("prompt")
         width = request.get("pipeline_params", {}).get("width", 1024)
         height = request.get("pipeline_params", {}).get("height", 1024)
-        return prompt, width, height
+        params = {
+            "prompt": prompt,
+            "width": width,
+            "height": height,
+        }
+        return params
 
-    def predict(self, prompt, width, height):
+    def predict(self, params):
         image = self.pipeline(
-            prompt=prompt,
             num_inference_steps=self.num_inference_steps,
             guidance_scale=self.guidance_scale,
-            width=width,
-            height=height,
+            **params,
         ).images[0]
         return image
 
