@@ -47,5 +47,5 @@ if __name__ == "__main__":
 
     core = OpenModel(args.model_id)
 
-    server = ls.LitServer(, accelerator="auto", max_batch_size=1, devices=args.num_gpus)
+    server = ls.LitServer(core, accelerator="auto", max_batch_size=1, devices=args.num_gpus)
     server.run(port=args.port)
