@@ -6,10 +6,17 @@ import litserve as ls
 import torch
 
 class OpenModel(ls.LitAPI):
-    def __init__(self, model_id, num_inference_steps=30, guidance_scale=7.0):
+    def __init__(self, category, model_id, num_inference_steps=30, guidance_scale=7.0):
         self.pipeline = diffusers.DiffusionPipeline.from_pretrained(model_id, torch_dtype=torch.float16, variant="fp16")
         self.num_inference_steps = num_inference_steps
         self.guidance_scale = guidance_scale
+        self.model_id = model_id
+        self.category = category
+    
+    def get_info(self):
+        return {
+            "model_name": self.category,
+        }
 
     def setup(self, device):
         self.pipeline.to(device)

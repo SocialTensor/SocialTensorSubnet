@@ -13,10 +13,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model_id", default=""
     )
+    parser.add_argument(
+        "--category", choices=["OpenGeneral", "OpenLandscape"], default="OpenGeneral"
+    )
 
     args = parser.parse_args()
 
-    core = OpenModel(args.model_id)
+    core = OpenModel(args.category, args.model_id)
 
     server = ls.LitServer(core, accelerator="auto", max_batch_size=1, devices=args.num_gpus, api_path="/generate")
+    server.app.add_api_route(
+        "/info",
+        core.get_info,
+        methods=["GET"]
+    )
     server.run(port=args.port)
