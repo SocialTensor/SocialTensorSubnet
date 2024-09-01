@@ -19,7 +19,7 @@ The Validator is responsible for generating challenges for the Miner to solve. T
 - `time_penalty (float)`: Penalty for late response. It's value of `process_time / timeout * MAX_PENALTY`.
 
 ### Minimum Compute Requirements
-- 1x GPU 24G (RTX 4090, A100, A6000, etc)
+- 1x GPU 24GB VRAM (RTX 4090, A100, A6000, etc)
 - Storage: 100GB
 - Python 3.10
 
@@ -33,8 +33,16 @@ cd logicnet
 ```bash
 python -m venv main
 . main/bin/activate
+
+bash install.sh
+```
+
+or manually install the requirements
+```bash
 pip install -e .
 pip uninstall uvloop -y
+pip install bittensor=6.9.3
+pip install git+https://github.com/opentensor/bittensor.git@release/6.9.4
 pip install git+https://github.com/lukew3/mathgenerator.git
 ```
 3. Create env for vLLM
@@ -61,10 +69,12 @@ pm2 start "vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name 
 pm2 start python --name "sn35-validator" -- neurons/validator/validator.py \
 --netuid 35 --wallet.name "wallet-name" --wallet.hotkey "wallet-hotkey" \
 --subtensor.network finney \
---axon.port "your-open-port" \
 --llm_client.base_url http://localhost:8000/v1 \ # vLLM server base url
 --llm_client.model Qwen/Qwen2-7B-Instruct \ # vLLM model name
 --logging.debug \ # Optional: Enable debug logging
 ```
 
-
+6. (Optional) Enable public access to the validator. Add this to the above step along with your publicly exposed port. This will enable a validator proxy.
+```bash
+--axon.port "your-public-open-port"
+```
