@@ -7,7 +7,7 @@ from logicnet.utils.volume_setting import (
 )
 import traceback
 
-NO_OF_RECENT_SCORES = 10
+NO_OF_RECENT_SCORES = 20
 
 
 class MinerInfo:
@@ -17,6 +17,7 @@ class MinerInfo:
         scores: list[float] = [],
         epoch_volume: int = 42,
         reward_scale: float = 0.0,
+        reward_logs: list[dict] = [],
         *args,
         **kwargs,
     ):
@@ -33,6 +34,7 @@ class MinerInfo:
         self.rate_limit = 0
         self.category: str = category
         self.reward_scale: float = reward_scale
+        self.reward_logs = []
 
     def __str__(self):
         return str(self.to_dict()) + "\n"
@@ -49,6 +51,7 @@ class MinerInfo:
             "epoch_volume": self.epoch_volume,
             "rate_limit": self.rate_limit,
             "reward_scale": self.reward_scale,
+            "reward_logs": self.reward_logs,
         }
 
 
@@ -132,15 +135,17 @@ class MinerManager:
         ]
         return available_uids
 
-    def update_scores(self, uids, rewards):
+    def update_scores(self, uids, rewards, reward_logs):
         """
         Update miner's scores with new rewards
         """
-        for uid, reward in zip(uids, rewards):
+        for uid, reward, reward_log in zip(uids, rewards, reward_logs):
             self.all_uids_info[uid].scores.append(reward)
             self.all_uids_info[uid].scores = self.all_uids_info[uid].scores[
                 -NO_OF_RECENT_SCORES:
             ]
+            self.all_uids_info[uid].reward_logs.append(reward_log)
+            self.all_uids_info[uid].reward_logs = self.all_uids_info[uid].reward_logs[-NO_OF_RECENT_SCORES:]
 
     def get_on_chain_weights(self, category) -> torch.Tensor:
         """
@@ -163,10 +168,9 @@ class MinerManager:
         """
         model_specific_weights = torch.zeros(len(self.all_uids))
         for uid in self.get_miner_uids(category):
-            num_past_to_check = 10
             model_specific_weights[int(uid)] = (
-                sum(self.all_uids_info[uid].scores[-num_past_to_check:])
-                / num_past_to_check
+                sum(self.all_uids_info[uid].scores[-NO_OF_RECENT_SCORES:])
+                / NO_OF_RECENT_SCORES
             )
         model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
         if normalize:
