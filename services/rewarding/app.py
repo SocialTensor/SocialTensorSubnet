@@ -20,6 +20,7 @@ MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
 )
 
+
 class RequestCancelledMiddleware:
     def __init__(self, app):
         self.app = app
@@ -107,6 +108,7 @@ class RewardRequest(BaseModel):
     miner_data: List[Prompt]
     base_data: Prompt
 
+
 class BaseRewardApp:
     def __init__(self, args):
         self.args = args
@@ -134,6 +136,7 @@ class BaseRewardApp:
     async def __call__(self, reward_request: RewardRequest):
         raise NotImplementedError("This method should be implemented by subclasses")
 
+
 class FixedCategoryRewardApp(BaseRewardApp):
     def __init__(self, model_handle: DeploymentHandle, args):
         super().__init__(args)
@@ -145,10 +148,13 @@ class FixedCategoryRewardApp(BaseRewardApp):
         miner_data = reward_request.miner_data
         validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
         miner_images = [d.image for d in miner_data]
-        rewards = self.rewarder.get_reward(validator_image, miner_images, base_data.pipeline_type)
+        rewards = self.rewarder.get_reward(
+            validator_image, miner_images, base_data.pipeline_type
+        )
         rewards = [float(reward) for reward in rewards]
         print(rewards, flush=True)
         return {"rewards": rewards}
+
 
 class OpenCategoryRewardApp(BaseRewardApp):
     def __init__(self, args):
@@ -158,14 +164,18 @@ class OpenCategoryRewardApp(BaseRewardApp):
     async def __call__(self, reward_request: RewardRequest):
         base_data = reward_request.base_data
         miner_data = reward_request.miner_data
-        rewards = self.rewarder.get_reward(base_data.prompt, [x.image for x in miner_data])
+        rewards = self.rewarder.get_reward(
+            base_data.prompt, [x.image for x in miner_data]
+        )
         rewards = [float(reward) for reward in rewards]
         print(rewards, flush=True)
-        return {"rewards": rewards}  
+        return {"rewards": rewards}
+
 
 if __name__ == "__main__":
     args = get_args()
     if args.model_name:
+        print("Starting fixed category reward app", flush=True)
         model_deployment = serve.deployment(
             ModelDeployment,
             name="model_deployment",
@@ -178,9 +188,12 @@ if __name__ == "__main__":
             ),
             name="model_deployment",
         )
-        model_handle = serve.get_deployment_handle("model_deployment", "model_deployment")
+        model_handle = serve.get_deployment_handle(
+            "model_deployment", "model_deployment"
+        )
         app = FixedCategoryRewardApp(model_handle, args)
     else:
+        print("Starting open category reward app", flush=True)
         app = OpenCategoryRewardApp(args)
     uvicorn.run(
         app.app,
