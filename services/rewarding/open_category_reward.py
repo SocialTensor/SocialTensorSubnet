@@ -1,16 +1,19 @@
 import openai
-import json
-from pydantic import BaseModel, Field
 from PIL import Image
 from tqdm import tqdm
 from transformers import AutoProcessor, AutoModelForCausalLM
 import torch
-import requests
 from generation_models.utils import base64_to_pil_image
 import os
+import pyiqa
 
 class DSGPromptProcessor:
     def __init__(self, model_name="Llama3_70b"):
+        """
+        Prompt Adherence Reward
+        - Use subnet llm api to generate existence, dependencies, and questions
+        - Use binary VQA to get the reward
+        """
         self.client = openai.OpenAI(base_url="https://nicheimage.nichetensor.com/api/v1", api_key=os.environ["API_KEY"])
         self.model_name = model_name
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -227,7 +230,10 @@ style drawing""",
 
 class IQA:
     def __init__(self, model_name="nima-vgg16-ava"):
-        import pyiqa
+        """
+        Image Quality Assessment
+        - Use pyiqa to get the image quality score
+        """
         device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
         self.model = pyiqa.create_metric(model_name, device=device)
     def __call__(self, image):
@@ -255,12 +261,10 @@ class OpenCategoryReward():
         print(existences)
         dependencies = self.prompt_adherence_metric.generate_dependencies(existences)
         print(dependencies)
-
         questions = self.prompt_adherence_metric.generate_questions(
             existences
         )
 
-        #TODO: update this funtion
         prompt_adherence_scores, questions = self.prompt_adherence_metric.get_reward(questions, dependencies, images)
         prompt_adherence_scores = [sum(scores)/len(scores) if len(scores) > 0 else 1 for i, scores in prompt_adherence_scores.items()]
         iqa_scores = [self.iqa_metric(image) for image in images]

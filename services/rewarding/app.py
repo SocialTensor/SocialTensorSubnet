@@ -13,10 +13,7 @@ from ray.serve.handle import DeploymentHandle
 from functools import partial
 from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
 from services.rewarding.open_category_reward import OpenCategoryReward
-from services.rewarding.notice import notice_discord
-import random
 import asyncio
-from generation_models.utils import base64_to_pil_image
 from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limiter
 
 MODEL_CONFIG = yaml.load(
