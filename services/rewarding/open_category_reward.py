@@ -44,16 +44,33 @@ class DSGPromptProcessor:
             },
             {
                 "role": "user",
-                "content": "A blue motorcycle parked next to a red car. This image has style of drawing.",
+                "content": "a photo of a woman with long, wavy blonde hair styled in a vintage fashion. She is wearing a black, long-sleeved top with a high collar and a small, round, metallic bow on the left side. Her left hand is holding a small, round, metallic object, possibly a tool or a piece of jewelry. She is also wearing black gloves and black shoes. The background is plain and light-colored, providing a clear contrast to her dark attire and hair. The overall style of the image suggests it might be from a past era, possibly the mid-20th century. \n\n1. The woman is standing with her legs stretched out in front of her, and her hands are clasped together in front of her. She is looking directly at the camera with a neutral expression.\n\n2. The lighting in the image is soft and even, highlighting her features without creating harsh shadows. The overall composition of the image is simple and focused on the woman and her interaction with the object she is holding.",
             },
             {
                 "role": "assistant",
-                "content": """a motorcycle
-blue motorcycle
-a car
-red car
-motorcycle is next to car
-style drawing""",
+                "content": """
+a woman
+long, wavy blonde hair
+vintage fashion
+black, long-sleeved top
+high collar
+small, round, metallic bow
+left hand
+small, round, metallic object
+tool or piece of jewelry
+black gloves
+black shoes
+plain, light-colored background
+dark attire
+mid-20th century style
+soft and even lighting
+neutral expression
+camera
+woman is standing with her legs stretched out in front of her
+hands are clasped together in front of her
+woman is looking directly at the camera
+woman is holding a small, round, metallic object
+""",
             },
             {
                 "role": "user",
