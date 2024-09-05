@@ -7,6 +7,165 @@ from generation_models.utils import base64_to_pil_image
 import os
 import pyiqa
 import time
+from transformers import AutoModel, AutoTokenizer
+from copy import deepcopy
+import json
+
+
+class BinaryVQA:
+    def __init__(self) -> None:
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = AutoModel.from_pretrained(
+            "openbmb/MiniCPM-V-2_6",
+            trust_remote_code=True,
+            revision="refs/pr/26",
+            attn_implementation="sdpa",
+            torch_dtype=torch.bfloat16,
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            "openbmb/MiniCPM-V-2_6", trust_remote_code=True
+        )
+        self.model.eval().to(self.device)
+
+    @staticmethod
+    def preprocess(
+        self,
+        image,
+        msgs,
+        tokenizer,
+        processor=None,
+        vision_hidden_states=None,
+        max_new_tokens=2048,
+        min_new_tokens=0,
+        sampling=True,
+        max_inp_length=8192,
+        system_prompt="",
+        stream=False,
+        max_slice_nums=None,
+        use_image_id=None,
+        **kwargs,
+    ):
+        if isinstance(msgs[0], list):
+            batched = True
+        else:
+            batched = False
+        msgs_list = msgs
+        images_list = image
+
+        if batched is False:
+            images_list, msgs_list = [images_list], [msgs_list]
+        else:
+            assert (
+                images_list is None
+            ), "Please integrate image to msgs when using batch inference."
+            images_list = [None] * len(msgs_list)
+        assert len(images_list) == len(
+            msgs_list
+        ), "The batch dim of images_list and msgs_list should be the same."
+
+        if processor is None:
+            if self.processor is None:
+                self.processor = AutoProcessor.from_pretrained(
+                    self.config._name_or_path, trust_remote_code=True
+                )
+            processor = self.processor
+
+        assert (
+            self.config.query_num == processor.image_processor.image_feature_size
+        ), "These two values should be the same. Check `config.json` and `preprocessor_config.json`."
+        assert (
+            self.config.patch_size == processor.image_processor.patch_size
+        ), "These two values should be the same. Check `config.json` and `preprocessor_config.json`."
+        assert (
+            self.config.use_image_id == processor.image_processor.use_image_id
+        ), "These two values should be the same. Check `config.json` and `preprocessor_config.json`."
+        assert (
+            self.config.slice_config.max_slice_nums
+            == processor.image_processor.max_slice_nums
+        ), "These two values should be the same. Check `config.json` and `preprocessor_config.json`."
+        assert (
+            self.config.slice_mode == processor.image_processor.slice_mode
+        ), "These two values should be the same. Check `config.json` and `preprocessor_config.json`."
+
+        prompts_lists = []
+        input_images_lists = []
+        for image, msgs in zip(images_list, msgs_list):
+            if isinstance(msgs, str):
+                msgs = json.loads(msgs)
+            copy_msgs = deepcopy(msgs)
+
+            assert len(msgs) > 0, "msgs is empty"
+            assert sampling or not stream, "if use stream mode, make sure sampling=True"
+
+            if image is not None and isinstance(copy_msgs[0]["content"], str):
+                copy_msgs[0]["content"] = [image, copy_msgs[0]["content"]]
+
+            images = []
+            for i, msg in enumerate(copy_msgs):
+                role = msg["role"]
+                content = msg["content"]
+                assert role in ["user", "assistant"]
+                if i == 0:
+                    assert role == "user", "The role of first msg should be user"
+                if isinstance(content, str):
+                    content = [content]
+                cur_msgs = []
+                for c in content:
+                    if isinstance(c, Image.Image):
+                        images.append(c)
+                        cur_msgs.append("(<image>./</image>)")
+                    elif isinstance(c, str):
+                        cur_msgs.append(c)
+                msg["content"] = "\n".join(cur_msgs)
+
+            if system_prompt:
+                sys_msg = {"role": "system", "content": system_prompt}
+                copy_msgs = [sys_msg] + copy_msgs
+
+            prompts_lists.append(
+                processor.tokenizer.apply_chat_template(
+                    copy_msgs, tokenize=False, add_generation_prompt=True
+                )
+            )
+            input_images_lists.append(images)
+
+        inputs = processor(
+            prompts_lists,
+            input_images_lists,
+            max_slice_nums=max_slice_nums,
+            use_image_id=use_image_id,
+            return_tensors="pt",
+            max_length=max_inp_length,
+        ).to(self.device)
+
+        return inputs
+
+    @torch.no_grad()
+    def __call__(self, question, image):
+        msgs = [{"role": "user", "content": [image, question]}]
+
+        inputs = self.preprocess(
+            self=self.model,
+            image=None,
+            msgs=msgs,
+            tokenizer=self.tokenizer,
+        )
+
+        def forward(model, data, **kwargs):
+            vllm_embedding, vision_hidden_states = model.get_vllm_embedding(data)
+            return model.llm(
+                input_ids=None,
+                position_ids=None,
+                inputs_embeds=vllm_embedding,
+                **kwargs,
+            )
+
+        output = forward(model=self.model, data=inputs).logits
+        yes_logit = output[:, -1, 56]
+        no_logit = output[:, -1, 45]
+        # calculate softmax
+        yes_prob = torch.exp(yes_logit) / (torch.exp(yes_logit) + torch.exp(no_logit))
+        return yes_prob.item()
 
 
 class DSGPromptProcessor:
@@ -22,16 +181,8 @@ class DSGPromptProcessor:
         )
         self.model_name = model_name
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.binary_vqa = AutoModelForCausalLM.from_pretrained(
-            "toilaluan/Florence-2-base-Yes-No-VQA",
-            trust_remote_code=True,
-            torch_dtype=torch.float16,
-        ).to(self.device, torch.float16)
-        self.binary_vqa_processor = AutoProcessor.from_pretrained(
-            "toilaluan/Florence-2-base-Yes-No-VQA",
-            trust_remote_code=True,
-            torch_dtype=torch.float16,
-        )
+
+        self.binary_vqa = BinaryVQA()
 
     def generate_existences(self, input_text: str):
         system_message = """
@@ -226,25 +377,7 @@ woman is holding a small, round, metallic object
                 return 0
             if not isinstance(image, Image.Image):
                 raise ValueError("Invalid image type")
-
-            inputs = self.binary_vqa_processor(
-                text=question, images=image, return_tensors="pt"
-            ).to(self.device, torch.float16)
-            decoder_input_ids = torch.LongTensor(
-                [
-                    [
-                        self.binary_vqa.language_model.config.pad_token_id,
-                        self.binary_vqa.language_model.config.decoder_start_token_id,
-                    ]
-                ]
-            ).to(self.device)
-            outputs = self.binary_vqa(
-                input_ids=inputs["input_ids"],
-                pixel_values=inputs["pixel_values"],
-                decoder_input_ids=decoder_input_ids,
-            )
-            logits = outputs.logits[:, -1]
-            score = logits[0].sigmoid().item()
+            score = self.binary_vqa(question, image)
             print(question)
             print(f"The answer Yes has {score} probs")
             return score
@@ -274,6 +407,7 @@ class IQA:
         )
         self.model = pyiqa.create_metric(model_name, device=device)
 
+    @torch.no_grad()
     def __call__(self, image):
         return self.model(image).item()
 
