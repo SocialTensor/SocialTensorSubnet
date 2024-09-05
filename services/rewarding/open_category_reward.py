@@ -302,6 +302,7 @@ class OpenCategoryReward:
         iqa_scores = OpenCategoryReward.normalize_score(
             iqa_scores, max_val=7.0, min_val=4.0
         )
+        print("IQA Scores: ", iqa_scores)
         final_scores = []
         for pa_score, iqa_score in zip(prompt_adherence_scores, iqa_scores):
             final_score = (
