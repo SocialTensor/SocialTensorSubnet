@@ -6,8 +6,9 @@ synapse = ig.protocol.ImageGenerating(model_name="OpenCategory", timeout=12)
 
 sample_prompts = [
     "a cat is sitting on a chair, behind is a window with a view of a garden.",
-    "a landscape photo of a large, open field with a clear blue sky. The field appears to be a mix of grass and small rocks, with some areas showing signs of dryness and patches of vegetation.",
-    "a photo of a young man with a serious expression. He has short, dark hair and is wearing a light-colored, long-sleeved shirt with a collar. ",
+    "a landscape photo of a large, open field with a clear blue sky. In the distance, a small group of trees can be seen, and a mountain range is visible on the horizon. The sun is shining brightly, casting long shadows on the ground.",
+    "a photo of a young man with a serious expression. He has short, dark hair and is wearing a light-colored, long-sleeved shirt with a collar.",
+    "A bustling marketplace scene unfolds under a clear blue sky. At the center, a vendor with a bright red apron is enthusiastically showcasing a variety of fresh fruits and vegetables arranged neatly on a wooden stall. To the left, a small child, wearing a blue cap, reaches up with a curious smile to grab an apple, while her mother, in a floral dress, gently guides her hand. Nearby, an elderly man with a cane, sporting a straw hat, leans over to inspect a basket of ripe tomatoes.",
 ]
 
 from services.rewarding.open_category_reward import OpenCategoryReward
