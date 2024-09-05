@@ -163,8 +163,6 @@ class BinaryVQA:
         output = forward(model=self.model, data=inputs).logits
         yes_logit = output[:, -1, 56]
         no_logit = output[:, -1, 45]
-        print(yes_logit, no_logit)
-        # calculate softmax
         yes_prob = torch.exp(yes_logit) / (torch.exp(yes_logit) + torch.exp(no_logit))
         return yes_prob.item()
 
@@ -382,16 +380,11 @@ woman is holding a small, round, metallic object
             print(f"The answer Yes has {score} probs")
             return score
 
-        pbar = tqdm(
-            total=len(sorted_questions) * len(images),
-            desc=f"Calculating reward over {len(images)} images and {len(sorted_questions)} questions",
-        )
         for i, question in enumerate(sorted_questions):
             for j, image in enumerate(images):
                 scores[j][i] = get_reward_for_a_question(
                     question, dependencies[i], image, scores[j]
                 )
-                pbar.update(1)
 
         return scores, sorted_questions
 
