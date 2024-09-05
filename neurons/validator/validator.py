@@ -243,7 +243,10 @@ class Validator(BaseValidatorNeuron):
             self.step = state["step"]
             all_uids_info = state["all_uids_info"]
             for k, v in all_uids_info.items():
-                self.miner_manager.all_uids_info[k] = MinerInfo(**v)
+                if isinstance(v, MinerInfo):
+                    self.miner_manager.all_uids_info[k] = v
+                else:
+                    self.miner_manager.all_uids_info[k] = MinerInfo(**v)
             bt.logging.info("Successfully loaded state")
         except Exception as e:
             self.step = 0
