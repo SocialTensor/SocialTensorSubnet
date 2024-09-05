@@ -20,7 +20,7 @@ for i, prompt in enumerate(sample_prompts):
     synapse.pipeline_params = {
         "width": 1024,
         "height": 1024,
-        "num_inference_steps": 4,
+        "num_inference_steps": 30,
     }
     response = requests.post(
         "http://localhost:10006/generate", json=synapse.deserialize_input()
