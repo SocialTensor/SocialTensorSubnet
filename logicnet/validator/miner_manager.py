@@ -34,7 +34,7 @@ class MinerInfo:
         self.rate_limit = 0
         self.category: str = category
         self.reward_scale: float = reward_scale
-        self.reward_logs = [] if not reward_logs else reward_logs
+        self.reward_logs = reward_logs
 
     def __str__(self):
         return str(self.to_dict()) + "\n"
