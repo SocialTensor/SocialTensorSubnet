@@ -23,7 +23,7 @@ class OpenModel(ls.LitAPI):
         - guidance_scale: float, guidance scale for inference
         """
         self.pipeline = diffusers.DiffusionPipeline.from_pretrained(
-            model_id, torch_dtype=torch.float16, variant="fp16"
+            model_id, torch_dtype=torch.float16
         )
         self.num_inference_steps = num_inference_steps
         self.guidance_scale = guidance_scale
