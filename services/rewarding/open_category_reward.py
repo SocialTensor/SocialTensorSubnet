@@ -281,6 +281,8 @@ class OpenCategoryReward:
         normalized_scores = [
             max(min((score - min_val) / (max_val - min_val), 1), 0) for score in scores
         ]
+        print("Scores: ", scores)
+        print("Normalized Scores: ", normalized_scores)
         return normalized_scores
 
     def get_reward(self, prompt: str, images):
