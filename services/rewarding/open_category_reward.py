@@ -195,7 +195,6 @@ woman is holding a small, round, metallic object
         questions: list[str],
         dependencies: dict[list],
         images: list,
-        mode="hybrid",
     ):
         """Get reward for the generated questions use structured question graph.
         Args:
@@ -324,7 +323,15 @@ class OpenCategoryReward:
         prompt_adherence_scores, questions = self.prompt_adherence_metric.get_reward(
             questions, dependencies, images
         )
-        return prompt_adherence_scores
+        mean_scores = []
+
+        for i in range(len(images)):
+            mean_score = sum(prompt_adherence_scores[i]) / len(
+                prompt_adherence_scores[i]
+            )
+            mean_scores.append(mean_score)
+
+        return mean_scores
 
     def _get_iqa_score(self, images):
         iqa_scores = [self.iqa_metric(image) for image in images]
