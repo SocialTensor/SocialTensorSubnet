@@ -295,7 +295,9 @@ woman is holding a small, round, metallic object
         return dependencies
 
     def generate_questions(self, existences: list[str]) -> list[str]:
-        return [f"Is there {existence}?" for existence in existences]
+        return [
+            f"Is there {existence}? Answer only Y or N." for existence in existences
+        ]
 
     def find_layers(self, dep_dict):
         layers = []
