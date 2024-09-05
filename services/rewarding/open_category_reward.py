@@ -37,6 +37,7 @@ class DSGPromptProcessor:
         system_message = """
         Given an image caption, extract the existence of object, attribute, event, and relation.
         Each line is short words describe the existence. Don't answer the existence as a sentence.
+        Dont repeat the same existence in different forms.
         """
         messages = [
             {
@@ -56,17 +57,14 @@ vintage fashion
 black, long-sleeved top
 high collar
 small, round, metallic bow
-left hand
 small, round, metallic object
 tool or piece of jewelry
 black gloves
 black shoes
 plain, light-colored background
-dark attire
 mid-20th century style
 soft and even lighting
 neutral expression
-camera
 woman is standing with her legs stretched out in front of her
 hands are clasped together in front of her
 woman is looking directly at the camera
