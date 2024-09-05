@@ -337,6 +337,8 @@ class OpenCategoryReward:
         images = [base64_to_pil_image(x) for x in images]
         prompt_adherence_scores = self._get_adherence_score(prompt, images)
         iqa_scores = self._get_iqa_score(images)
+        print(f"Prompt adherence scores: {prompt_adherence_scores}")
+        print(f"IQA scores: {iqa_scores}")
         final_scores = []
         for pa_score, iqa_score in zip(prompt_adherence_scores, iqa_scores):
             final_score = (
