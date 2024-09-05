@@ -6,6 +6,7 @@ import torch
 from generation_models.utils import base64_to_pil_image
 import os
 import pyiqa
+import time
 
 
 class DSGPromptProcessor:
@@ -289,6 +290,7 @@ class OpenCategoryReward:
             model_name=prompt_adherence_model_name
         )
         self.weights = {"iqa": 0.3, "prompt_adherence": 0.7}
+        self.cached_adherence_queries = {}
 
     @staticmethod
     def normalize_score(scores, min_val, max_val):
@@ -298,27 +300,43 @@ class OpenCategoryReward:
         ]
         return normalized_scores
 
-    def get_reward(self, prompt: str, images):
-        images = [base64_to_pil_image(x) for x in images]
-        existences = self.prompt_adherence_metric.generate_existences(prompt)
-        print(existences)
-        dependencies = self.prompt_adherence_metric.generate_dependencies(existences)
-        print(dependencies)
-        questions = self.prompt_adherence_metric.generate_questions(existences)
+    def _clean_cache(self):
+        for prompt, data in self.cached_adherence_queries.items():
+            if time.time() - data["time"] > 10 * 60:
+                self.cached_adherence_queries.pop(prompt)
 
+    def _get_adherence_score(self, prompt, images):
+        self._clean_cache()
+        if prompt in self.cached_adherence_queries:
+            dependencies = self.cached_adherence_queries[prompt]["dependencies"]
+            questions = self.cached_adherence_queries[prompt]["questions"]
+        else:
+            existences = self.prompt_adherence_metric.generate_existences(prompt)
+            dependencies = self.prompt_adherence_metric.generate_dependencies(
+                existences
+            )
+            questions = self.prompt_adherence_metric.generate_questions(existences)
+            self.cached_adherence_queries[prompt] = {
+                "dependencies": dependencies,
+                "questions": questions,
+                "time": time.time(),
+            }
         prompt_adherence_scores, questions = self.prompt_adherence_metric.get_reward(
             questions, dependencies, images
         )
-        prompt_adherence_scores = [
-            sum(scores) / len(scores) if len(scores) > 0 else 1
-            for i, scores in prompt_adherence_scores.items()
-        ]
+        return prompt_adherence_scores
+
+    def _get_iqa_score(self, images):
         iqa_scores = [self.iqa_metric(image) for image in images]
-        print(iqa_scores)
         iqa_scores = OpenCategoryReward.normalize_score(
-            iqa_scores, max_val=7.0, min_val=4.0
+            iqa_scores, max_val=7.0, min_val=3.5
         )
-        print("IQA Scores: ", iqa_scores)
+        return iqa_scores
+
+    def get_reward(self, prompt: str, images):
+        images = [base64_to_pil_image(x) for x in images]
+        prompt_adherence_scores = self._get_adherence_score(prompt, images)
+        iqa_scores = self._get_iqa_score(images)
         final_scores = []
         for pa_score, iqa_score in zip(prompt_adherence_scores, iqa_scores):
             final_score = (
