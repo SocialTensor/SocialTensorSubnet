@@ -163,6 +163,7 @@ class BinaryVQA:
         output = forward(model=self.model, data=inputs).logits
         yes_logit = output[:, -1, 56]
         no_logit = output[:, -1, 45]
+        print(yes_logit, no_logit)
         # calculate softmax
         yes_prob = torch.exp(yes_logit) / (torch.exp(yes_logit) + torch.exp(no_logit))
         return yes_prob.item()
