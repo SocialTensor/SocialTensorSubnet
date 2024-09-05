@@ -260,8 +260,6 @@ class IQA:
         self.model = pyiqa.create_metric(model_name, device=device)
 
     def __call__(self, image):
-        if image.format != "PNG":
-            return 0
         return self.model(image).item()
 
 
@@ -281,8 +279,6 @@ class OpenCategoryReward:
         normalized_scores = [
             max(min((score - min_val) / (max_val - min_val), 1), 0) for score in scores
         ]
-        print("Scores: ", scores)
-        print("Normalized Scores: ", normalized_scores)
         return normalized_scores
 
     def get_reward(self, prompt: str, images):
@@ -301,6 +297,7 @@ class OpenCategoryReward:
             for i, scores in prompt_adherence_scores.items()
         ]
         iqa_scores = [self.iqa_metric(image) for image in images]
+        print(iqa_scores)
         iqa_scores = OpenCategoryReward.normalize_score(
             iqa_scores, max_val=7.0, min_val=4.0
         )
