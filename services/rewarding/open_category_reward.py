@@ -351,9 +351,6 @@ woman is holding a small, round, metallic object
             dependencies (dict[list]): the dependencies between tuples
             images (list[str]): a list of image urls
         """
-
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.binary_vqa.to(self.device)
         scores = {}
 
         sorted_questions, dependencies = self._create_graph_questions(
