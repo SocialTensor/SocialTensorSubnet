@@ -67,9 +67,10 @@ class ChallengePrompt:
             model="toilaluan/Image-Caption-Completion-Long",
             prompt=prompt,
             max_tokens=125,
-            temperature=0.5,
+            temperature=0.4,
             top_p=1,
             n=1,
+            top_k=1000,
         )
         completed_prompt = output.choices[0].text.strip()
         completed_prompt = completed_prompt.replace("\n", " ")
