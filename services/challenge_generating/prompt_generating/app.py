@@ -49,6 +49,14 @@ class ChallengePrompt:
                 "a landscape photo of",
                 "a landscape view of",
             ],
+            "OpenDigitalArt": [
+                "an digital art of",
+                "a digital painting of",
+                "a digital drawing of",
+                "a digital illustration of",
+                "a digital image of",
+                "a digital sketch of",
+            ],
         }
 
         self.vllm_client = openai.AsyncOpenAI(base_url="http://localhost:8000/v1")
@@ -70,7 +78,7 @@ class ChallengePrompt:
             temperature=1.0,
             top_p=1,
             n=1,
-            presence_penalty=0
+            presence_penalty=0,
         )
         completed_prompt = output.choices[0].text.strip()
         completed_prompt = completed_prompt.replace("\n", " ")
