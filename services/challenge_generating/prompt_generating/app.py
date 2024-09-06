@@ -61,7 +61,7 @@ class ChallengePrompt:
         prompt = payload.prompt
         prompts = self.open_category_prefixes[model_name]
         prompt = random.choice(prompts)
-        prompt = f"<|endoftext|> {prompt}"
+        # prompt = f"<|endoftext|> {prompt}"
 
         output = await self.vllm_client.completions.create(
             model="toilaluan/Image-Caption-Completion-Long",
@@ -70,7 +70,6 @@ class ChallengePrompt:
             temperature=0.4,
             top_p=1,
             n=1,
-            top_k=1000,
         )
         completed_prompt = output.choices[0].text.strip()
         completed_prompt = completed_prompt.replace("\n", " ")
