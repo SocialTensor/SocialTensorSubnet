@@ -663,7 +663,7 @@ class Validator(BaseValidatorNeuron):
             synapse.pipeline_params.update(
                 self.nicheimage_catalogue[model_name]["inference_params"]
             )
-            if model_name.startswith("Open"):
+            if self.nicheimage_catalogue[model_name]["reward_type"] == "open_category":
                 width, height = random_image_size()
                 synapse.pipeline_params.update({"width": width, "height": height})
             synapse.seed = random.randint(0, 1e9)
@@ -678,12 +678,14 @@ class Validator(BaseValidatorNeuron):
                 synapses = ig_subnet.validator.get_challenge(
                     challenge_url, synapses, backup_func
                 )
-        for i, batch in enumerate(batched_uids_should_rewards):
-            if any([should_reward for _, should_reward in batch]):
-                self.open_category_reward_synapse = (
-                    self.open_category_reward_synapse or synapses[i]
-                )
-                synapses[i] = self.open_category_reward_synapse
+        if self.nicheimage_catalogue[model_name]["reward_type"] == "open_category":
+            # Reward same test for uids in same open category
+            for i, batch in enumerate(batched_uids_should_rewards):
+                if any([should_reward for _, should_reward in batch]):
+                    self.open_category_reward_synapse = (
+                        self.open_category_reward_synapse or synapses[i]
+                    )
+                    synapses[i] = self.open_category_reward_synapse
 
         return synapses, batched_uids_should_rewards
 
