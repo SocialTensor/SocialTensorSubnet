@@ -61,7 +61,7 @@ class ChallengePrompt:
         prompt = payload.prompt
         prompts = self.open_category_prefixes[model_name]
         prompt = random.choice(prompts)
-        # prompt = f"<|endoftext|> {prompt}"
+        prompt = f"<|endoftext|> {prompt}"
 
         output = await self.vllm_client.completions.create(
             model="toilaluan/Image-Caption-Completion-Long",
