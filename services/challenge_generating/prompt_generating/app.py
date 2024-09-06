@@ -35,14 +35,14 @@ class ChallengePrompt:
         self.app.add_api_route("/", self.__call__, methods=["POST"])
         self.open_category_prefixes = {
             "OpenGeneral": [
-                "an image of ",
-                "a landscape image of ",
-                "a painting of ",
-                "a drawing of ",
-                "a portrait photo of ",
-                "an illustration of ",
-                "a animated image of ",
-                "a sketch of ",
+                "an image of",
+                "a landscape image of",
+                "a painting of",
+                "a drawing of",
+                "a portrait photo of",
+                "an illustration of",
+                "a animated image of",
+                "a sketch of",
             ],
             "OpenLandscape": [
                 "an landscape image of",
