@@ -64,7 +64,7 @@ class ChallengePrompt:
         )
         prompt = f"<|endoftext|> {prompt}"
 
-        output = self.vllm_client.completions.create(
+        output = await self.vllm_client.completions.create(
             model="toilaluan/Image-Caption-Completion-Long",
             prompt=prompt,
             max_tokens=125,
