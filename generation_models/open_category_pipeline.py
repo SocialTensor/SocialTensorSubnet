@@ -64,4 +64,4 @@ class OpenModel(ls.LitAPI):
         Shouldn't be changed.
         """
         base64_image = pil_image_to_base64(image, format="PNG")
-        return base64_image
+        return {"image": base64_image}
