@@ -335,22 +335,22 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 24,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        # "Kolors": {
-        #     "supporting_pipelines": MODEL_CONFIGS["Kolors"]["params"][
-        #         "supporting_pipelines"
-        #     ],
-        #     "model_incentive_weight": 0.10,
-        #     "reward_url": config.reward_url.Kolors,
-        #     "reward_type": "image",
-        #     "inference_params": {
-        #         "num_inference_steps": 30,
-        #         "width": 1024,
-        #         "height": 1024,
-        #         "guidance_scale": 5.0,
-        #     },
-        #     "timeout": 32,
-        #     "synapse_type": ig_subnet.protocol.ImageGenerating,
-        # },
+        "Kolors": {
+            "supporting_pipelines": MODEL_CONFIGS["Kolors"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.10,
+            "reward_url": config.reward_url.Kolors,
+            "reward_type": "image",
+            "inference_params": {
+                "num_inference_steps": 30,
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 5.0,
+            },
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
         "OpenGeneral": {
             "supporting_pipelines": ["open_txt2img"],
             "model_incentive_weight": 0.0,
@@ -375,7 +375,7 @@ def initialize_nicheimage_catalogue(config):
     for k, v in nicheimage_catalogue.items():
         sum_incentive += v["model_incentive_weight"]
     bt.logging.info(f"Sum incentive in code: {sum_incentive}")
-    # assert abs(sum_incentive - 1) < 1e-4
+    assert abs(sum_incentive - 1) < 1e-4
 
     return nicheimage_catalogue
 

@@ -425,8 +425,12 @@ class OpenCategoryReward:
         return normalized_scores
 
     def _clean_cache(self):
-        for prompt, data in self.cached_adherence_queries.items():
-            if time.time() - data["time"] > 10 * 60:
+        current_time = time.time()
+        # Iterate over a list of the keys to avoid changing the dictionary while iterating
+        for prompt in list(self.cached_adherence_queries.keys()):
+            data = self.cached_adherence_queries[prompt]
+            if current_time - data["time"] > 10 * 60:
+                # Remove the prompt from the original dictionary
                 self.cached_adherence_queries.pop(prompt)
 
     def _get_adherence_score(self, prompt, images):
