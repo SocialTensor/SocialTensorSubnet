@@ -59,9 +59,8 @@ class ChallengePrompt:
     ):
         model_name = payload.model_name
         prompt = payload.prompt
-        prompt = self.open_category_prefixes.get(
-            model_name, random.choice(self.open_category_prefixes["OpenGeneral"])
-        )
+        prompts = self.open_category_prefixes[model_name]
+        prompt = random.choice(prompts)
         prompt = f"<|endoftext|> {prompt}"
 
         output = await self.vllm_client.completions.create(
