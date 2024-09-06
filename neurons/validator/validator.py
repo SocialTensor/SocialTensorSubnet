@@ -387,7 +387,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("load_state()")
         self.challenge_urls = initialize_challenge_urls(self.config)
         self.nicheimage_catalogue = initialize_nicheimage_catalogue(self.config)
-        self.open_category_reward_synapse = None
+        self.open_category_reward_synapses = self.init_reward_open_category_synapses()
         self.miner_manager = MinerManager(self)
         self.load_state()
         self.update_scores_on_chain()
@@ -452,7 +452,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("Updating available models & uids")
         async_batch_size = self.config.async_batch_size
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
-        self.open_category_reward_synapse = None
+        self.open_category_reward_synapse = self.init_reward_open_category_synapses()
         threads = []
         loop_start = time.time()
         self.miner_manager.update_miners_identity()
@@ -491,6 +491,10 @@ class Validator(BaseValidatorNeuron):
         )
 
         actual_time_taken = time.time() - loop_start
+
+        bt.logging.debug(
+            f"Open Synapse to be rewarded: {self.open_category_reward_synapses}"
+        )
 
         if actual_time_taken < loop_base_time:
             bt.logging.info(
@@ -682,10 +686,10 @@ class Validator(BaseValidatorNeuron):
             # Reward same test for uids in same open category
             for i, batch in enumerate(batched_uids_should_rewards):
                 if any([should_reward for _, should_reward in batch]):
-                    self.open_category_reward_synapse = (
-                        self.open_category_reward_synapse or synapses[i]
+                    self.open_category_reward_synapses[model_name] = (
+                        self.open_category_reward_synapses[model_name] or synapses[i]
                     )
-                    synapses[i] = self.open_category_reward_synapse
+                    synapses[i] = self.open_category_reward_synapses[model_name]
 
         return synapses, batched_uids_should_rewards
 
@@ -703,6 +707,13 @@ class Validator(BaseValidatorNeuron):
                 break
             except Exception as e:
                 bt.logging.error(f"Error in storing response: {e}")
+
+    def init_reward_open_category_synapses(self):
+        return {
+            k: None
+            for k in self.nicheimage_catalogue.keys()
+            if self.nicheimage_catalogue[k]["reward_type"] == "open_category"
+        }
 
     def update_scores_on_chain(self):
         """Performs exponential moving average on the scores based on the rewards received from the miners."""
