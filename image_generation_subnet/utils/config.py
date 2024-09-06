@@ -287,13 +287,6 @@ def add_args(cls, parser):
             default="http://nicheimage.nichetensor.com/reward/OpenCategory",
         )
 
-        parser.add_argument(
-            "--reward_url.OpenCategory",
-            type=str,
-            help="",
-            default="http://nicheimage.nichetensor.com/reward/OpenCategory",
-        )
-
         # TODO: add more reward endpoints for categories
 
         parser.add_argument(
