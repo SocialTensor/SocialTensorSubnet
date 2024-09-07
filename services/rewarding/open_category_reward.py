@@ -482,17 +482,17 @@ class OpenCategoryReward:
         return iqa_scores
 
     def get_reward(self, prompt: str, images, store=True):
-        images = []
+        pil_images = []
         for image in images:
             try:
                 image = base64_to_pil_image(image)
-                images.append(image)
+                pil_images.append(image)
             except:
-                images.append(None)
+                pil_images.append(None)
         mean_prompt_adherence_scores, questions, prompt_adherence_scores = (
-            self._get_adherence_score(prompt, images)
+            self._get_adherence_score(prompt, pil_images)
         )
-        iqa_scores = self._get_iqa_score(images)
+        iqa_scores = self._get_iqa_score(pil_images)
         print(f"Prompt adherence scores: {mean_prompt_adherence_scores}")
         print(f"IQA scores: {iqa_scores}")
         final_scores = []
@@ -507,7 +507,7 @@ class OpenCategoryReward:
                 target=self._store,
                 args=(
                     prompt,
-                    images,
+                    pil_images,
                     questions,
                     self.cached_adherence_queries[prompt]["dependencies"],
                     prompt_adherence_scores,
