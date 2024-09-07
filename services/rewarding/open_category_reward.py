@@ -540,6 +540,7 @@ class OpenCategoryReward:
                 path_in_repo=f"images/{image_name}",
                 path_or_fileobj=image_bytes,
                 repo_id="nichetensor-org/open-category",
+                repo_type="dataset",
             )
             print(info)
         data = {
@@ -559,5 +560,6 @@ class OpenCategoryReward:
             path_in_repo=f"metadata/{id}.json",
             path_or_fileobj=data_bytes,
             repo_id="nichetensor-org/open-category",
+            repo_type="dataset",
         )
         print(info)
