@@ -29,13 +29,18 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | 🌟 SUPIR    | 2%                     | Super-res upscaler |
 | 🌟 Kolors | 2% | SDXL with bigger Text Encoder |
 | 🌟🌟 FluxSchnell | 2% | 12B image model |
+| **OpenGeneral** | 1% | Open category for general prompt |
+| **OpenDigitalArt** | 1% | Open category for digital art prompt |
 
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.
 - 📈 **Volume Commitment**: Miners commit to a model type and generation volume.
+- 📊 **Fixed And Open Category**: Miners run fixed model list or their own choice for tailored domain.
 - 💰 **Incentivized Volume Rewarding Mechanism**: 
-  - `new_reward = (matching_result - time_penalty) * (0.6 + 0.4 * volume_scale)`
-  - `matching_result` is 0 or 1 based on the similarity matching result with the reproduction of the validator.
+  - `new_reward = (category_score - time_penalty) * (0.6 + 0.4 * volume_scale)`
+  - `category_score` is the score unique to each model category. It can be:
+    - `matching_result` is 0 or 1 based on the similarity matching result with the reproduction of the validator.
+    - `t2i_score` is the score from combination of image quality assessment score and prompt adherence score.
   - `time_penalty = 0.4 * (processing_time / timeout)**3`
   - `volume_scale = max(min(total_volume**0.5 / 1000**0.5, 1), 0)`
 - 🌟 **Continuous Improvement**: Introducing new models and features based on usage demand.

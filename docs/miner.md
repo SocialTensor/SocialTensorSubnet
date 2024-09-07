@@ -2,7 +2,6 @@
 
 Make sure that you have a registered hotkey to Subnet 23. If you haven't done so, please refer to https://docs.bittensor.com/subnets/register-validate-mine
 
-
 ### Incentive Distribution
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
@@ -19,9 +18,10 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | SUPIR     | 2%                     | 180 |
 | FluxSchnell | 2% | 24 |
 | Kolors | 2% | 32 |
+| **OpenGeneral** | 1% | 32 |
+| **OpenDigitalArt** | 1% | 32 |
 
-
-## Step by Step Guide
+## Guide Fixed Category
 1. Git clone and install requirements
 ```bash
 git clone https://github.com/NicheTensor/NicheImage
@@ -82,8 +82,44 @@ pm2 start python --name "miner" \
 ```
 
 
+## Guide Open Category
+1. Git clone and install requirements
+```bash
+git clone https://github.com/NicheTensor/NicheImage
+cd NicheImage
+python -m venv main_env
+source main_env/bin/activate
+pip install -e .
+pip uninstall uvloop -y
+git submodule update --init --recursive
+. generation_models/custom_pipelines/scripts/download_antelopev2.sh
+. generation_models/custom_pipelines/scripts/setup_supir.sh
+```
+
+2. Setup generation endpoint based on provided template
+- We provide a template for the open category. You can find the template [here](services/miner_endpoint/open_category_app.py). Basically, this endpoint will receive a request with a payload and return the generated image as base64 string.
+- With provided template, you can run a miner by select diffusion model on huggingface. Example:
+```bash
+source main_env/bin/activate
+pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.open_category_app --model_name "black-forest-labs/FLUX.1-dev" --num_gpus 1 --port 10006 --num_inference_steps 30 --guidance_scale 3.0
+```
+3. Start miner
+```bash
+pm2 start python --name "miner" \
+-- \
+-m neurons.miner.miner \
+--netuid 23 \
+--wallet.name <wallet_name> --wallet.hotkey <wallet_hotkey> \
+--subtensor.network <network> \ # default is finney
+--axon.port <your_public_port> \
+--generate_endpoint http://localhost:10006/generate \ # change if you use different port or host
+--info_endpoint http://localhost:10006/info \ # change if you use different port or host
+--miner.total_volume <your-generation-volume> # default is 40. Change based on your model timeout value and GPU capacity
+```
+
 ## Benchmark Your Setup
 
+### Fixed Category
 You can benchmark your setup by running the following command:
 ```bash
 python tests/benchmark_sdxl.py \
@@ -105,3 +141,10 @@ Example Plot
 ![w ControlNet Latency Histogram](../tests/w_controlnet_benchmark.png)
 - [without ControlNet] RealitiesEdgeXL model with 3 concurrent requests and 100 iterations
 ![w/o ControlNet Latency Histogram](../tests/wo_controlnet_benchmark.png)
+
+
+### Open Category
+You can benchmark your setup by running the following command. Remember to spin up the generation endpoint before running this script.
+```bash
+python tests/benchmark_open_category_distributed.py
+```
