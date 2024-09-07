@@ -360,7 +360,7 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "OpenLandscape": {
+        "OpenDigitalArt": {
             "supporting_pipelines": ["open_txt2img"],
             "model_incentive_weight": 0.0,
             "reward_url": config.reward_url.OpenCategory,

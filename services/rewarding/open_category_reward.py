@@ -10,6 +10,10 @@ import time
 from transformers import AutoModel, AutoTokenizer
 from copy import deepcopy
 import json
+import uuid
+from huggingface_hub import HfApi
+import io
+import threading
 
 
 class BinaryVQA:
@@ -382,9 +386,10 @@ woman is holding a small, round, metallic object
 
         for i, question in enumerate(sorted_questions):
             for j, image in enumerate(images):
-                scores[j][i] = get_reward_for_a_question(
-                    question, dependencies[i], image, scores[j]
-                )
+                if image:
+                    scores[j][i] = get_reward_for_a_question(
+                        question, dependencies[i], image, scores[j]
+                    )
 
         return scores, sorted_questions
 
@@ -415,6 +420,7 @@ class OpenCategoryReward:
         )
         self.weights = {"iqa": 0.3, "prompt_adherence": 0.7}
         self.cached_adherence_queries = {}
+        self.hf_api = HfApi()
 
     @staticmethod
     def normalize_score(scores, min_val, max_val):
@@ -460,27 +466,98 @@ class OpenCategoryReward:
             )
             mean_scores.append(mean_score)
 
-        return mean_scores
+        return mean_scores, questions, prompt_adherence_scores
 
     def _get_iqa_score(self, images):
-        iqa_scores = [self.iqa_metric(image) for image in images]
+        iqa_scores = []
+        for image in images:
+            if image:
+                iqa_score = self.iqa_metric(image)
+                iqa_scores.append(iqa_score)
+            else:
+                iqa_scores.append(0)
         iqa_scores = OpenCategoryReward.normalize_score(
             iqa_scores, max_val=7.0, min_val=3.5
         )
         return iqa_scores
 
     def get_reward(self, prompt: str, images):
-        images = [base64_to_pil_image(x) for x in images]
-        prompt_adherence_scores = self._get_adherence_score(prompt, images)
+        images = []
+        for image in images:
+            try:
+                image = base64_to_pil_image(image)
+                images.append(image)
+            except:
+                images.append(None)
+        mean_prompt_adherence_scores, questions, prompt_adherence_scores = (
+            self._get_adherence_score(prompt, images)
+        )
         iqa_scores = self._get_iqa_score(images)
-        print(f"Prompt adherence scores: {prompt_adherence_scores}")
+        print(f"Prompt adherence scores: {mean_prompt_adherence_scores}")
         print(f"IQA scores: {iqa_scores}")
         final_scores = []
-        for pa_score, iqa_score in zip(prompt_adherence_scores, iqa_scores):
+        for pa_score, iqa_score in zip(mean_prompt_adherence_scores, iqa_scores):
             final_score = (
                 self.weights["prompt_adherence"] * pa_score
                 + self.weights["iqa"] * iqa_score
             )
             final_scores.append(final_score)
+        threading.Thread(
+            target=self._store,
+            args=(
+                prompt,
+                images,
+                questions,
+                self.cached_adherence_queries[prompt]["dependencies"],
+                prompt_adherence_scores,
+                iqa_scores,
+            ),
+            is_daemon=True,
+        ).start()
 
         return final_scores
+
+    def _store(
+        self,
+        prompt: str,
+        images: list[Image.Image],
+        questions: list[str],
+        dependencies: dict,
+        prompt_adherence_scores: dict,
+        iqa_scores: list,
+    ):
+        id = str(uuid.uuid4())
+        image_names = [f"{id}_{i}.png" for i, image in enumerate(images) if image]
+        for image, image_name in zip(images, image_names):
+            if not image:
+                continue
+            # convert image to bytes
+            image_bytes = io.BytesIO()
+            image.save(image_bytes, format="PNG")
+            image_bytes.seek(0)
+
+            self.hf_api.upload_file(
+                path_in_repo=f"images/{image_name}",
+                path_or_fileobj=image_bytes,
+                repo_id="nichetensor-org/open-category",
+                run_as_future=True,
+            )
+        data = {
+            "prompt": prompt,
+            "questions": questions,
+            "dependencies": dependencies,
+            "prompt_adherence_scores": prompt_adherence_scores,
+            "iqa_scores": iqa_scores,
+            "images": image_names,
+        }
+
+        # convert data to binary
+        data_bytes = io.BytesIO()
+        data_bytes.write(json.dumps(data).encode())
+        data_bytes.seek(0)
+        self.hf_api.upload_file(
+            path_in_repo=f"metadata/{id}.json",
+            path_or_fileobj=data_bytes,
+            repo_id="nichetensor-org/open-category",
+            run_as_future=True,
+        )
