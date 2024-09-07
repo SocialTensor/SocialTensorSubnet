@@ -481,7 +481,7 @@ class OpenCategoryReward:
         )
         return iqa_scores
 
-    def get_reward(self, prompt: str, images):
+    def get_reward(self, prompt: str, images, store=True):
         images = []
         for image in images:
             try:
@@ -502,18 +502,19 @@ class OpenCategoryReward:
                 + self.weights["iqa"] * iqa_score
             )
             final_scores.append(final_score)
-        threading.Thread(
-            target=self._store,
-            args=(
-                prompt,
-                images,
-                questions,
-                self.cached_adherence_queries[prompt]["dependencies"],
-                prompt_adherence_scores,
-                iqa_scores,
-            ),
-            is_daemon=True,
-        ).start()
+        if store:
+            threading.Thread(
+                target=self._store,
+                args=(
+                    prompt,
+                    images,
+                    questions,
+                    self.cached_adherence_queries[prompt]["dependencies"],
+                    prompt_adherence_scores,
+                    iqa_scores,
+                ),
+                daemon=True,
+            ).start()
 
         return final_scores
 
