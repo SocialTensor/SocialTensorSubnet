@@ -31,5 +31,5 @@ for i, prompt in enumerate(sample_prompts):
     image = base64_to_pil_image(response["image"])
     image.save(f"tmp_{i}.png")
     print("Image saved to tmp.png")
-    reward = rewarder.get_reward(prompt, [response["image"]])
+    reward = rewarder.get_reward(prompt, [response["image"]], store=False)
     print(reward)
