@@ -513,7 +513,6 @@ class OpenCategoryReward:
                     prompt_adherence_scores,
                     iqa_scores,
                 ),
-                daemon=True,
             ).start()
 
         return final_scores
@@ -537,12 +536,12 @@ class OpenCategoryReward:
             image.save(image_bytes, format="PNG")
             image_bytes.seek(0)
 
-            self.hf_api.upload_file(
+            info = self.hf_api.upload_file(
                 path_in_repo=f"images/{image_name}",
                 path_or_fileobj=image_bytes,
                 repo_id="nichetensor-org/open-category",
-                run_as_future=True,
             )
+            print(info)
         data = {
             "prompt": prompt,
             "questions": questions,
@@ -556,9 +555,9 @@ class OpenCategoryReward:
         data_bytes = io.BytesIO()
         data_bytes.write(json.dumps(data).encode())
         data_bytes.seek(0)
-        self.hf_api.upload_file(
+        info = self.hf_api.upload_file(
             path_in_repo=f"metadata/{id}.json",
             path_or_fileobj=data_bytes,
             repo_id="nichetensor-org/open-category",
-            run_as_future=True,
         )
+        print(info)
