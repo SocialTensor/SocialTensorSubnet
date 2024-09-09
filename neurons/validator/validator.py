@@ -723,9 +723,13 @@ class Validator(BaseValidatorNeuron):
             model_specific_weights = self.miner_manager.get_model_specific_weights(
                 model_name
             )
+            if self.nicheimage_catalogue[model_name]["reward_type"] == "open_category":
+                model_specific_weights = self.rank_tensor(model_specific_weights)
+                bt.logging.debug(
+                    f"Unique ranked weights for {model_name}\n{model_specific_weights.unique()}"
+                )
             # Smoothing update incentive
             temp_incentive_weight = {}
-
             if model_name in temp_incentive_weight:
                 bt.logging.info(
                     f"Using temp_incentive_weight: {temp_incentive_weight} for {model_name}"
@@ -741,6 +745,7 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )
+
             weights = weights + model_specific_weights
 
         # Check if rewards contains NaN values.
@@ -776,6 +781,32 @@ class Validator(BaseValidatorNeuron):
         except Exception as e:
             self.step = 0
             bt.logging.info("Could not find previously saved state.", e)
+
+    @staticmethod
+    def rank_tensor(tensor):
+        # Step 1: Sort the tensor and get the original indices
+        sorted_tensor, indices = torch.sort(tensor, descending=True)
+
+        # Step 2: Create a new tensor for rankings
+        ranked_tensor = torch.zeros_like(tensor)
+
+        # Step 3: Assign ranks based on conditions
+        # First element gets 1.0
+        ranked_tensor[indices[0]] = 1.0
+
+        # Check for tie between second and third elements
+        if sorted_tensor[1] == sorted_tensor[2]:
+            # If there's a tie, both get 0.5
+            ranked_tensor[indices[1]] = 0.5
+            ranked_tensor[indices[2]] = 0.5
+        else:
+            # Otherwise, assign 2/3 and 1/3
+            ranked_tensor[indices[1]] = 2 / 3
+            ranked_tensor[indices[2]] = 1 / 3
+
+        # All others (rank 4 and below) get 0 (already initialized)
+
+        return ranked_tensor
 
 
 # The main function parses the configuration and runs the validator.
