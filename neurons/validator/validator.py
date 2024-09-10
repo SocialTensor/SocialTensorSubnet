@@ -188,22 +188,6 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "DreamShaperXL": {
-            "model_incentive_weight": 0.00,
-            "supporting_pipelines": MODEL_CONFIGS["DreamShaperXL"]["params"][
-                "supporting_pipelines"
-            ],
-            "reward_url": config.reward_url.DreamShaperXL,
-            "reward_type": "image",
-            "inference_params": {
-                "num_inference_steps": 8,
-                "width": 1024,
-                "height": 1024,
-                "guidance_scale": 2,
-            },
-            "timeout": 16,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
         "JuggernautXL": {
             "supporting_pipelines": MODEL_CONFIGS["JuggernautXL"]["params"][
                 "supporting_pipelines"
@@ -275,17 +259,6 @@ def initialize_nicheimage_catalogue(config):
             "reward_type": "image",
             "inference_params": {"is_upscale": False},
         },
-        "FaceToMany": {
-            "supporting_pipelines": MODEL_CONFIGS["FaceToMany"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.00,
-            "timeout": 64,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "reward_url": config.reward_url.FaceToMany,
-            "reward_type": "image",
-            "inference_params": {},
-        },
         "Llama3_70b": {
             "supporting_pipelines": MODEL_CONFIGS["Llama3_70b"]["params"][
                 "supporting_pipelines"
@@ -296,17 +269,6 @@ def initialize_nicheimage_catalogue(config):
             "reward_url": config.reward_url.Llama3_70b,
             "reward_type": "text",
             "inference_params": {},
-        },
-        "DallE": {
-            "supporting_pipelines": MODEL_CONFIGS["DallE"]["params"][
-                "supporting_pipelines"
-            ],
-            "reward_url": ig_subnet.validator.get_reward_dalle,
-            "reward_type": "custom_offline",
-            "timeout": 36,
-            "inference_params": {},
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "model_incentive_weight": 0.00,
         },
         "SUPIR": {
             "supporting_pipelines": MODEL_CONFIGS["SUPIR"]["params"][
