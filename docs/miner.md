@@ -5,19 +5,16 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 ### Incentive Distribution
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
-| RealitiesEdgeXL  | 29%                    | 12 |
-| AnimeV3         | 27%                    | 12 |
-| JuggernautXL | 17%                    | 12 |
-| DreamShaperXL (deprecated soon)    | 4%                     | 16 |
+| RealitiesEdgeXL  | 19%                    | 12 |
+| AnimeV3         | 19%                    | 12 |
+| JuggernautXL | 15%                    | 12 |
 | GoJourney       | 4%                     | 12 |
 | Llama3_70b         | 4%                     | 128 |
-| DallE (deprecated soon)    | 2%                     | 32 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
-| FaceToMany (deprecated soon)      | 1%                     | 64 |
-| SUPIR     | 2%                     | 180 |
-| FluxSchnell | 2% | 24 |
-| Kolors | 2% | 32 |
+| SUPIR     | 8%                     | 180 |
+| FluxSchnell | 12% | 24 |
+| Kolors | 10% | 32 |
 | **OpenGeneral** | 1% | 32 |
 | **OpenDigitalArt** | 1% | 32 |
 
@@ -101,7 +98,11 @@ git submodule update --init --recursive
 - With provided template, you can run a miner by select diffusion model on huggingface. Example:
 ```bash
 source main_env/bin/activate
-pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.open_category_app --model_name "black-forest-labs/FLUX.1-dev" --num_gpus 1 --port 10006 --num_inference_steps 30 --guidance_scale 3.0
+pm2 start python --name "miner_endpoint" -- \
+-m services.miner_endpoint.open_category_app \
+--model_name "black-forest-labs/FLUX.1-dev" \
+--category OpenCategory \ # default is OpenCategory, change if you use different category
+--num_gpus 1 --port 10006 --num_inference_steps 30 --guidance_scale 3.0 # inference params for diffusion model
 ```
 3. Start miner
 ```bash

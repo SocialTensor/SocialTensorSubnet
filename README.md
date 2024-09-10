@@ -21,7 +21,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | ⚔️ JuggernautXL | 15%                    | Fixed Image Category                                                            |
 | 🏞️ RealitiesEdgeXL  | 19%                    | Fixed Image Category                                                      |
 | 💎 Gemma7b         | 3%                     | Fixed Text Category                                                     |
-| 🦙 Llama3_70b      | 4%                     | Fixed Text Category|
+| 🦙 Llama3_70b      | 5%                     | Fixed Text Category|
 | 🏷️ StickerMaker    | 3%                     | Fixed Image Category |
 | 🌟 SUPIR    | 8%                     | Fixed Image Category |
 | 🌟 Kolors | 10% | Fixed Image Category |

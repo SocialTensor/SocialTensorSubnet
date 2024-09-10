@@ -208,7 +208,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.20,
+            "model_incentive_weight": 0.19,
             "reward_url": config.reward_url.RealitiesEdgeXL,
             "reward_type": "image",
             "inference_params": {
@@ -224,7 +224,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.20,
+            "model_incentive_weight": 0.19,
             "reward_url": config.reward_url.AnimeV3,
             "reward_type": "image",
             "inference_params": {
@@ -315,7 +315,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenGeneral": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.0,
+            "model_incentive_weight": 0.01,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -324,7 +324,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenDigitalArt": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.0,
+            "model_incentive_weight": 0.01,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
