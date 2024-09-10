@@ -414,7 +414,7 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("Updating available models & uids")
         async_batch_size = self.config.async_batch_size
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
-        self.open_category_reward_synapse = self.init_reward_open_category_synapses()
+        self.open_category_reward_synapses = self.init_reward_open_category_synapses()
         threads = []
         loop_start = time.time()
         self.miner_manager.update_miners_identity()
