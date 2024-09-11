@@ -34,7 +34,7 @@ class MinerInfo:
         self.rate_limit = 0
         self.category: str = category
         self.reward_scale: float = reward_scale
-        self.reward_logs = []
+        self.reward_logs = reward_logs
 
     def __str__(self):
         return str(self.to_dict()) + "\n"
@@ -99,7 +99,7 @@ class MinerManager:
                 )
             miner_distribution = {}
             for uid, info in valid_miners_info.items():
-                info = MinerInfo(**info)
+                info = self.all_uids_info[int(uid)] if int(uid) in self.all_uids_info else MinerInfo(**info)
                 rate_limit_per_validator: dict = get_rate_limit_per_validator(
                     metagraph=self.validator.metagraph,
                     epoch_volume=info.epoch_volume,
