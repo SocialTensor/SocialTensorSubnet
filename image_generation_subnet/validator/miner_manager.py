@@ -148,7 +148,7 @@ class MinerManager:
         try:
             catalogue = {}
             for k, v in self.validator.nicheimage_catalogue.items():
-                incentive_distribution[k] = {
+                catalogue[k] = {
                     "model_incentive_weight": v["model_incentive_weight"],
                     "supporting_pipelines": v["supporting_pipelines"],
                 }
