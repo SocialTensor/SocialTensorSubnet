@@ -146,12 +146,19 @@ class MinerManager:
 
     def store_miner_info(self):
         try:
+            catalogue = {}
+            for k, v in self.validator.nicheimage_catalogue.items():
+                incentive_distribution[k] = {
+                    "model_incentive_weight": v["model_incentive_weight"],
+                    "supporting_pipelines": v["supporting_pipelines"],
+                }
             requests.post(
                 self.validator.config.storage_url + "/store_miner_info",
                 json={
                     "uid": self.validator.uid,
                     "info": self.all_uids_info,
                     "version": ig_subnet.__version__,
+                    "catalogue": catalogue,
                 },
             )
             self.reset_metadata()
