@@ -149,8 +149,8 @@ class MinerManager:
             catalogue = {}
             for k, v in self.validator.nicheimage_catalogue.items():
                 catalogue[k] = {
-                    "model_incentive_weight": v["model_incentive_weight"],
-                    "supporting_pipelines": v["supporting_pipelines"],
+                    "model_incentive_weight": v.get("model_incentive_weight", 0),
+                    "supporting_pipelines": v.get("supporting_pipelines", []),
                 }
             requests.post(
                 self.validator.config.storage_url + "/store_miner_info",
