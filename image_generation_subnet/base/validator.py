@@ -239,7 +239,7 @@ class BaseValidatorNeuron(BaseNeuron):
         )
         bt.logging.trace("processed_weights", processed_weights)
         bt.logging.trace("processed_weight_uids", processed_weight_uids)
-        if datetime.utcnow() < datetime(2024, 9, 18, 14):
+        if datetime.utcnow() < datetime(2024, 9, 19, 14):
             version_key = 15
         else:
             version_key = self.spec_version
