@@ -119,16 +119,15 @@ class LogicRewarder:
         """
         ground_truth_answer = base_synapse.ground_truth_answer
         bt.logging.debug(f"[CORRECTNESS] Ground truth: {ground_truth_answer}")
-        prompt = CORRECTNESS_TEMPLATE.format(
-            question=base_synapse.raw_logic_question,
-            ground_truth_answer=ground_truth_answer,
-            response=response.logic_answer
-        )
         batch_messages = [
             [
                 {
                     "role": "user",
-                    "content": prompt,
+                    "content": CORRECTNESS_TEMPLATE.format(
+                        question=base_synapse.raw_logic_question,
+                        ground_truth_answer=ground_truth_answer,
+                        response=response.logic_answer
+                    ),
                 },
             ]
             for response in responses
