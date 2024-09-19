@@ -16,6 +16,7 @@ from image_generation_subnet.validator.offline_challenge import (
     get_backup_image,
     get_backup_prompt,
     get_backup_llm_prompt,
+    get_backup_challenge_vqa
 )
 from datetime import datetime
 from services.offline_rewarding.redis_client import RedisClient
@@ -171,6 +172,10 @@ def initialize_challenge_urls(config):
             "main": [config.challenge.open_category_prompt],
             "backup": [get_backup_prompt],
         },
+        "visual_question_answering": {
+            "main": [config.challenge.visual_question_answering],
+            "backup": [get_backup_challenge_vqa],
+        }
     }
     return challenge_urls
 
@@ -330,6 +335,19 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "Pixtral_12b": {
+            "supporting_pipelines": ["visual_question_answering"],
+            "model_incentive_weight": 0.00,
+            "reward_url": config.reward_url.Pixtral_12b,
+            "reward_type": "text",
+            "inference_params": {
+                "temperature": 0.7,
+                "top_p": 1,
+                "max_tokens": 8192
+            },
+            "timeout": 64,
+            "synapse_type": ig_subnet.protocol.MultiModalGenerating,
         },
     }
 
