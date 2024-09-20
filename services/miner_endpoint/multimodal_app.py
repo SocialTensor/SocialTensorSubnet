@@ -4,6 +4,8 @@ import uvicorn
 from openai import OpenAI
 import httpx
 import yaml
+import copy
+from services.utils import convert_chat_completion_response_to_completion_response
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -67,14 +69,18 @@ class MultiModalGenerating:
     async def generate(self, data: dict):
         request = {
             "model": self.repo_id,
-            "logprobs": True,
-            "top_logprobs": 10
+            "seed": data["seed"]
         }
-        request.update(data.get("pipeline_params", {}))
+        pipeline_params = data.get("pipeline_params", {})
+        logprobs = pipeline_params.get("logprobs")
+        if logprobs:
+            pipeline_params["top_logprobs"] = copy.deepcopy(pipeline_params["logprobs"])
+            pipeline_params["logprobs"] = True
+        request.update(pipeline_params)
         message_content = [
             {
                 "type": "text",
-                "text": data["prompt"]
+                "text": data["prompt"][0]
             }
         ]
 
@@ -94,7 +100,7 @@ class MultiModalGenerating:
         ]
         request["messages"] = conversation 
         completion =self.client.chat.completions.create(**request)
-        completion = MultiModalGenerating.convert_chat_completion_ressponse_to_completion_response(completion)
+        completion = convert_chat_completion_response_to_completion_response(completion)
 
         return {
             "prompt_output": completion,
@@ -105,33 +111,6 @@ class MultiModalGenerating:
             "model_name": args.model_name,
         }
 
-    @staticmethod
-    def convert_chat_completion_ressponse_to_completion_response(chat_completion):
-        choices = []
-        for ch in chat_completion.choices:
-            text_offset, offset, token_logprobs, tokens, top_logprobs = [], 0, [], [], []
-            for cnt in ch.logprobs.content:
-                text_offset.append(offset)
-                offset += len(cnt.token)
-                token_logprobs.append(cnt.logprob)
-                tokens.append(cnt.token)
-                top_logprobs.append({x.token: x.logprob for x in cnt.top_logprobs})
-            choice = {
-                "index": ch.index,
-                "text": ch.message.content,
-                "logprobs": {
-                    "text_offset": text_offset,
-                    "token_logprobs": token_logprobs,
-                    "tokens": tokens,
-                    "top_logprobs": top_logprobs
-                },
-                
-            }
-            choices.append(choice)
-        chat_completion.choices = choices
-
-        completion = chat_completion.__dict__
-        return completion
 
 if __name__ == "__main__":
     args = get_args()

@@ -344,7 +344,8 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {
                 "temperature": 0.7,
                 "top_p": 1,
-                "max_tokens": 8192
+                "max_tokens": 8192,
+                "logprobs": 100
             },
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.MultiModalGenerating,

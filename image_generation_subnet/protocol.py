@@ -253,16 +253,20 @@ class MultiModalGenerating(bt.Synapse):
     prompt_output: typing.Optional[dict] = {}
 
     def miner_update(self, update: dict):
-        self.output = update
+        self.prompt_output = update
 
     def deserialize_input(self) -> dict:
         deserialized_input = {
             "model": MODEL_CONFIG[self.model_name].get("repo_id", self.model_name),
-            "prompt": self.prompt,
+            "prompt": [
+                self.prompt,
+            ],
             "image_url": self.image_url,
             "pipeline_type": self.pipeline_type,
-            "pipeline_params": self.pipeline_params
+            "pipeline_params": self.pipeline_params,
+            "seed": self.seed
         }
+        deserialized_input.update(self.pipeline_params)
         return deserialized_input
     
     def limit_params(self):
@@ -276,10 +280,11 @@ class MultiModalGenerating(bt.Synapse):
             "prompt_output": self.prompt_output,
             "prompt": self.prompt,
             "model_name": self.model_name,
+            "seed": self.seed
         }
 
     def deserialize_response(self):
-        minimized_prompt_output: dict = copy.deepcopy(self.output)
+        minimized_prompt_output: dict = copy.deepcopy(self.prompt_output)
         minimized_prompt_output['choices'][0].pop("logprobs")
         return {
             "prompt_output": minimized_prompt_output,
@@ -289,7 +294,7 @@ class MultiModalGenerating(bt.Synapse):
 
     def store_response(self, storage_url: str, uid, validator_uid):
         storage_url = storage_url + "/upload-multimodal-item"
-        minimized_prompt_output: dict = copy.deepcopy(self.output)
+        minimized_prompt_output: dict = copy.deepcopy(self.prompt_output)
         minimized_prompt_output['choices'][0].pop("logprobs")
         data = {
             "prompt_input": self.prompt,
