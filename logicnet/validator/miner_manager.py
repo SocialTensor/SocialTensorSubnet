@@ -99,7 +99,8 @@ class MinerManager:
                 )
             miner_distribution = {}
             for uid, info in valid_miners_info.items():
-                info = self.all_uids_info[int(uid)] if int(uid) in self.all_uids_info else MinerInfo(**info)
+                # info = self.all_uids_info[int(uid)] if int(uid) in self.all_uids_info else MinerInfo(**info)
+                info = MinerInfo(**info)
                 rate_limit_per_validator: dict = get_rate_limit_per_validator(
                     metagraph=self.validator.metagraph,
                     epoch_volume=info.epoch_volume,
