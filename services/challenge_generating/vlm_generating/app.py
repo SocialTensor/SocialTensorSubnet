@@ -37,7 +37,7 @@ class VLMSyntheticPrompt:
         dataset = load_dataset(
             "laion/laion-high-resolution",
             split="train",
-            num_proc=64,
+            num_proc=16,
         )
         dataset = dataset.shuffle()
         return dataset
