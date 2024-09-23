@@ -28,6 +28,7 @@ from typing import List
 from traceback import print_exception
 
 from image_generation_subnet.base.neuron import BaseNeuron
+from datetime import datetime
 
 
 class BaseValidatorNeuron(BaseNeuron):
