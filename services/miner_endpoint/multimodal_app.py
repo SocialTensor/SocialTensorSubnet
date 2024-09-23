@@ -2,9 +2,8 @@ import argparse
 from fastapi import FastAPI
 import uvicorn
 from openai import OpenAI
-import httpx
 import yaml
-import copy
+import inspect
 from services.utils import convert_chat_completion_response_to_completion_response
 
 MODEL_CONFIG = yaml.load(
@@ -67,39 +66,10 @@ class MultiModalGenerating:
         self.app.add_api_route("/info", self.info, methods=["GET"])
 
     async def generate(self, data: dict):
-        request = {
-            "model": self.repo_id,
-            "seed": data["seed"]
-        }
-        pipeline_params = data.get("pipeline_params", {})
-        logprobs = pipeline_params.get("logprobs")
-        if logprobs:
-            pipeline_params["top_logprobs"] = copy.deepcopy(pipeline_params["logprobs"])
-            pipeline_params["logprobs"] = True
-        request.update(pipeline_params)
-        message_content = [
-            {
-                "type": "text",
-                "text": data["prompt"][0]
-            }
-        ]
+        valid_args = inspect.signature(self.client.chat.completions.create).parameters
+        filtered_kwargs = {k: v for k, v in data.items() if k in valid_args}
 
-        if data.get("image_url"):
-                message_content.append({
-                "type": "image_url",
-                "image_url": {
-                    "url": data["image_url"]
-                },
-            })
-
-        conversation = [
-            {
-                "role": "user", 
-                "content": message_content
-            },
-        ]
-        request["messages"] = conversation 
-        completion =self.client.chat.completions.create(**request)
+        completion =self.client.chat.completions.create(**filtered_kwargs)
         completion = convert_chat_completion_response_to_completion_response(completion)
 
         return {
