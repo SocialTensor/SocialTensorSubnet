@@ -14,6 +14,7 @@ from openai import OpenAI
 import httpx
 import traceback
 import copy
+import inspect
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -176,55 +177,21 @@ class MultiModalRewardApp(VllmRewardApp):
         )
         self.model_path = args.model_name
 
-    def call_vllm(self, base_data_):
-        base_data = copy.deepcopy(base_data_)
-        request = {
-            "model": base_data["model"],
-            "seed": base_data["seed"],
-        }
-        pipeline_params = base_data.get("pipeline_params", {})
-        logprobs = pipeline_params.get("logprobs")
-        if logprobs:
-            pipeline_params["top_logprobs"] = copy.deepcopy(pipeline_params["logprobs"])
-            pipeline_params["logprobs"] = True
-
-
-        request.update(pipeline_params)
-        request["max_tokens"] = base_data["max_tokens"]
-        message_content = [
-            {
-                "type": "text",
-                "text": base_data["prompt"][0]
-            }
-        ]
-
-        if base_data.get("image_url"):
-                message_content.append({
-                "type": "image_url",
-                "image_url": {
-                    "url": base_data["image_url"]
-                },
-            })
-
-        
-        conversation = [
-            {
-                "role": "user", 
-                "content": message_content
-            }
-        ]
-        if base_data["prompt_to_check"]:
-            conversation.append({
+    def call_vllm(self, base_data):
+        request = copy.deepcopy(base_data)
+        if request["prompt_to_check"]:
+            request["messages"].append({
                 "role": "assistant",
-                "content": base_data["prompt_to_check"],
+                "content": request["prompt_to_check"],
                 "prefix": True
             })
             request["extra_body"] = {
                 "add_generation_prompt": False
             }
+        valid_args = inspect.signature(self.client.chat.completions.create).parameters
+        filtered_kwargs = {k: v for k, v in request.items() if k in valid_args}
 
-        request["messages"] = conversation 
-        completion =self.client.chat.completions.create(**request)
+        completion =self.client.chat.completions.create(**filtered_kwargs)
         return self.convert_chat_completion_response_to_completion_response(completion)
 
     def get_prompt_to_check(self, _base_data, base_prompt, miner_data, offset):

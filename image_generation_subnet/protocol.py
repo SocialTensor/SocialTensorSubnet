@@ -256,6 +256,27 @@ class MultiModalGenerating(bt.Synapse):
         self.prompt_output = update
 
     def deserialize_input(self) -> dict:
+        message_content = [
+            {
+                "type": "text",
+                "text": self.prompt
+            }
+        ]
+        if self.image_url:
+            message_content.append({
+            "type": "image_url",
+            "image_url": {
+                "url": self.image_url
+            },
+        })
+
+        messages = [
+            {
+                "role": "user", 
+                "content": message_content
+            }
+        ]
+
         deserialized_input = {
             "model": MODEL_CONFIG[self.model_name].get("repo_id", self.model_name),
             "prompt": [
@@ -263,10 +284,15 @@ class MultiModalGenerating(bt.Synapse):
             ],
             "image_url": self.image_url,
             "pipeline_type": self.pipeline_type,
-            "pipeline_params": self.pipeline_params,
-            "seed": self.seed
+            "seed": self.seed,
+            "messages": messages
         }
+        logprobs = self.pipeline_params.get("logprobs")
+        if logprobs:
+            self.pipeline_params["top_logprobs"] = copy.deepcopy(self.pipeline_params["logprobs"])
+            self.pipeline_params["logprobs"] = True        
         deserialized_input.update(self.pipeline_params)
+
         return deserialized_input
     
     def limit_params(self):
