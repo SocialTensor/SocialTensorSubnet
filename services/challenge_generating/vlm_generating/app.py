@@ -38,7 +38,6 @@ class VLMSyntheticPrompt:
             "laion/laion-high-resolution",
             split="train",
             num_proc=64,
-            cache_dir="/mnt/laion",
         )
         dataset = dataset.shuffle()
         return dataset
