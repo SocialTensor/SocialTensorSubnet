@@ -716,7 +716,7 @@ class Validator(BaseValidatorNeuron):
                 )
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime(2024, 8, 8, 14, 0, 0) < datetime.utcnow() < datetime(2024, 9, 26, 14, 0, 0): # Activate on 26/09
+            if datetime.utcnow() < datetime(2024, 9, 26, 14, 0, 0):
                 temp_incentive_weight = {
                     "AnimeV3": 0.19, 
                     "Pixtral_12b": 0.00,
