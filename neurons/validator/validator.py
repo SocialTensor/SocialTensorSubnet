@@ -605,6 +605,9 @@ class Validator(BaseValidatorNeuron):
             store_thread.join()
 
     def prepare_challenge(self, uids_should_rewards, model_name, pipeline_type):
+        """
+        Batch the batch (max = 16) into smaller batch size (max = 4) and prepare synapses for each batch.
+        """
         synapse_type = self.nicheimage_catalogue[model_name]["synapse_type"]
         model_miner_count = len(
             [
@@ -671,6 +674,9 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.error(f"Error in storing response: {e}")
 
     def init_reward_open_category_synapses(self):
+        """
+        Initialize synapses to be rewarded for open category models.
+        """
         return {
             k: None
             for k in self.nicheimage_catalogue.keys()
@@ -678,7 +684,10 @@ class Validator(BaseValidatorNeuron):
         }
 
     def update_scores_on_chain(self):
-        """Performs exponential moving average on the scores based on the rewards received from the miners."""
+        """
+        Update weights based on incentive pool and model specific weights.
+        - Apply rank weight for open category model.
+        """
 
         weights = torch.zeros(len(self.miner_manager.all_uids))
         for model_name in self.nicheimage_catalogue.keys():
@@ -686,12 +695,19 @@ class Validator(BaseValidatorNeuron):
                 model_name
             )
             if self.nicheimage_catalogue[model_name]["reward_type"] == "open_category":
+                mask = model_specific_weights > 1e-4
                 ranked_model_specific_weights = self.rank_tensor(model_specific_weights)
                 bt.logging.debug(
                     f"Unique ranked weights for {model_name}\n{model_specific_weights.unique()}"
                 )
-                model_specific_weights = model_specific_weights * 0.5 + ranked_model_specific_weights * 0.5
-                model_specific_weights = 0.8 + model_specific_weights * 0.2
+                model_specific_weights = (
+                    model_specific_weights * 0.5 + ranked_model_specific_weights * 0.5
+                )
+                model_specific_weights = 0.8 + 0.2 * model_specific_weights
+                model_specific_weights = model_specific_weights * mask
+                model_specific_weights = torch.nn.functional.normalize(
+                    model_specific_weights, p=1, dim=0
+                )
                 bt.logging.debug(
                     f"Normalized {model_name} weights\n{model_specific_weights}"
                 )
@@ -751,6 +767,9 @@ class Validator(BaseValidatorNeuron):
 
     @staticmethod
     def rank_tensor(tensor):
+        # Return Zeros if tensor is zeros
+        if torch.sum(tensor) == 0:
+            return tensor
         # Step 1: Sort the tensor and get the original indices
         sorted_tensor, indices = torch.sort(tensor, descending=True)
 
