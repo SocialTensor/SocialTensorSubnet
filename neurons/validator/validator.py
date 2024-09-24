@@ -16,7 +16,7 @@ from image_generation_subnet.validator.offline_challenge import (
     get_backup_image,
     get_backup_prompt,
     get_backup_llm_prompt,
-    get_backup_challenge_vqa
+    get_backup_challenge_vqa,
 )
 from datetime import datetime
 from services.offline_rewarding.redis_client import RedisClient
@@ -175,7 +175,7 @@ def initialize_challenge_urls(config):
         "visual_question_answering": {
             "main": [config.challenge.visual_question_answering],
             "backup": [get_backup_challenge_vqa],
-        }
+        },
     }
     return challenge_urls
 
@@ -345,7 +345,7 @@ def initialize_nicheimage_catalogue(config):
                 "temperature": 0.7,
                 "top_p": 1,
                 "max_tokens": 8192,
-                "logprobs": 100
+                "logprobs": 100,
             },
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.MultiModalGenerating,
@@ -734,7 +734,7 @@ class Validator(BaseValidatorNeuron):
             temp_incentive_weight = {}
             if datetime.utcnow() < datetime(2024, 9, 26, 14, 0, 0):
                 temp_incentive_weight = {
-                    "AnimeV3": 0.19, 
+                    "AnimeV3": 0.19,
                     "Pixtral_12b": 0.00,
                 }
 

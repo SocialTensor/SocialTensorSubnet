@@ -328,7 +328,7 @@ def add_args(cls, parser):
             "--challenge.visual_question_answering",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/visual_question_answering",
+            default="http://nicheimage.nichetensor.com/challenge/vqa",
         )
 
         parser.add_argument(
