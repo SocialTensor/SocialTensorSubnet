@@ -23,7 +23,7 @@ class VLMSyntheticPrompt:
         Sets up the API route for POST requests.
         """
         self.app = FastAPI()
-        self.app.add_api_route("/", self.__getitem__, methods=["POST"])
+        self.app.add_api_route("/", self.__call__, methods=["POST"])
         self.dataset = self.load_dataset()
 
     def load_dataset(self):
