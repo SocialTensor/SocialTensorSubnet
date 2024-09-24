@@ -17,7 +17,7 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | Kolors | 10% | 32 |
 | **OpenGeneral** | 1% | 32 |
 | **OpenDigitalArt** | 1% | 32 |
-| **Pixtral_12b** | x% | 64 |
+| **Pixtral_12b** | 1% | 64 |
 
 ## Guide Fixed Category
 1. Git clone and install requirements
