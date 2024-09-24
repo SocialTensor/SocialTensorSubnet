@@ -105,7 +105,7 @@ class VllmRewardApp:
         offset_idxs = [0] + [random.randint(1, n_tokens - 1) for _ in range(2)] + [-2]
         base_prompt = base_data["prompt"][0]
         same_keys = []
-        n_logprobs = base_data["logprobs"]
+        n_logprobs = base_data["top_logprobs"] if "top_logprobs" in base_data else base_data["logprobs"]
         for offset_idx in offset_idxs:
             offset = text_offset[offset_idx]
             miner_top_logprobs = miner_data["prompt_output"]["choices"][0]["logprobs"][
