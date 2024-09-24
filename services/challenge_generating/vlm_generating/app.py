@@ -37,7 +37,7 @@ class VLMSyntheticPrompt:
         dataset = load_dataset(
             "laion/laion-high-resolution",
             split="train",
-            num_proc=16,
+            num_proc=1,
         )
         dataset = dataset.shuffle()
         return dataset
@@ -84,7 +84,7 @@ class VLMSyntheticPrompt:
         except Exception as e:
             return False
 
-    async def __getitem__(self, data={}):
+    async def __call__(self, data={}):
         """
         API endpoint handler for retrieving a valid image URL and generating a synthetic prompt.
 
