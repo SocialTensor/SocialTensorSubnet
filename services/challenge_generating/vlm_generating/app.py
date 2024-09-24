@@ -9,21 +9,6 @@ from datasets import load_dataset
 from fastapi import FastAPI
 import random
 import httpx
-import os
-
-# RAILWAY Variables
-TOTAL_REPLICAS = int(os.getenv("RAILWAY_TOTAL_REPLICAS", 1))
-REPLICA_INDEX = int(os.getenv("RAILWAY_REPLICA_ID", 0))
-DATASET_FRACTION = 1 / TOTAL_REPLICAS
-DATASET_START = REPLICA_INDEX * DATASET_FRACTION
-DATASET_END = (REPLICA_INDEX + 1) * DATASET_FRACTION
-SPLIT = f"train[{DATASET_START * 100}%:{DATASET_END * 100}%]"
-print(f"RAILWAY_TOTAL_REPLICAS: {TOTAL_REPLICAS}")
-print(f"RAILWAY_REPLICA_ID: {REPLICA_INDEX}")
-print(f"DATASET_FRACTION: {DATASET_FRACTION}")
-print(f"DATASET_START: {DATASET_START}")
-print(f"DATASET_END: {DATASET_END}")
-print(f"SPLIT: {SPLIT}")
 
 
 class VLMSyntheticPrompt:
@@ -51,8 +36,8 @@ class VLMSyntheticPrompt:
         """
         dataset = load_dataset(
             "laion/laion-high-resolution",
-            split=SPLIT,
-            num_proc=1,
+            split="train",
+            num_proc=4,
         )
         dataset = dataset.shuffle()
         return dataset
