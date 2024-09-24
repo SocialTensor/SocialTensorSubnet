@@ -229,7 +229,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.19,
+            "model_incentive_weight": 0.18,
             "reward_url": config.reward_url.AnimeV3,
             "reward_type": "image",
             "inference_params": {
@@ -338,7 +338,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "Pixtral_12b": {
             "supporting_pipelines": ["visual_question_answering"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.01,
             "reward_url": config.reward_url.Pixtral_12b,
             "reward_type": "text",
             "inference_params": {
@@ -716,6 +716,12 @@ class Validator(BaseValidatorNeuron):
                 )
             # Smoothing update incentive
             temp_incentive_weight = {}
+            if datetime.utcnow() < datetime(2024, 9, 26, 14, 0, 0):
+                temp_incentive_weight = {
+                    "AnimeV3": 0.19, 
+                    "Pixtral_12b": 0.00,
+                }
+
             if model_name in temp_incentive_weight:
                 bt.logging.info(
                     f"Using temp_incentive_weight: {temp_incentive_weight} for {model_name}"

@@ -26,6 +26,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | 🌟 SUPIR    | 8%                     | Fixed Image Category |
 | 🌟 Kolors | 10% | Fixed Image Category |
 | 🌟🌟 FluxSchnell | 12% | Fixed Image Category |
+| **Pixtral_12b** | 1% | Fixed Multimodal Category |
 | **OpenGeneral** | 1% | [Open category](/docs/open_category_reward_mechanism.md) |
 | **OpenDigitalArt** | 1% | [Open category](/docs/open_category_reward_mechanism.md) |
 
