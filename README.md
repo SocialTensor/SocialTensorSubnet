@@ -17,7 +17,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | Category        | Incentive Distribution | Description                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | 🧭 GoJourney       | 4%                     | Fixed Image Category                                                                                        |
-| 🌀 AnimeV3         | 19%                    | Fixed Image Category                                                                                  |
+| 🌀 AnimeV3         | 18%                    | Fixed Image Category                                                                                  |
 | ⚔️ JuggernautXL | 15%                    | Fixed Image Category                                                            |
 | 🏞️ RealitiesEdgeXL  | 19%                    | Fixed Image Category                                                      |
 | 💎 Gemma7b         | 3%                     | Fixed Text Category                                                     |
