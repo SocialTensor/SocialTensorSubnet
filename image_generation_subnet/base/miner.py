@@ -23,7 +23,7 @@ import traceback
 import bittensor as bt
 
 from image_generation_subnet.base.neuron import BaseNeuron
-from image_generation_subnet.miner.constants import nginx_conf
+from image_generation_subnet.miner.constants import NGINX_CONF
 
 
 class BaseMinerNeuron(BaseNeuron):

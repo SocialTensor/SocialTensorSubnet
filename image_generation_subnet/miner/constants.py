@@ -1,4 +1,4 @@
-nginx_conf = """
+NGINX_CONF = """
 worker_processes 1;
 events {
     worker_connections 1024;
