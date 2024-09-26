@@ -215,7 +215,6 @@ class BaseMinerNeuron(BaseNeuron):
                     )
                     .replace("{{internal_axon_port}}", str(self.config.axon.port))
                 )
-                bt.logging.info(nginx_conf)
                 with open("/etc/nginx/nginx.conf", "w") as f:
                     f.write(nginx_conf)
                 os.system("nginx -s reload")
