@@ -26,6 +26,7 @@ from image_generation_subnet.base.neuron import BaseNeuron
 from image_generation_subnet.miner.constants import NGINX_CONF
 import os
 
+
 class BaseMinerNeuron(BaseNeuron):
     """
     Base class for Bittensor miners.
@@ -217,7 +218,7 @@ class BaseMinerNeuron(BaseNeuron):
                 bt.logging.info(nginx_conf)
                 with open("/etc/nginx/nginx.conf", "w") as f:
                     f.write(nginx_conf)
-                os.system("nginx")
+                os.system("nginx -s reload")
                 bt.logging.info("Nginx configuration updated.")
             except Exception as e:
                 bt.logging.error(f"Error in updating nginx configuration: {e}")
