@@ -24,7 +24,7 @@ import bittensor as bt
 
 from image_generation_subnet.base.neuron import BaseNeuron
 from image_generation_subnet.miner.constants import NGINX_CONF
-
+import os
 
 class BaseMinerNeuron(BaseNeuron):
     """
@@ -207,14 +207,17 @@ class BaseMinerNeuron(BaseNeuron):
                 for k in self.volume_per_validator.keys():
                     whitelist.append(f"allow {axons[int(k)].ip};")
                 whitelist = "\n".join(whitelist)
-                nginx_conf = NGINX_CONF.format(
-                    external_axon_port=self.config.axon.external_port,
-                    internal_axon_port=self.config.axon.port,
-                    whitelist=whitelist,
+                nginx_conf = (
+                    NGINX_CONF.replace("{{whitelist}}", whitelist)
+                    .replace(
+                        "{{external_axon_port}}", str(self.config.axon.external_port)
+                    )
+                    .replace("{{internal_axon_port}}", str(self.config.axon.port))
                 )
                 bt.logging.info(nginx_conf)
                 with open("/etc/nginx/nginx.conf", "w") as f:
                     f.write(nginx_conf)
+                os.system("nginx")
                 bt.logging.info("Nginx configuration updated.")
             except Exception as e:
                 bt.logging.error(f"Error in updating nginx configuration: {e}")
