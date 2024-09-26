@@ -422,6 +422,19 @@ def add_args(cls, parser):
             default=4,
         )
 
+        parser.add_argument(
+            "--miner.use_nginx",
+            action="store_true",
+            help="If set, we will use nginx to serve requests.",
+            default=False,
+        )
+        parser.add_argument(
+            "--miner.nginx_port",
+            type=int,
+            help="The port to run nginx on.",
+            default=8091,
+        )
+
 
 def config(cls):
     """
