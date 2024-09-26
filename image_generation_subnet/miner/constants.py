@@ -14,7 +14,6 @@ http {
         # Whitelist IP addresses
         # allow 123.45.67.89;  # Replace with your allowed IPs
         # allow 98.76.54.32;   # You can add multiple allowed IPs
-        {{whitelist}}
         deny all;            # Deny all other IPs
 
         location / {
