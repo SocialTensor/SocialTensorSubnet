@@ -208,13 +208,9 @@ class BaseMinerNeuron(BaseNeuron):
                 for k in self.volume_per_validator.keys():
                     whitelist.append(f"allow {axons[int(k)].ip};")
                 whitelist = "\n".join(whitelist)
-                nginx_conf = (
-                    NGINX_CONF.replace("{{whitelist}}", whitelist)
-                    .replace(
-                        "{{external_axon_port}}", str(self.config.axon.external_port)
-                    )
-                    .replace("{{internal_axon_port}}", str(self.config.axon.port))
-                )
+                nginx_conf = NGINX_CONF.replace(
+                    "{{external_axon_port}}", str(self.config.axon.external_port)
+                ).replace("{{internal_axon_port}}", str(self.config.axon.port))
                 with open("/etc/nginx/nginx.conf", "w") as f:
                     f.write(nginx_conf)
                 os.system("nginx -s reload")

@@ -19,6 +19,7 @@ http {
 
         location / {
             proxy_pass http://127.0.0.1:{{internal_axon_port}};
+            limit_conn addr 20;
         }
     }
 }
