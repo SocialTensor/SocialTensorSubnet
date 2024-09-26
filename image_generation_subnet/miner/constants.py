@@ -5,6 +5,7 @@ events {
 }
 
 http {
+    limit_conn_zone $binary_remote_addr zone=addr:10m;
     ignore_invalid_headers off;
     client_max_body_size 0;
     proxy_intercept_errors on;
