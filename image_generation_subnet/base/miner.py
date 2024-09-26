@@ -207,11 +207,12 @@ class BaseMinerNeuron(BaseNeuron):
                 for k in self.volume_per_validator.keys():
                     whitelist.append(f"allow {axons[int(k)].ip};")
                 whitelist = "\n".join(whitelist)
-                nginx_conf = nginx_conf.format(
+                nginx_conf = NGINX_CONF.format(
                     external_axon_port=self.config.axon.external_port,
                     internal_axon_port=self.config.axon.port,
                     whitelist=whitelist,
                 )
+                bt.logging.info(nginx_conf)
                 with open("/etc/nginx/nginx.conf", "w") as f:
                     f.write(nginx_conf)
                 bt.logging.info("Nginx configuration updated.")
