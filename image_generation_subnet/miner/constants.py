@@ -16,8 +16,6 @@ http {
         # allow 98.76.54.32;   # You can add multiple allowed IPs
         {{whitelist}}
         deny all;            # Deny all other IPs
-        access_log /var/log/nginx/access.log proxylog;
-        proxy_http_version 1.1;
 
         location / {
             proxy_pass http://127.0.0.1:{{internal_axon_port}};
