@@ -101,31 +101,10 @@ def add_args(cls, parser):
 
     if neuron_type == "validator":
         parser.add_argument(
-            "--neuron.num_concurrent_forwards",
-            type=int,
-            help="The number of concurrent forwards running at any time.",
-            default=1,
-        )
-
-        parser.add_argument(
-            "--neuron.sample_size",
-            type=int,
-            help="The number of miners to query in a single step.",
-            default=10,
-        )
-
-        parser.add_argument(
             "--neuron.disable_set_weights",
             action="store_true",
             help="Disables setting weights.",
             default=False,
-        )
-
-        parser.add_argument(
-            "--neuron.moving_average_alpha",
-            type=float,
-            help="Moving average alpha parameter, how much to add of the new observation.",
-            default=0.05,
         )
 
         parser.add_argument(
@@ -139,23 +118,10 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--neuron.vpermit_tao_limit",
-            type=int,
-            help="The maximum number of TAO allowed to query a validator with a vpermit.",
-            default=4096,
-        )
-
-        parser.add_argument(
             "--loop_base_time",
             type=int,
             help="The base time for the loop to run in seconds.",
             default=600,
-        )
-        parser.add_argument(
-            "--volume_utilization_factor",
-            type=float,
-            help="Determine how much of the volume to be used for synthentic quering.",
-            default=0.8,
         )
 
         parser.add_argument(
@@ -169,7 +135,7 @@ def add_args(cls, parser):
             "--storage_url",
             type=str,
             help="The url to store the image.",
-            default="https://api.nichetensor.com/storage",
+            default="https://nicheimage-api.nichetensor.com/storage",
         )
 
         parser.add_argument(
@@ -183,7 +149,7 @@ def add_args(cls, parser):
             "--proxy.proxy_client_url",
             type=str,
             help="The url initialize credentials for proxy.",
-            default="https://proxy_client.nichetensor.com",
+            default="https://proxy-client.nichetensor.com",
         )
 
         parser.add_argument(
@@ -196,75 +162,75 @@ def add_args(cls, parser):
         parser.add_argument(
             "--reward_url.RealitiesEdgeXL",
             type=str,
-            default="https://api.nichetensor.com/reward/RealitiesEdgeXL",
+            default="https://nicheimage-api.nichetensor.com/reward/RealitiesEdgeXL",
         )
 
         parser.add_argument(
             "--reward_url.AnimeV3",
             type=str,
-            default="https://api.nichetensor.com/reward/AnimeV3",
+            default="https://nicheimage-api.nichetensor.com/reward/AnimeV3",
         )
 
         parser.add_argument(
             "--reward_url.Gemma7b",
             type=str,
             help="The endpoint to get the reward for Gemma7b.",
-            default="https://api.nichetensor.com/reward/Gemma7b",
+            default="https://nicheimage-api.nichetensor.com/reward/Gemma7b",
         )
 
         parser.add_argument(
             "--reward_url.StickerMaker",
             type=str,
             help="The endpoint to get the reward for StickerMaker.",
-            default="https://api.nichetensor.com/reward/StickerMaker",
+            default="https://nicheimage-api.nichetensor.com/reward/StickerMaker",
         )
 
         parser.add_argument(
             "--reward_url.Llama3_70b",
             type=str,
             help="The endpoint to get the reward for FaceToMany.",
-            default="https://api.nichetensor.com/reward/Llama3_70b",
+            default="https://nicheimage-api.nichetensor.com/reward/Llama3_70b",
         )
 
         parser.add_argument(
             "--reward_url.JuggernautXL",
             type=str,
             help="",
-            default="https://api.nichetensor.com/reward/JuggernautXL",
+            default="https://nicheimage-api.nichetensor.com/reward/JuggernautXL",
         )
 
         parser.add_argument(
             "--reward_url.SUPIR",
             type=str,
             help="",
-            default="https://api.nichetensor.com/reward/SUPIR",
+            default="https://nicheimage-api.nichetensor.com/reward/SUPIR",
         )
         parser.add_argument(
             "--reward_url.FluxSchnell",
             type=str,
             help="",
-            default="https://api.nichetensor.com/reward/FluxSchnell",
+            default="https://nicheimage-api.nichetensor.com/reward/FluxSchnell",
         )
 
         parser.add_argument(
             "--reward_url.Kolors",
             type=str,
             help="",
-            default="https://api.nichetensor.com/reward/Kolors",
+            default="https://nicheimage-api.nichetensor.com/reward/Kolors",
         )
 
         parser.add_argument(
             "--reward_url.OpenCategory",
             type=str,
             help="",
-            default="https://api.nichetensor.com/reward/OpenCategory",
+            default="https://nicheimage-api.nichetensor.com/reward/OpenCategory",
         )
 
         parser.add_argument(
             "--reward_url.Pixtral_12b",
             type=str,
             help="",
-            default="https://api.nichetensor.com/reward/Pixtral_12b",
+            default="https://nicheimage-api.nichetensor.com/reward/Pixtral_12b",
         )
 
         # TODO: add more reward endpoints for categories
@@ -273,35 +239,35 @@ def add_args(cls, parser):
             "--challenge.prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="https://api.nichetensor.com/challenge/prompt",
+            default="https://nicheimage-api.nichetensor.com/challenge/prompt",
         )
 
         parser.add_argument(
             "--challenge.image",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="https://api.nichetensor.com/challenge/image",
+            default="https://nicheimage-api.nichetensor.com/challenge/image",
         )
 
         parser.add_argument(
             "--challenge.llm_prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="https://api.nichetensor.com/challenge/llm_prompt",
+            default="https://nicheimage-api.nichetensor.com/challenge/llm_prompt",
         )
 
         parser.add_argument(
             "--challenge.open_category_prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="https://api.nichetensor.com/challenge/open_category_prompt",
+            default="https://nicheimage-api.nichetensor.com/challenge/open_category_prompt",
         )
 
         parser.add_argument(
             "--challenge.visual_question_answering",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="https://api.nichetensor.com/challenge/vqa",
+            default="https://nicheimage-api.nichetensor.com/challenge/vqa",
         )
 
         parser.add_argument(
