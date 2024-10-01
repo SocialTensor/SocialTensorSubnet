@@ -194,104 +194,77 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--reward_url.RealisticVision",
-            type=str,
-            default="http://nicheimage.nichetensor.com/reward/RealisticVision",
-        )
-
-        parser.add_argument(
             "--reward_url.RealitiesEdgeXL",
             type=str,
-            default="http://nicheimage.nichetensor.com/reward/RealitiesEdgeXL",
+            default="https://nicheimage_api.nichetensor.com/reward/RealitiesEdgeXL",
         )
 
         parser.add_argument(
             "--reward_url.AnimeV3",
             type=str,
-            default="http://nicheimage.nichetensor.com/reward/AnimeV3",
-        )
-
-        parser.add_argument(
-            "--reward_url.DreamShaper",
-            type=str,
-            help="The endpoint to query to see if the image hash is correct.",
-            default="http://nicheimage.nichetensor.com/reward/DreamShaper",
+            default="https://nicheimage_api.nichetensor.com/reward/AnimeV3",
         )
 
         parser.add_argument(
             "--reward_url.Gemma7b",
             type=str,
             help="The endpoint to get the reward for Gemma7b.",
-            default="http://nicheimage.nichetensor.com/reward/Gemma7b",
+            default="https://nicheimage_api.nichetensor.com/reward/Gemma7b",
         )
 
         parser.add_argument(
             "--reward_url.StickerMaker",
             type=str,
             help="The endpoint to get the reward for StickerMaker.",
-            default="http://nicheimage.nichetensor.com/reward/StickerMaker",
-        )
-
-        parser.add_argument(
-            "--reward_url.FaceToMany",
-            type=str,
-            help="The endpoint to get the reward for FaceToMany.",
-            default="http://nicheimage.nichetensor.com/reward/FaceToMany",
+            default="https://nicheimage_api.nichetensor.com/reward/StickerMaker",
         )
 
         parser.add_argument(
             "--reward_url.Llama3_70b",
             type=str,
             help="The endpoint to get the reward for FaceToMany.",
-            default="http://nicheimage.nichetensor.com/reward/Llama3_70b",
-        )
-
-        parser.add_argument(
-            "--reward_url.DreamShaperXL",
-            type=str,
-            help="",
-            default="http://nicheimage.nichetensor.com/reward/DreamShaperXL",
+            default="https://nicheimage_api.nichetensor.com/reward/Llama3_70b",
         )
 
         parser.add_argument(
             "--reward_url.JuggernautXL",
             type=str,
             help="",
-            default="http://nicheimage.nichetensor.com/reward/JuggernautXL",
+            default="https://nicheimage_api.nichetensor.com/reward/JuggernautXL",
         )
 
         parser.add_argument(
             "--reward_url.SUPIR",
             type=str,
             help="",
-            default="http://nicheimage.nichetensor.com/reward/SUPIR",
+            default="https://nicheimage_api.nichetensor.com/reward/SUPIR",
         )
         parser.add_argument(
             "--reward_url.FluxSchnell",
             type=str,
             help="",
-            default="http://nicheimage.nichetensor.com/reward/FluxSchnell",
+            default="https://nicheimage_api.nichetensor.com/reward/FluxSchnell",
         )
 
         parser.add_argument(
             "--reward_url.Kolors",
             type=str,
             help="",
-            default="http://nicheimage.nichetensor.com/reward/Kolors",
+            default="https://nicheimage_api.nichetensor.com/reward/Kolors",
         )
 
         parser.add_argument(
             "--reward_url.OpenCategory",
             type=str,
             help="",
-            default="http://nicheimage.nichetensor.com/reward/OpenCategory",
+            default="https://nicheimage_api.nichetensor.com/reward/OpenCategory",
         )
 
         parser.add_argument(
             "--reward_url.Pixtral_12b",
             type=str,
             help="",
-            default="http://nicheimage.nichetensor.com/reward/Pixtral_12b",
+            default="https://nicheimage_api.nichetensor.com/reward/Pixtral_12b",
         )
 
         # TODO: add more reward endpoints for categories
@@ -300,42 +273,42 @@ def add_args(cls, parser):
             "--challenge.prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/prompt",
+            default="https://nicheimage_api.nichetensor.com/challenge/prompt",
         )
 
         parser.add_argument(
             "--challenge.image",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/image",
+            default="https://nicheimage_api.nichetensor.com/challenge/image",
         )
 
         parser.add_argument(
             "--challenge.llm_prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/llm_prompt",
+            default="https://nicheimage_api.nichetensor.com/challenge/llm_prompt",
         )
 
         parser.add_argument(
             "--challenge.open_category_prompt",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/open_category_prompt",
+            default="https://nicheimage_api.nichetensor.com/challenge/open_category_prompt",
         )
 
         parser.add_argument(
             "--challenge.visual_question_answering",
             type=str,
             help="The endpoint to send generate requests to.",
-            default="http://nicheimage.nichetensor.com/challenge/vqa",
+            default="https://nicheimage_api.nichetensor.com/challenge/vqa",
         )
 
         parser.add_argument(
             "--share_response",
             action="store_true",
             help="If set, validator will share miners' response to owner endpoint.",
-            default=False,
+            default=True,
         )
 
         parser.add_argument(

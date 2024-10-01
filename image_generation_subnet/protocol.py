@@ -113,6 +113,8 @@ class ImageGenerating(bt.Synapse):
                 "output": self.response_dict
             }
         else:
+            if self.model_name != "FluxSchnell":
+                return
             storage_url = storage_url + "/upload-base64-item"
             data = {
                 "image": self.image,
