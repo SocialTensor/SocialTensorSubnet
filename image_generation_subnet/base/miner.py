@@ -23,6 +23,8 @@ import traceback
 import bittensor as bt
 
 from image_generation_subnet.base.neuron import BaseNeuron
+from image_generation_subnet.miner.constants import NGINX_CONF
+import os
 
 
 class BaseMinerNeuron(BaseNeuron):
@@ -42,7 +44,9 @@ class BaseMinerNeuron(BaseNeuron):
             bt.logging.warning(
                 "You are allowing non-registered entities to send requests to your miner. This is a security risk."
             )
-
+        if self.config.miner.use_nginx:
+            self.config.axon.external_port = self.config.axon.port
+            self.config.axon.port = 8091
         # The axon handles request processing, allowing validators to send this miner requests.
         self.axon = bt.axon(wallet=self.wallet, config=self.config)
 
@@ -101,7 +105,6 @@ class BaseMinerNeuron(BaseNeuron):
             f"Serving miner axon {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
         )
         self.axon.serve(netuid=self.config.netuid, subtensor=self.subtensor)
-
         # Start  starts the miner's axon, making it active on the network.
         self.axon.start()
 
@@ -198,3 +201,20 @@ class BaseMinerNeuron(BaseNeuron):
 
         # Sync the metagraph.
         self.metagraph.sync(subtensor=self.subtensor)
+        if self.config.miner.use_nginx:
+            try:
+                axons = self.metagraph.axons
+                whitelist = []
+                for k in self.volume_per_validator.keys():
+                    whitelist.append(f"allow {axons[int(k)].ip};")
+                whitelist = "\n".join(whitelist)
+                nginx_conf = NGINX_CONF.replace(
+                    "{{external_axon_port}}", str(self.config.axon.external_port)
+                ).replace("{{internal_axon_port}}", str(self.config.axon.port))
+                with open("/etc/nginx/nginx.conf", "w") as f:
+                    f.write(nginx_conf)
+                os.system("nginx -s reload")
+                bt.logging.info("Nginx configuration updated.")
+            except Exception as e:
+                bt.logging.error(f"Error in updating nginx configuration: {e}")
+                traceback.print_exc()
