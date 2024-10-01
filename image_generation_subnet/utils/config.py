@@ -169,7 +169,7 @@ def add_args(cls, parser):
             "--storage_url",
             type=str,
             help="The url to store the image.",
-            default="http://nichestorage.nichetensor.com:10000",
+            default="https://api.nichetensor.com/storage",
         )
 
         parser.add_argument(
