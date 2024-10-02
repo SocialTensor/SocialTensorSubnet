@@ -115,6 +115,8 @@ class LogicRewarder:
             # Calculate ranks, handling ties
             ranks = []
             previous_score = None
+            # Initialize rank to 0
+            rank = 0
             for i, (reward_id, score) in enumerate(sorted_rewards):
                 rank = i + 1 if score != previous_score else rank  # Update rank only if the score changes
                 ranks.append((reward_id, rank, score))
