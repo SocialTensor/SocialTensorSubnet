@@ -168,7 +168,7 @@ class BaseMinerNeuron(BaseNeuron):
 
     def set_weights(self):
         """
-        NO MORE NEEDED IN SUBNET 23
+        NO MORE NEEDED IN SUBNET 35
         Self-assigns a weight of 1 to the current miner (identified by its UID) and
         a weight of 0 to all other peers in the network. The weights determine the trust level the miner assigns to other nodes on the network.
 
