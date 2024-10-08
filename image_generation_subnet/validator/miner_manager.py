@@ -39,7 +39,7 @@ class MinerManager:
             uid: response.response_dict for uid, response in zip(uids, responses)
         }
         if only_layer_one:
-            bt.logging.debug(f"Some layer one miners: {responses[:5]}")
+            bt.logging.debug(f"Some layer one miners: {list(responses.items())[:5]}")
         responses = {k: v for k, v in responses.items() if v}
         return responses
 
