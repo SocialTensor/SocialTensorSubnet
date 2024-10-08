@@ -10,21 +10,28 @@ except Exception:
     GPU_DEVICE_NAME = "cpu"
     GPU_DEVICE_COUNT = 0
 
+
 def set_info(self):
-    # Set information of miner
-    # Currently only model name is set
-    response = get_model_name(self)
-    miner_info = {
-        "model_name": response["model_name"],
-        "total_volume": self.config.miner.total_volume,
-        "size_preference_factor": self.config.miner.size_preference_factor,
-        "min_stake": self.config.miner.min_stake,
-        "volume_per_validator": self.volume_per_validator,
-        "device_info": {
-            "gpu_device_name": GPU_DEVICE_NAME,
-            "gpu_device_count": GPU_DEVICE_COUNT,
+    if self.config.miner.is_layer_zero:
+        miner_info = {
+            "layer_one": {
+                "ip": self.config.miner.layer_one_ip,
+                "port": self.config.miner.layer_one_port,
+            }
         }
-    }
+    else:
+        response = get_model_name(self)
+        miner_info = {
+            "model_name": response["model_name"],
+            "total_volume": self.config.miner.total_volume,
+            "size_preference_factor": self.config.miner.size_preference_factor,
+            "min_stake": self.config.miner.min_stake,
+            "volume_per_validator": self.volume_per_validator,
+            "device_info": {
+                "gpu_device_name": GPU_DEVICE_NAME,
+                "gpu_device_count": GPU_DEVICE_COUNT,
+            },
+        }
     return miner_info
 
 
@@ -50,4 +57,3 @@ def get_model_name(self):
     response = requests.get(self.config.info_endpoint, headers=headers)
     response = response.json()
     return response
-

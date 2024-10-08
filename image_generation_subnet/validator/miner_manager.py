@@ -6,14 +6,17 @@ import requests
 from threading import Thread
 import image_generation_subnet as ig_subnet
 
+
 class MinerManager:
     def __init__(self, validator):
         self.validator = validator
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
         self.all_uids_info = {
-            uid: {"scores": [], "model_name": "", "process_time": []} for uid in self.all_uids
+            uid: {"scores": [], "model_name": "", "process_time": []}
+            for uid in self.all_uids
         }
-    
+        self.layer_one_axons = {}
+
     def get_miner_info(self):
         """
         1. Query model_name of available uids
@@ -36,7 +39,9 @@ class MinerManager:
         remaining_uids = [uid for uid, info in responses.items() if not info]
 
         if remaining_uids:
-            bt.logging.warning(f"Querying legacy for {len(remaining_uids)} remaining uids.")
+            bt.logging.warning(
+                f"Querying legacy for {len(remaining_uids)} remaining uids."
+            )
             remaining_axons = [uid_to_axon[uid] for uid in remaining_uids]
             synapse = ImageGenerating()
             synapse.request_dict = {"get_miner_info": True}
@@ -54,6 +59,20 @@ class MinerManager:
         responses = {k: v for k, v in responses.items() if v}
         return responses
 
+    def query_layer_zero(self):
+        valid_miner_info = self.get_miner_info()
+        if not valid_miner_info:
+            bt.logging.warning("No active miner available. Skipping setting weights.")
+
+        for uid, info in valid_miner_info.items():
+            if "layer_one" in info:
+                self.layer_one_axons[uid] = bt.AxonInfo(
+                    ip=info["layer_one"]["ip"],
+                    port=info["layer_one"]["port"],
+                    version=1,
+                )
+        bt.logging.success("Updated layer zero")
+
     def update_miners_identity(self):
         """
         1. Query model_name of available uids
@@ -65,11 +84,7 @@ class MinerManager:
         for uid, info in valid_miners_info.items():
             miner_state = self.all_uids_info.setdefault(
                 uid,
-                {
-                    "scores": [],
-                    "model_name": "",
-                    "process_time": []
-                },
+                {"scores": [], "model_name": "", "process_time": []},
             )
             model_name = info.get("model_name", "")
             miner_state["total_volume"] = info.get("total_volume", 40)
@@ -126,7 +141,9 @@ class MinerManager:
             if "process_time" not in self.all_uids_info[uid]:
                 self.all_uids_info[uid]["process_time"] = []
             self.all_uids_info[uid]["process_time"].append(ptime)
-            self.all_uids_info[uid]["process_time"] = self.all_uids_info[uid]["process_time"][-500:]
+            self.all_uids_info[uid]["process_time"] = self.all_uids_info[uid][
+                "process_time"
+            ][-500:]
 
     def get_model_specific_weights(self, model_name, normalize=True):
         model_specific_weights = torch.zeros(len(self.all_uids))
@@ -168,4 +185,3 @@ class MinerManager:
     def reset_metadata(self):
         for uid in self.all_uids_info:
             self.all_uids_info[uid]["process_time"] = []
- 

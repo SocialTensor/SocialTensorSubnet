@@ -361,6 +361,29 @@ def add_args(cls, parser):
             default=4,
         )
 
+        # LAYER ZERO
+
+        parser.add_argument(
+            "--miner.is_layer_zero",
+            action="store_true",
+            help="If set, we will enable layer zero.",
+            default=False,
+        )
+
+        parser.add_argument(
+            "--miner.layer_one_ip",
+            type=str,
+            help="The endpoint to send generate requests to.",
+            default="0.0.0.0",
+        )
+
+        parser.add_argument(
+            "--miner.layer_one_port",
+            type=int,
+            help="The endpoint to send generate requests to.",
+            default=8091,
+        )
+
 
 def config(cls):
     """
