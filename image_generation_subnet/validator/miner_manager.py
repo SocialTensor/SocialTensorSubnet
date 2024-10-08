@@ -49,8 +49,8 @@ class MinerManager:
             if is_layer_zero:
                 bt.logging.info(f"Layer zero: {uid}")
                 axon = self.validator.metagraph.axons[uid]
-                axon.ip = info["layer_zero"]["ip"]
-                axon.port = info["layer_zero"]["port"]
+                axon.ip = info["layer_one"]["ip"]
+                axon.port = info["layer_one"]["port"]
                 self.layer_one_axons[uid] = axon
             if uid in self.layer_one_axons and not is_layer_zero:
                 self.layer_one_axons.pop(uid)
