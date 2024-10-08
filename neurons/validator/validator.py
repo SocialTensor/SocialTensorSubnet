@@ -550,7 +550,12 @@ class Validator(BaseValidatorNeuron):
             ):
                 self.enqueue_synapse_for_validation(base_synapse)
 
-            axons = [self.metagraph.axons[int(uid)] for uid in uids]
+            axons = []
+            for uid in uids:
+                if uid in self.miner_manager.layer_one_axons:
+                    axons.append(self.miner_manager.layer_one_axons[uid])
+                else:
+                    axons.append(self.validator.metagraph.axons[uid])
             responses = dendrite.query(
                 axons=axons,
                 synapse=synapse,

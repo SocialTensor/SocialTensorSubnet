@@ -17,7 +17,8 @@ def set_info(self):
             "layer_one": {
                 "ip": self.config.miner.layer_one_ip,
                 "port": self.config.miner.layer_one_port,
-            }
+            },
+            "is_layer_zero": True,
         }
     else:
         response = get_model_name(self)
@@ -31,6 +32,7 @@ def set_info(self):
                 "gpu_device_name": GPU_DEVICE_NAME,
                 "gpu_device_count": GPU_DEVICE_COUNT,
             },
+            "is_layer_zero": False,
         }
     return miner_info
 

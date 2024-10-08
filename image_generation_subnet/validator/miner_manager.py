@@ -17,13 +17,16 @@ class MinerManager:
         }
         self.layer_one_axons = {}
 
-    def get_miner_info(self):
+    def get_miner_info(self, only_layer_one=False):
         """
         1. Query model_name of available uids
         """
-        self.all_uids = [int(uid) for uid in self.validator.metagraph.uids]
-        uid_to_axon = dict(zip(self.all_uids, self.validator.metagraph.axons))
-        query_axons = [uid_to_axon[int(uid)] for uid in self.all_uids]
+        if only_layer_one:
+            uids = self.layer_one_axons.keys()
+            query_axons = [self.layer_one_axons[uid] for uid in uids]
+        else:
+            uids = [int(uid) for uid in self.validator.metagraph.uids]
+            query_axons = [self.validator.metagraph.axons[uid] for uid in uids]
         synapse = Information()
         bt.logging.info("Requesting miner info using synapse Information")
         responses = self.validator.dendrite.query(
@@ -33,44 +36,25 @@ class MinerManager:
             timeout=10,
         )
         responses = {
-            uid: response.response_dict
-            for uid, response in zip(self.all_uids, responses)
+            uid: response.response_dict for uid, response in zip(uids, responses)
         }
-        remaining_uids = [uid for uid, info in responses.items() if not info]
-
-        if remaining_uids:
-            bt.logging.warning(
-                f"Querying legacy for {len(remaining_uids)} remaining uids."
-            )
-            remaining_axons = [uid_to_axon[uid] for uid in remaining_uids]
-            synapse = ImageGenerating()
-            synapse.request_dict = {"get_miner_info": True}
-            responses_legacy = self.validator.dendrite.query(
-                remaining_axons,
-                synapse,
-                deserialize=False,
-                timeout=10,
-            )
-            responses_legacy = {
-                uid: response.response_dict
-                for uid, response in zip(remaining_uids, responses_legacy)
-            }
-            responses.update(responses_legacy)
+        if only_layer_one:
+            bt.logging.debug(f"Some layer one miners: {responses[:5]}")
         responses = {k: v for k, v in responses.items() if v}
         return responses
 
-    def query_layer_zero(self):
-        valid_miner_info = self.get_miner_info()
-        if not valid_miner_info:
-            bt.logging.warning("No active miner available. Skipping setting weights.")
-
-        for uid, info in valid_miner_info.items():
-            if "layer_one" in info:
+    def update_layer_zero(self, responses: dict):
+        for uid, info in responses.items():
+            is_layer_zero = info.get("is_layer_zero", False)
+            if is_layer_zero:
+                bt.logging.info(f"Layer zero: {uid}")
                 self.layer_one_axons[uid] = bt.AxonInfo(
                     ip=info["layer_one"]["ip"],
                     port=info["layer_one"]["port"],
                     version=1,
                 )
+            if uid in self.layer_one_axons and not is_layer_zero:
+                self.layer_one_axons.pop(uid)
         bt.logging.success("Updated layer zero")
 
     def update_miners_identity(self):
@@ -79,6 +63,10 @@ class MinerManager:
         2. Update the available list
         """
         valid_miners_info = self.get_miner_info()
+        self.update_layer_zero(valid_miners_info)
+        layer_one_valid_miners_info = self.get_miner_info(only_layer_one=True)
+        valid_miners_info.update(layer_one_valid_miners_info)
+
         if not valid_miners_info:
             bt.logging.warning("No active miner available. Skipping setting weights.")
         for uid, info in valid_miners_info.items():
