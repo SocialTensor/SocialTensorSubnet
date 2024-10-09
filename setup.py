@@ -63,10 +63,10 @@ with codecs.open(
 setup(
     name="logicnet",
     version=version_string,
-    description="nicheimage_subnet for image generation",
+    description="Mathamatical logic and neural network library",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/NicheTensor/NicheImage",
+    url="https://github.com/LogicNet-Subnet/logicnet",
     author="bittensor.com",
     packages=find_packages(),
     include_package_data=True,
