@@ -188,8 +188,10 @@ class LogicRewarder:
             # Try programmatic comparison
             if self._compare_numerical_answers(ground_truth_answer, miner_answer):
                 correctness.append(1)
+                bt.logging.debug(f"Used programmatic comparison for response {idx} with answer {miner_answer} against ground truth {ground_truth_answer}")
             else:
                 # Need LLM evaluation
+                bt.logging.debug(f"Unable to use programmatic comparison. Need LLM evaluation for response {idx} with answer {miner_answer} against ground truth {ground_truth_answer}")
                 correctness.append(None)  # Placeholder
                 batch_messages.append([
                     {
