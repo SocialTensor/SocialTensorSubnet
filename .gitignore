@@ -175,3 +175,4 @@ main/*
 *.1
 *.onnx
 example_env.env
+bittensor/

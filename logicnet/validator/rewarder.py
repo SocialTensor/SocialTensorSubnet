@@ -4,6 +4,7 @@ from logicnet.protocol import LogicSynapse
 from sentence_transformers import SentenceTransformer
 import bittensor as bt
 from concurrent import futures
+import sympy
 
 SIMILARITY_WEIGHT = 0.2
 CORRECTNESS_WEIGHT = 0.8
@@ -178,43 +179,59 @@ class LogicRewarder:
         """
         ground_truth_answer = base_synapse.ground_truth_answer
         bt.logging.debug(f"[CORRECTNESS] Ground truth: {ground_truth_answer}")
-        batch_messages = [
-            [
-                {
-                    "role": "user",
-                    "content": CORRECTNESS_TEMPLATE.format(
-                        question=base_synapse.raw_logic_question,
-                        ground_truth_answer=ground_truth_answer,
-                        response=response.logic_answer
-                    ),
-                },
-            ]
-            for response in responses
-        ]
-        bt.logging.debug(f"[CORRECTNESS] Batch messages: {batch_messages}")
         correctness = []
-        # USE OPENAI API TO RATE THE ANSWER
-        with futures.ThreadPoolExecutor() as executor:
-            results = executor.map(
-                lambda messages: self.openai_client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    max_tokens=32,
-                    temperature=0.7,
-                ),
-                batch_messages,
-            )
-            for result in results:
-                response_str = result.choices[0].message.content
-                response_str = response_str.strip().lower()
-                bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
-                if "incorrect" in response_str:
-                    correctness.append(0)
-                elif "correct" in response_str:
-                    correctness.append(1)
-                else:
-                    correctness.append(0.3)
+        batch_messages = []
+        indices_for_llm = []
+
+        for idx, response in enumerate(responses):
+            miner_answer = response.logic_answer.strip()
+            # Try programmatic comparison
+            if self._compare_numerical_answers(ground_truth_answer, miner_answer):
+                correctness.append(1)
+            else:
+                # Need LLM evaluation
+                correctness.append(None)  # Placeholder
+                batch_messages.append([
+                    {
+                        "role": "user",
+                        "content": CORRECTNESS_TEMPLATE.format(
+                            question=base_synapse.raw_logic_question,
+                            ground_truth_answer=ground_truth_answer,
+                            response=miner_answer
+                        ),
+                    },
+                ])
+                bt.logging.debug(f"[CORRECTNESS] Batch messages: {batch_messages}")
+                indices_for_llm.append(idx)
+
+        if batch_messages:
+            with futures.ThreadPoolExecutor() as executor:
+                results = executor.map(
+                    lambda messages: self.openai_client.chat.completions.create(
+                        model=self.model,
+                        messages=messages,
+                        max_tokens=5,
+                        temperature=0,
+                    ),
+                    batch_messages,
+                )
+                for idx, result in zip(indices_for_llm, results):
+                    response_str = result.choices[0].message.content.strip().lower()
+                    bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
+                    if response_str == "correct":
+                        correctness[idx] = 1
+                    else:
+                        correctness[idx] = 0  # Treat any other response as incorrect
+
         return correctness
+
+    def _compare_numerical_answers(self, ground_truth: str, miner_answer: str):
+        try:
+            gt_value = sympy.sympify(ground_truth)
+            miner_value = sympy.sympify(miner_answer)
+            return sympy.simplify(gt_value - miner_value) == 0
+        except (sympy.SympifyError, TypeError):
+            return False
 
     def _get_similarity(self, ground_truth: str, responses: list[str]):
         """Calculate cosine similarity between self-generate ground truth and miner response
