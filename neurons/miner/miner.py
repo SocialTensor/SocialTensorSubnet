@@ -36,6 +36,7 @@ class Miner(BaseMinerNeuron):
         Forward pass for the miner neuron. This function is called when a synapse is received by the miner neuron.
         By default, Miner will utilize the LLM API to solve the logic problem.
         """
+        start_time = time.time()
         try:
             synapse = await solve(
                 synapse=synapse,
@@ -45,15 +46,14 @@ class Miner(BaseMinerNeuron):
             self.num_processing_requests += 1
             self.total_request_in_interval += 1
             
-            if synapse.terminal_info:
-                bt.logging.debug(f"TerminalInfo: {synapse.terminal_info}")
-            else:
-                bt.logging.debug("\033[1;31mTerminalInfo not available in synapse.\033[0m")
-            
         except Exception as e:
             bt.logging.error(f"Error in forward: {e}")
             traceback.print_exc()
-
+    
+        finally:
+            process_time = time.time() - start_time
+            bt.logging.info(f"Processing time: {process_time}")
+            
         return synapse
 
     async def forward_info(self, synapse: Information) -> Information:
