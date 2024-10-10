@@ -44,6 +44,12 @@ class Miner(BaseMinerNeuron):
             )
             self.num_processing_requests += 1
             self.total_request_in_interval += 1
+            
+            if synapse.terminal_info:
+                bt.logging.debug(f"TerminalInfo: {synapse.terminal_info}")
+            else:
+                bt.logging.debug("\033[1;31mTerminalInfo not available in synapse.\033[0m")
+            
         except Exception as e:
             bt.logging.error(f"Error in forward: {e}")
             traceback.print_exc()

@@ -1,7 +1,7 @@
 import bittensor as bt
 import pydantic
-from typing import Union
-
+from typing import Optional, Union, List, Dict
+from bittensor.synapse import TerminalInfo
 
 class Information(bt.Synapse):
     """Information synapse for miner to send information to the validator. It won't be blacklisted by miner"""
@@ -47,6 +47,8 @@ class LogicSynapse(bt.Synapse):
         64,
         description="Timeout for the miner to answer the logic question.",
     )
+    
+    terminal_info: Optional[TerminalInfo] = None
 
     def miner_synapse(self):
         """
