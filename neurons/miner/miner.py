@@ -44,6 +44,7 @@ class Miner(BaseMinerNeuron):
                 model=self.config.miner.llm_client.model,
             )
             self.num_processing_requests += 1
+            bt.logging.info(f"Start processing request {self.num_processing_requests}")
             self.total_request_in_interval += 1
             
         except Exception as e:
@@ -52,7 +53,7 @@ class Miner(BaseMinerNeuron):
     
         finally:
             process_time = time.time() - start_time
-            bt.logging.info(f"Processing time: {process_time}")
+            bt.logging.info(f"\033[1;34mProcessing time for request {self.num_processing_requests}: {round(process_time,2)} seconds\033[0m")
             
         return synapse
 
