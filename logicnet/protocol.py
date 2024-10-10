@@ -1,53 +1,51 @@
 import bittensor as bt
-from pydantic import BaseModel, Field
-from typing import Optional, Union
-from bittensor.synapse import TerminalInfo
+import pydantic
+from typing import Union
+
 
 class Information(bt.Synapse):
     """Information synapse for miner to send information to the validator. It won't be blacklisted by miner"""
+
     request_dict: dict = {}
     response_dict: dict = {}
+
 
 class LogicSynapse(bt.Synapse):
     """
     Logic Synapse for the LogicNet protocol
     """
+
     # MINER NEED TO FILL THIS INFORMATION
-    logic_question: str = Field(
+    logic_question: str = pydantic.Field(
         "",
         description="Logic question to be answered by miner. It can be noised question from the raw logic question from synthetic loop.",
     )
-    logic_answer: Union[str, object] = Field(
+    logic_answer: Union[str, object] = pydantic.Field(
         "", description="Short logic answer as a summary of the logic reasoning."
     )
-    logic_reasoning: str = Field(
+    logic_reasoning: str = pydantic.Field(
         "",
         description="Reasoning when answering the logic question",
     )
 
     # ONLY VISIBLE TO VALIDATOR
-    raw_logic_question: str = Field(
+    raw_logic_question: str = pydantic.Field(
         "",
         description="If this synapse from synthetic loop, this field will contain the raw logic question from the dataset.",
     )
-    ground_truth_answer: Union[str, object] = Field(
+    ground_truth_answer: Union[str, object] = pydantic.Field(
         "",
         description="Ground truth answer for the logic question. Very short, only the answer.",
     )
 
     # SYNAPSE INFORMATION
-    category: str = Field(
+    category: str = pydantic.Field(
         "",
         description="One of the categories in the Validator main.",
     )
-    timeout: int = Field(
+    timeout: int = pydantic.Field(
         64,
         description="Timeout for the miner to answer the logic question.",
-    )
-
-    terminal_info: Optional[TerminalInfo] = Field(
-        default=None,
-        description="Contains detailed information about the terminal involved in the communication process."
     )
 
     def miner_synapse(self):
@@ -63,3 +61,32 @@ class LogicSynapse(bt.Synapse):
             "logic_answer": self.logic_answer,
             "logic_reasoning": self.logic_reasoning,
         }
+
+
+class LogicRequest(pydantic.BaseModel):
+    """
+    Logic Synapse for the LogicNet protocol
+    """
+
+    # MINER NEED TO FILL THIS INFORMATION
+    logic_question: str = pydantic.Field(
+        "",
+        description="Logic question to be answered by miner. It can be noised question from the raw logic question from synthetic loop.",
+    )
+    logic_answer: Union[str, object] = pydantic.Field(
+        "", description="Short logic answer as a summary of the logic reasoning."
+    )
+    logic_reasoning: str = pydantic.Field(
+        "",
+        description="Reasoning when answering the logic question",
+    )
+
+    # SYNAPSE INFORMATION
+    category: str = pydantic.Field(
+        "",
+        description="One of the categories in the Validator main.",
+    )
+    timeout: int = pydantic.Field(
+        64,
+        description="Timeout for the miner to answer the logic question.",
+    )
