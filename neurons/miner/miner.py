@@ -38,13 +38,13 @@ class Miner(BaseMinerNeuron):
         """
         start_time = time.time()
         try:
+            self.num_processing_requests += 1
+            bt.logging.info(f"\033[1;33;44m🚀 Start processing request {self.num_processing_requests}\033[0m")
             synapse = await solve(
                 synapse=synapse,
                 openai_client=self.openai_client,
                 model=self.config.miner.llm_client.model,
             )
-            self.num_processing_requests += 1
-            bt.logging.info(f"\033[1;33;44m🚀 Start processing request {self.num_processing_requests}\033[0m")
             self.total_request_in_interval += 1
             
         except Exception as e:
@@ -65,7 +65,7 @@ class Miner(BaseMinerNeuron):
         return False, "All passed!"
 
     async def blacklist(self, synapse: LogicSynapse) -> Tuple[bool, str]:
-        bt.logging.info(f"\033[1;35m🛑 synapse in blacklist {synapse}\033[0m")
+        bt.logging.info(f"synapse in blacklist {synapse}")
         try:
             if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
                 # Ignore requests from unrecognized entities.

@@ -19,7 +19,6 @@ import time
 import asyncio
 import threading
 import traceback
-from termcolor import colored
 
 import bittensor as bt
 
@@ -38,7 +37,7 @@ class BaseMinerNeuron(BaseNeuron):
         self.axon = bt.axon(wallet=self.wallet, config=self.config)
 
         # Attach determiners which functions are called when servicing a request.
-        bt.logging.info(colored("🔗 Attaching forward function to miner axon.", "green"))
+        bt.logging.info("Attaching forward function to miner axon.")
         self.axon.attach(
             forward_fn=self.forward,
             blacklist_fn=self.blacklist,
@@ -46,7 +45,7 @@ class BaseMinerNeuron(BaseNeuron):
             forward_fn=self.forward_info,
             blacklist_fn=self.blacklist_info,
         )
-        bt.logging.info(colored(f"🧠 Axon created: {self.axon}", "green"))
+        bt.logging.info(f"Axon created: {self.axon}")
 
         # Instantiate runners
         self.should_exit: bool = False
@@ -83,14 +82,14 @@ class BaseMinerNeuron(BaseNeuron):
         # Serve passes the axon information to the network + netuid we are hosting on.
         # This will auto-update if the axon port of external ip have changed.
         bt.logging.info(
-            colored(f"🌐 Serving miner axon {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}", "blue")
+            f"Serving miner axon {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
         )
         self.axon.serve(netuid=self.config.netuid, subtensor=self.subtensor)
 
         # Start  starts the miner's axon, making it active on the network.
         self.axon.start()
 
-        bt.logging.info(colored(f"🚀 Miner starting at block: {self.block}", "blue"))
+        bt.logging.info(f"Miner starting at block: {self.block}")
 
         # This loop maintains the miner's operations until intentionally stopped.
         try:
@@ -113,12 +112,12 @@ class BaseMinerNeuron(BaseNeuron):
         # If someone intentionally stops the miner, it'll safely terminate operations.
         except KeyboardInterrupt:
             self.axon.stop()
-            bt.logging.success(colored("🛑 Miner killed by keyboard interrupt.", "red"))
+            bt.logging.success("Miner killed by keyboard interrupt.")
             exit()
 
         # In case of unforeseen errors, the miner will log the error and continue operations.
         except Exception:
-            bt.logging.error(colored(traceback.format_exc(), "red"))
+            bt.logging.error(traceback.format_exc())
 
     def run_in_background_thread(self):
         """
@@ -126,23 +125,23 @@ class BaseMinerNeuron(BaseNeuron):
         This is useful for non-blocking operations.
         """
         if not self.is_running:
-            bt.logging.debug(colored("🔄 Starting miner in background thread.", "yellow"))
+            bt.logging.debug("Starting miner in background thread.")
             self.should_exit = False
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
             self.is_running = True
-            bt.logging.debug(colored("✅ Started", "yellow"))
+            bt.logging.debug("Started")
 
     def stop_run_thread(self):
         """
         Stops the miner's operations that are running in the background thread.
         """
         if self.is_running:
-            bt.logging.debug(colored("🛑 Stopping miner in background thread.", "yellow"))
+            bt.logging.debug("Stopping miner in background thread.")
             self.should_exit = True
             self.thread.join(5)
             self.is_running = False
-            bt.logging.debug(colored("✅ Stopped", "yellow"))
+            bt.logging.debug("Stopped")
 
     def __enter__(self):
         """
