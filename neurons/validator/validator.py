@@ -130,10 +130,6 @@ class Validator(BaseValidatorNeuron):
             uids_should_rewards, category
         )
         
-        bt.logging.info(
-            "\033[1;35m==================== Getting the atom questions and answer ====================\033[0m"
-            )
-        
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
             uids, should_rewards = zip(*uids_should_rewards)
             bt.logging.info(
@@ -165,10 +161,6 @@ class Validator(BaseValidatorNeuron):
 
             bt.logging.info(
                 f"\033[1;34m🔍 Received {len(responses)} responses, {len(reward_responses)} to be rewarded\033[0m"
-            )
-
-            bt.logging.info(
-                "\033[1;36m==================== Querying revised request to miners ====================\033[0m"
             )
 
             if reward_uids:
