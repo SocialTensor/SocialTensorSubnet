@@ -87,11 +87,11 @@ class ValidatorProxy:
                 status_code=401, detail="Error getting authentication token"
             )
 
-    def organic_reward(
-        self, synapse, response, uid, reward_url, timeout
-    ):
+    def organic_reward(self, synapse, response, uid, reward_url, timeout):
         if self.validator.offline_reward:
-            image_generation_subnet.validator.get_reward_offline(synapse, [response], [uid], timeout, self.validator.redis_client)
+            image_generation_subnet.validator.get_reward_offline(
+                synapse, [response], [uid], timeout, self.validator.redis_client
+            )
         else:
             if callable(reward_url):
                 uids, rewards = reward_url(synapse, [response], [uid])
@@ -100,20 +100,27 @@ class ValidatorProxy:
                     uids,
                     rewards,
                 ) = image_generation_subnet.validator.get_reward(
-                    reward_url, synapse, [response], [uid], timeout, self.validator.miner_manager
+                    reward_url,
+                    synapse,
+                    [response],
+                    [uid],
+                    timeout,
+                    self.validator.miner_manager,
                 )
             bt.logging.info(
                 f"Proxy: Updating scores of miners {uids} with rewards {rewards}"
             )
-                # Scale Reward based on Miner Volume
+            # Scale Reward based on Miner Volume
             for i, uid in enumerate(uids):
                 if rewards[i] > 0:
                     rewards[i] = rewards[i] * (
-                        0.6 + 0.4 * self.validator.miner_manager.all_uids_info[uid]["reward_scale"]
+                        0.6
+                        + 0.4
+                        * self.validator.miner_manager.all_uids_info[uid][
+                            "reward_scale"
+                        ]
                     )
-            bt.logging.info(
-                f"Organic reward: {rewards}"
-            )
+            bt.logging.info(f"Organic reward: {rewards}")
             self.validator.miner_manager.update_scores(uids, rewards)
 
     async def forward(self, data: dict = {}):
@@ -141,15 +148,25 @@ class ValidatorProxy:
         for uid, should_reward in self.validator.query_queue.get_query_for_proxy(
             model_name
         ):
-            should_reward = should_reward or random.random() < self.validator.config.proxy.checking_probability
-            if should_reward and self.validator.offline_reward and \
-                self.validator.nicheimage_catalogue[model_name]["reward_type"] in self.validator.supporting_offline_reward_types:
+            should_reward = (
+                should_reward
+                or random.random() < self.validator.config.proxy.checking_probability
+            )
+            if (
+                should_reward
+                and self.validator.offline_reward
+                and self.validator.nicheimage_catalogue[model_name]["reward_type"]
+                in self.validator.supporting_offline_reward_types
+            ):
                 self.validator.enqueue_synapse_for_validation(synapse)
 
             bt.logging.info(
                 f"Forwarding request to miner {uid} with recent scores: {self.validator.miner_manager.all_uids_info[uid]['scores']}"
             )
-            axon = metagraph.axons[uid]
+            axon = (
+                self.validator.miner_manager.layer_one_axons.get(uid)
+                or metagraph.axons[uid]
+            )
             bt.logging.info(f"Sending request to axon: {axon}")
             responses = await self.dendrite.forward(
                 [axon], synapse, deserialize=False, timeout=timeout, run_async=True
@@ -164,7 +181,9 @@ class ValidatorProxy:
                     args=(synapse, response, uid, reward_url, timeout),
                 )
                 reward_thread.start()
-            process_times = [response.dendrite.process_time if response.is_success else -1]
+            process_times = [
+                response.dendrite.process_time if response.is_success else -1
+            ]
             self.validator.miner_manager.update_metadata([uid], process_times)
             if response.is_success:
                 output = response

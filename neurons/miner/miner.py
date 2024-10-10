@@ -80,7 +80,9 @@ class Miner(BaseMinerNeuron):
             self.num_processing_requests -= 1
         return synapse
 
-    async def forward_multimodal(self, synapse: MultiModalGenerating) -> MultiModalGenerating:
+    async def forward_multimodal(
+        self, synapse: MultiModalGenerating
+    ) -> MultiModalGenerating:
         if synapse.request_dict:
             return await self.forward_info_legacy(synapse)
         self.num_processing_requests += 1
@@ -102,6 +104,12 @@ class Miner(BaseMinerNeuron):
         return synapse
 
     async def blacklist_info(self, synapse: Information) -> Tuple[bool, str]:
+        stake = self.metagraph.stake[
+            self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
+        ].item()
+        if stake < self.config.miner.min_stake:
+            return True, "Not enough stake"
+
         return False, "All passed!"
 
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
@@ -157,7 +165,9 @@ class Miner(BaseMinerNeuron):
     async def blacklist_text(self, synapse: TextGenerating) -> Tuple[bool, str]:
         return await self.blacklist(synapse)
 
-    async def blacklist_multimodal(self, synapse: MultiModalGenerating) -> Tuple[bool, str]:
+    async def blacklist_multimodal(
+        self, synapse: MultiModalGenerating
+    ) -> Tuple[bool, str]:
         return await self.blacklist(synapse)
 
     async def priority(self, synapse: ImageGenerating) -> float:
