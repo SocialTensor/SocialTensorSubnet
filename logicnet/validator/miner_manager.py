@@ -146,7 +146,9 @@ class MinerManager:
                 -NO_OF_RECENT_SCORES:
             ]
             self.all_uids_info[uid].reward_logs.append(reward_log)
-            self.all_uids_info[uid].reward_logs = self.all_uids_info[uid].reward_logs[-NO_OF_RECENT_SCORES:]
+            self.all_uids_info[uid].reward_logs = self.all_uids_info[uid].reward_logs[
+                -NO_OF_RECENT_SCORES:
+            ]
 
     def get_on_chain_weights(self, category) -> torch.Tensor:
         """
