@@ -48,27 +48,51 @@ class LogicChallenger:
         return atom_problem
 
     def get_revised_math_question(self, math_problem: str, conditions: dict) -> str:
-        prompt = "Please paraphrase by adding word or expression to this question as if you were a {profile} who is {mood} and write in a {tone} tone. You can use incorrect grammar, typo or add more context! Don't add your solution! Just say the revised version, you don't need to be polite.".format(
-            **conditions
-        )
+        # prompt = "Please paraphrase by adding word or expression to this question as if you were a {profile} who is {mood} and write in a {tone} tone. You can use incorrect grammar, typo or add more context! Don't add your solution! Just say the revised version, you don't need to be polite.".format(
+        #     **conditions
+        # )
+        
+        prompt = (
+            "As a {profile} who is feeling {mood}, please rephrase the following math problem "
+            "in a {tone} tone. Write it as you would naturally ask the question. "
+            "Do not include the solution or add unnecessary context."
+        ).format(**conditions)
+        
         bt.logging.debug(f"Revising prompt: {prompt}")
+        
+        # messages = [
+        #     {
+        #         "role": "user",
+        #         "content": "Generate a math problem that required logic to solve.",
+        #     },
+        #     {"role": "assistant", "content": math_problem},
+        #     {
+        #         "role": "user",
+        #         "content": prompt,
+        #     },
+        # ]
+        
         messages = [
             {
-                "role": "user",
-                "content": "Generate a math problem that required logic to solve.",
+                "role": "system",
+                "content": (
+                    "You are simulating various human personas asking math problems. "
+                    "Rephrase the following math problem as the specified persona, "
+                    "ensuring the question sounds natural and appropriate for that individual."
+                ),
             },
             {"role": "assistant", "content": math_problem},
-            {
-                "role": "user",
-                "content": prompt,
-            },
+            {"role": "user", "content": prompt},
         ]
+
         response = self.openai_client.chat.completions.create(
             model=self.model,
             messages=messages,
             max_tokens=256,
-            temperature=0.5,
+            temperature=0.7,
         )
-        response = response.choices[0].message.content
+        
+        response = response.choices[0].message.content.strip()
         bt.logging.debug(f"Generated revised math question: {response}")
         return response
+    

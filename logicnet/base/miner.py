@@ -1,20 +1,3 @@
-# The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
-
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-
 import time
 import asyncio
 import threading
@@ -37,7 +20,7 @@ class BaseMinerNeuron(BaseNeuron):
         self.axon = bt.axon(wallet=self.wallet, config=self.config)
 
         # Attach determiners which functions are called when servicing a request.
-        bt.logging.info("Attaching forward function to miner axon.")
+        bt.logging.info("\033[1;32m🧠 Attaching forward function to miner axon.\033[0m")
         self.axon.attach(
             forward_fn=self.forward,
             blacklist_fn=self.blacklist,
@@ -45,7 +28,7 @@ class BaseMinerNeuron(BaseNeuron):
             forward_fn=self.forward_info,
             blacklist_fn=self.blacklist_info,
         )
-        bt.logging.info(f"Axon created: {self.axon}")
+        bt.logging.info(f"\033[1;32m🧠 Axon created: {self.axon}\033[0m")
 
         # Instantiate runners
         self.should_exit: bool = False
@@ -82,14 +65,14 @@ class BaseMinerNeuron(BaseNeuron):
         # Serve passes the axon information to the network + netuid we are hosting on.
         # This will auto-update if the axon port of external ip have changed.
         bt.logging.info(
-            f"Serving miner axon {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
+            f"\033[1;32m🧠 Serving miner axon {self.axon} on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}\033[0m"
         )
         self.axon.serve(netuid=self.config.netuid, subtensor=self.subtensor)
 
         # Start  starts the miner's axon, making it active on the network.
         self.axon.start()
 
-        bt.logging.info(f"Miner starting at block: {self.block}")
+        bt.logging.info(f"\033[1;32m🧠 Miner starting at block: {self.block}\033[0m")
 
         # This loop maintains the miner's operations until intentionally stopped.
         try:
@@ -112,12 +95,12 @@ class BaseMinerNeuron(BaseNeuron):
         # If someone intentionally stops the miner, it'll safely terminate operations.
         except KeyboardInterrupt:
             self.axon.stop()
-            bt.logging.success("Miner killed by keyboard interrupt.")
+            bt.logging.success("\033[1;31m🛑 Miner killed by keyboard interrupt.\033[0m")
             exit()
 
         # In case of unforeseen errors, the miner will log the error and continue operations.
         except Exception:
-            bt.logging.error(traceback.format_exc())
+            bt.logging.error(f"\033[1;31m❌ {traceback.format_exc()}\033[0m")
 
     def run_in_background_thread(self):
         """
@@ -125,23 +108,23 @@ class BaseMinerNeuron(BaseNeuron):
         This is useful for non-blocking operations.
         """
         if not self.is_running:
-            bt.logging.debug("Starting miner in background thread.")
+            bt.logging.debug("\033[1;34m🔄 Starting miner in background thread.\033[0m")
             self.should_exit = False
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
             self.is_running = True
-            bt.logging.debug("Started")
+            bt.logging.debug("\033[1;34m🔄 Started\033[0m")
 
     def stop_run_thread(self):
         """
         Stops the miner's operations that are running in the background thread.
         """
         if self.is_running:
-            bt.logging.debug("Stopping miner in background thread.")
+            bt.logging.debug("\033[1;34m🔄 Stopping miner in background thread.\033[0m")
             self.should_exit = True
             self.thread.join(5)
             self.is_running = False
-            bt.logging.debug("Stopped")
+            bt.logging.debug("\033[1;34m🔄 Stopped\033[0m")
 
     def __enter__(self):
         """

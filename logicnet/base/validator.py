@@ -1,23 +1,3 @@
-# The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
-
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-
-
 import copy
 import torch
 import asyncio
@@ -43,10 +23,10 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Dendrite lets us send messages to other nodes (axons) in the network.
         self.dendrite = bt.dendrite(wallet=self.wallet)
-        bt.logging.info(f"Dendrite: {self.dendrite}")
+        bt.logging.info(f"\033[1;32m🔗 Dendrite: {self.dendrite}\033[0m")
 
         # Set up initial scoring weights for validation
-        bt.logging.info("Building validation weights.")
+        bt.logging.info("\033[1;32m⚖️ Building validation weights.\033[0m")
         self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
 
         # Init sync with the network. Updates the metagraph.
@@ -56,7 +36,7 @@ class BaseValidatorNeuron(BaseNeuron):
         if not self.config.neuron.axon_off:
             self.serve_axon()
         else:
-            bt.logging.warning("axon off, not serving ip to chain.")
+            bt.logging.warning("\033[1;33m⚠️ axon off, not serving ip to chain.\033[0m")
 
         # Create asyncio event loop to manage async tasks.
         self.loop = asyncio.get_event_loop()
@@ -70,7 +50,7 @@ class BaseValidatorNeuron(BaseNeuron):
     def serve_axon(self):
         """Serve axon to enable external connections."""
 
-        bt.logging.info("serving ip to chain...")
+        bt.logging.info("\033[1;32m🌐 serving ip to chain...\033[0m")
         try:
             self.axon = bt.axon(wallet=self.wallet, config=self.config)
 
@@ -80,11 +60,11 @@ class BaseValidatorNeuron(BaseNeuron):
                     axon=self.axon,
                 )
             except Exception as e:
-                bt.logging.error(f"Failed to serve Axon with exception: {e}")
+                bt.logging.error(f"\033[1;31m❌ Failed to serve Axon with exception: {e}\033[0m")
                 pass
 
         except Exception as e:
-            bt.logging.error(f"Failed to create Axon initialize with exception: {e}")
+            bt.logging.error(f"\033[1;31m❌ Failed to create Axon initialize with exception: {e}\033[0m")
             pass
 
     def run(self):
@@ -111,12 +91,12 @@ class BaseValidatorNeuron(BaseNeuron):
         self.sync()
 
         bt.logging.info(
-            f"Running validator on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}"
+            f"\033[1;32m🧠 Running validator on network: {self.config.subtensor.chain_endpoint} with netuid: {self.config.netuid}\033[0m"
         )
         if hasattr(self, "axon"):
             f"Axon: {self.axon}"
 
-        bt.logging.info(f"Validator starting at block: {self.block}")
+        bt.logging.info(f"\033[1;32m🧱 Validator starting at block: {self.block}\033[0m")
 
         # This loop maintains the validator's operations until intentionally stopped.
         while True:
@@ -125,12 +105,12 @@ class BaseValidatorNeuron(BaseNeuron):
                     try:
                         self.validator_proxy.get_credentials()
                         bt.logging.info(
-                            "Validator proxy ping to proxy-client successfully"
+                            "\033[1;32m🔌 Validator proxy ping to proxy-client successfully\033[0m"
                         )
                     except Exception:
-                        bt.logging.warning("Warning, proxy can't ping to proxy-client.")
+                        bt.logging.warning("\033[1;33m⚠️ Warning, proxy can't ping to proxy-client.\033[0m")
 
-                bt.logging.info(f"step({self.step}) block({self.block})")
+                bt.logging.info(f"\033[1;32m🔄 step({self.step}) block({self.block})\033[0m")
 
                 # Run forward.
                 try:
@@ -151,12 +131,12 @@ class BaseValidatorNeuron(BaseNeuron):
             # If someone intentionally stops the validator, it'll safely terminate operations.
             except KeyboardInterrupt:
                 self.axon.stop()
-                bt.logging.success("Validator killed by keyboard interrupt.")
+                bt.logging.success("\033[1;32m🛑 Validator killed by keyboard interrupt.\033[0m")
                 exit()
 
             # In case of unforeseen errors, the validator will log the error and continue operations.
             except Exception as err:
-                bt.logging.error("Error during validation", str(err))
+                bt.logging.error("\033[1;31m❌ Error during validation\033[0m", str(err))
                 bt.logging.debug(print_exception(type(err), err, err.__traceback__))
 
     def run_in_background_thread(self):
@@ -165,23 +145,23 @@ class BaseValidatorNeuron(BaseNeuron):
         This method facilitates the use of the validator in a 'with' statement.
         """
         if not self.is_running:
-            bt.logging.debug("Starting validator in background thread.")
+            bt.logging.debug("\033[1;32m🚀 Starting validator in background thread.\033[0m")
             self.should_exit = False
             self.thread = threading.Thread(target=self.run, daemon=True)
             self.thread.start()
             self.is_running = True
-            bt.logging.debug("Started")
+            bt.logging.debug("\033[1;32m✅ Started\033[0m")
 
     def stop_run_thread(self):
         """
         Stops the validator's operations that are running in the background thread.
         """
         if self.is_running:
-            bt.logging.debug("Stopping validator in background thread.")
+            bt.logging.debug("\033[1;33m🛑 Stopping validator in background thread.\033[0m")
             self.should_exit = True
             self.thread.join(5)
             self.is_running = False
-            bt.logging.debug("Stopped")
+            bt.logging.debug("\033[1;32m✅ Stopped\033[0m")
 
     def __enter__(self):
         self.run_in_background_thread()
@@ -201,11 +181,11 @@ class BaseValidatorNeuron(BaseNeuron):
                        None if the context was exited without an exception.
         """
         if self.is_running:
-            bt.logging.debug("Stopping validator in background thread.")
+            bt.logging.debug("\033[1;33m🛑 Stopping validator in background thread.\033[0m")
             self.should_exit = True
             self.thread.join(5)
             self.is_running = False
-            bt.logging.debug("Stopped")
+            bt.logging.debug("\033[1;32m✅ Stopped\033[0m")
 
     def set_weights(self):
         """
@@ -215,7 +195,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # Check if self.scores contains any NaN values and log a warning if it does.
         if torch.isnan(self.scores).any():
             bt.logging.warning(
-                "Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
+                "\033[1;33m⚠️ Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions.\033[0m"
             )
 
         # Calculate the average reward for each uid across non-zero values.
@@ -249,11 +229,11 @@ class BaseValidatorNeuron(BaseNeuron):
             version_key=self.spec_version,
         )
 
-        bt.logging.info(f"Set weights: {processed_weights}")
+        bt.logging.info(f"\033[1;32m⚖️ Set weights: {processed_weights}\033[0m")
 
     def resync_metagraph(self):
         """Resyncs the metagraph and updates the hotkeys and moving averages based on the new metagraph."""
-        bt.logging.info("resync_metagraph()")
+        bt.logging.info("\033[1;32m🔄 resync_metagraph()\033[0m")
 
         # Copies state of metagraph before syncing.
         previous_metagraph = copy.deepcopy(self.metagraph)
@@ -266,11 +246,11 @@ class BaseValidatorNeuron(BaseNeuron):
             return
 
         bt.logging.info(
-            "Metagraph updated, re-syncing hotkeys, dendrite pool and moving averages"
+            "\033[1;32m🔄 Metagraph updated, re-syncing hotkeys, dendrite pool and moving averages\033[0m"
         )
         # Zero out all hotkeys that have been replaced.
         for uid, hotkey in enumerate(self.hotkeys):
-            if hotkey != self.metagraph.hotkeys[uid]:
+            if (hotkey != self.metagraph.hotkeys[uid]):
                 self.scores[uid] = 0  # hotkey has been replaced
 
         # Check to see if the metagraph has changed size.
@@ -290,7 +270,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Check if rewards contains NaN values.
         if torch.isnan(rewards).any():
-            bt.logging.warning(f"NaN values detected in rewards: {rewards}")
+            bt.logging.warning(f"\033[1;33m⚠️ NaN values detected in rewards: {rewards}\033[0m")
             # Replace any NaN values in rewards with 0.
             rewards = torch.nan_to_num(rewards, 0)
 
@@ -299,7 +279,7 @@ class BaseValidatorNeuron(BaseNeuron):
         scattered_rewards: torch.FloatTensor = self.scores.scatter(
             0, torch.tensor(uids).to(self.device), rewards
         ).to(self.device)
-        bt.logging.debug(f"Scattered rewards: {rewards}")
+        bt.logging.debug(f"\033[1;32m🔄 Scattered rewards: {rewards}\033[0m")
 
         # Update scores with rewards produced by this step.
         # shape: [ metagraph.n ]
@@ -307,4 +287,4 @@ class BaseValidatorNeuron(BaseNeuron):
         self.scores: torch.FloatTensor = alpha * scattered_rewards + (
             1 - alpha
         ) * self.scores.to(self.device)
-        bt.logging.info(f"Updated moving avg scores: {self.scores}")
+        bt.logging.info(f"\033[1;32m📈 Updated moving avg scores: {self.scores}\033[0m")

@@ -39,7 +39,7 @@ class Validator(BaseValidatorNeuron):
         MAIN VALIDATOR that run the synthetic epoch and opening a proxy for receiving queries from the world.
         """
         super(Validator, self).__init__(config=config)
-        bt.logging.info("load_state()")
+        bt.logging.info("\033[1;32m🧠 load_state()\033[0m")
         self.categories = init_category(self.config)
         self.miner_manager = MinerManager(self)
         self.load_state()
@@ -53,11 +53,15 @@ class Validator(BaseValidatorNeuron):
         if self.config.proxy.port:
             try:
                 self.validator_proxy = ValidatorProxy(self)
-                bt.logging.info("Validator proxy started successfully")
+                bt.logging.info(
+                    "\033[1;32m🟢 Validator proxy started successfully\033[0m"
+                )
             except Exception:
                 bt.logging.warning(
-                    "Warning, proxy did not start correctly, so no one can query through your validator. Error message: "
+                    "\033[1;33m⚠️ Warning, proxy did not start correctly, so no one can query through your validator. "
+                    "This means you won't participate in queries from apps powered by this subnet. Error message: "
                     + traceback.format_exc()
+                    + "\033[0m"
                 )
 
     def forward(self):
@@ -66,7 +70,7 @@ class Validator(BaseValidatorNeuron):
         DEFAULT: 16 miners per batch, 600 seconds per loop.
         """
         self.store_miner_infomation()
-        bt.logging.info("Updating available models & uids")
+        bt.logging.info("\033[1;34m🔄 Updating available models & uids\033[0m")
         async_batch_size = self.config.async_batch_size
         loop_base_time = self.config.loop_base_time  # default is 600 seconds
         threads = []
@@ -80,7 +84,7 @@ class Validator(BaseValidatorNeuron):
             sleep_per_batch,
         ) in self.query_queue.get_batch_query(async_batch_size):
             bt.logging.info(
-                f"Querying {len(uids)} uids for model {category}, sleep_per_batch: {sleep_per_batch}"
+                f"\033[1;34m🔍 Querying {len(uids)} uids for model {category}, sleep_per_batch: {sleep_per_batch}\033[0m"
             )
 
             thread = threading.Thread(
@@ -90,7 +94,9 @@ class Validator(BaseValidatorNeuron):
             threads.append(thread)
             thread.start()
 
-            bt.logging.info(f"Sleeping for {sleep_per_batch} seconds between batches")
+            bt.logging.info(
+                f"\033[1;34m😴 Sleeping for {sleep_per_batch} seconds between batches\033[0m"
+            )
             time.sleep(sleep_per_batch)
 
         for thread in threads:
@@ -98,8 +104,9 @@ class Validator(BaseValidatorNeuron):
         self.update_scores_on_chain()
         self.save_state()
         bt.logging.info(
-            "Loop completed, uids info:\n",
-            str(self.miner_manager.all_uids_info).replace("},", "},\n"),
+            "\033[1;32m✅ Loop completed, uids info:\n"
+            + str(self.miner_manager.all_uids_info).replace("},", "},\n")
+            + "\033[0m"
         )
         self.store_miner_infomation()
 
@@ -107,7 +114,7 @@ class Validator(BaseValidatorNeuron):
 
         if actual_time_taken < loop_base_time:
             bt.logging.info(
-                f"Sleeping for {loop_base_time - actual_time_taken} seconds"
+                f"\033[1;34m😴 Sleeping for {loop_base_time - actual_time_taken} seconds\033[0m"
             )
             time.sleep(loop_base_time - actual_time_taken)
 
@@ -122,22 +129,27 @@ class Validator(BaseValidatorNeuron):
         synapses, batched_uids_should_rewards = self.prepare_challenge(
             uids_should_rewards, category
         )
+        
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
             uids, should_rewards = zip(*uids_should_rewards)
-            bt.logging.info(f"Querying {uids}, Should reward: {should_rewards}")
+            bt.logging.info(
+                f"\033[1;34m🔍 Querying {uids}, Should reward: {should_rewards}\033[0m"
+            )
             if not synapse:
                 continue
             base_synapse = synapse.copy()
             synapse = synapse.miner_synapse()
             axons = [self.metagraph.axons[int(uid)] for uid in uids]
-            bt.logging.debug(f"Axon: {axons}")
+            bt.logging.debug(f"\033[1;34m🧠 Axon: {axons}\033[0m")
             responses = dendrite.query(
                 axons=axons,
                 synapse=synapse,
                 deserialize=False,
                 timeout=self.categories[category]["timeout"],
             )
-            bt.logging.debug(f"Miner response: {responses[0].logic_answer}")
+            bt.logging.debug(
+                f"\033[1;34m🧠 Miner response: {responses[0].logic_answer}\033[0m"
+            )
             reward_responses = [
                 response
                 for response, should_reward in zip(responses, should_rewards)
@@ -148,7 +160,7 @@ class Validator(BaseValidatorNeuron):
             ]
 
             bt.logging.info(
-                f"Received {len(responses)} responses, {len(reward_responses)} to be rewarded"
+                f"\033[1;34m🔍 Received {len(responses)} responses, {len(reward_responses)} to be rewarded\033[0m"
             )
 
             if reward_uids:
@@ -163,7 +175,7 @@ class Validator(BaseValidatorNeuron):
                             + 0.1 * self.miner_manager.all_uids_info[uid].reward_scale
                         )
 
-                bt.logging.info(f"Scored responses: {rewards}")
+                bt.logging.info(f"\033[1;32m🏆 Scored responses: {rewards}\033[0m")
 
                 self.miner_manager.update_scores(uids, rewards, reward_logs)
 
@@ -209,17 +221,19 @@ class Validator(BaseValidatorNeuron):
                 model_specific_weights * self.categories[category]["incentive_weight"]
             )
             bt.logging.info(
-                f"model_specific_weights for {category}\n{model_specific_weights}"
+                f"\033[1;34m⚖️ model_specific_weights for {category}\n{model_specific_weights}\033[0m"
             )
             weights = weights + model_specific_weights
 
         # Check if rewards contains NaN values.
         if torch.isnan(weights).any():
-            bt.logging.warning(f"NaN values detected in weights: {weights}")
+            bt.logging.warning(
+                f"\033[1;33m⚠️ NaN values detected in weights: {weights}\033[0m"
+            )
             # Replace any NaN values in rewards with 0.
             weights = torch.nan_to_num(weights, 0)
         self.scores: torch.FloatTensor = weights
-        bt.logging.success(f"Updated scores: {self.scores}")
+        bt.logging.success(f"\033[1;32m✅ Updated scores: {self.scores}\033[0m")
 
     def save_state(self):
         """Saves the state of the validator to a file."""
@@ -238,17 +252,21 @@ class Validator(BaseValidatorNeuron):
         # Load the state of the validator from file.
         try:
             path = self.config.neuron.full_path + "/state.pt"
-            bt.logging.info("Loading validator state from: " + path)
+            bt.logging.info(
+                "\033[1;32m🧠 Loading validator state from: " + path + "\033[0m"
+            )
             state = torch.load(path)
             self.step = state["step"]
             all_uids_info = state["all_uids_info"]
             for k, v in all_uids_info.items():
                 v = v.to_dict()
                 self.miner_manager.all_uids_info[k] = MinerInfo(**v)
-            bt.logging.info("Successfully loaded state")
+            bt.logging.info("\033[1;32m✅ Successfully loaded state\033[0m")
         except Exception as e:
             self.step = 0
-            bt.logging.info("Could not find previously saved state.", e)
+            bt.logging.info(
+                "\033[1;33m⚠️ Could not find previously saved state.\033[0m", e
+            )
 
     def store_miner_infomation(self):
         miner_informations = self.miner_manager.to_dict()
@@ -273,5 +291,5 @@ class Validator(BaseValidatorNeuron):
 if __name__ == "__main__":
     with Validator() as validator:
         while True:
-            bt.logging.info("Validator running...", time.time())
+            bt.logging.info("\033[1;32m🟢 Validator running...\033[0m", time.time())
             time.sleep(360)

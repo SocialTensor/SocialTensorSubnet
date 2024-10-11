@@ -23,7 +23,7 @@ Our goal is to develop an open-source AI model capable of complex mathematics an
 
   - **Initial Score Calculation**:
     - Each miner's response is evaluated to calculate an initial score using a weighted sum:
-      - `score = (0.4 * similarity_score) + (0.6 * correctness_score) - 0.1 * time_penalty`
+      - `score = (0.2 * similarity_score) + (0.8 * correctness_score) - 0.1 * time_penalty`
         - **Similarity Score**: Calculated based on the cosine similarity between the miner's reasoning and the self-generated ground truth answer.
         - **Correctness Score**: Determined by an LLM that assesses whether the miner's answer is correct based on the question and ground truth.
         - **Time Penalty**: Derived from the processing time of the response relative to the specified timeout.
