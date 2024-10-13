@@ -40,6 +40,9 @@ def get_args():
         default="http://localhost:8000",
         help="URL of the VLLM service",
     )
+    parser.add_argument("--num_gpus", type=float, default=1.0)
+    parser.add_argument("--num_cpus", type=float, default=1.0)
+    parser.add_argument("--num_replicas", type=int, default=1)
     args = parser.parse_args()
     return args
 
