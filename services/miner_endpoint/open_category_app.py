@@ -5,6 +5,7 @@ from generation_models import OpenModel
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--num_gpus", default=1, type=int)
+    parser.add_argument("--num_replicas", default=1, type=int)
     parser.add_argument("--port", default=10006, type=int)
     parser.add_argument("--model_id", default="black-forest-labs/FLUX.1-dev")
     parser.add_argument(
