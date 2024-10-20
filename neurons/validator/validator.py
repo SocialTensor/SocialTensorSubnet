@@ -555,7 +555,7 @@ class Validator(BaseValidatorNeuron):
                 axons=axons,
                 synapse=synapse,
                 deserialize=False,
-                timeout=self.nicheimage_catalogue[model_name]["timeout"],
+                timeout=self.nicheimage_catalogue[model_name]["timeout"]*3,
             )
             reward_responses = [
                 response
