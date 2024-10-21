@@ -9,7 +9,7 @@ from datasets import load_dataset
 from fastapi import FastAPI
 import random
 import httpx
-
+from prometheus_fastapi_instrumentator import Instrumentator
 
 class VLMSyntheticPrompt:
     """
@@ -24,6 +24,7 @@ class VLMSyntheticPrompt:
         """
         self.app = FastAPI()
         self.app.add_api_route("/", self.__call__, methods=["POST"])
+        Instrumentator().instrument(self.app).expose(self.app)
         self.dataset = self.load_dataset()
 
     def load_dataset(self):

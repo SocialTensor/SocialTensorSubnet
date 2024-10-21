@@ -11,3 +11,4 @@ tqdm==4.66.1
 transformers
 omegaconf
 gunicorn
+prometheus-fastapi-instrumentator==6.0.0

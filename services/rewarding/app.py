@@ -15,6 +15,7 @@ from services.rewarding.cosine_similarity_compare import CosineSimilarityReward
 from services.rewarding.open_category_reward import OpenCategoryReward
 import asyncio
 from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limiter
+from prometheus_fastapi_instrumentator import Instrumentator
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -118,6 +119,7 @@ class BaseRewardApp:
         self.app.state.limiter = limiter
         self.app.add_middleware(RequestCancelledMiddleware)
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        Instrumentator().instrument(self.app).expose(self.app)
         self.allowed_ips = []
 
         if not self.args.disable_secure:
