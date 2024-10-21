@@ -5,7 +5,7 @@ from services.challenge_generating.llm_prompt_generating.twitter_prompt import (
     TwitterPrompt,
 )
 from transformers import AutoTokenizer
-
+from prometheus_fastapi_instrumentator import Instrumentator
 
 def get_args():
     parser = argparse.ArgumentParser(
@@ -27,6 +27,7 @@ class LLMPromptGenerating:
         self.tokenizer = AutoTokenizer.from_pretrained("casperhansen/llama-3-70b-instruct-awq")
         self.twitter_prompt = TwitterPrompt(max_tokens=1024)
         self.app.add_api_route("/", self.generate, methods=["POST"])
+        Instrumentator().instrument(self.app).expose(self.app)
 
     async def generate(self):
         try:
