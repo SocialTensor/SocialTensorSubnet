@@ -364,6 +364,13 @@ def add_args(cls, parser):
         # LAYER ZERO
 
         parser.add_argument(
+            "--miner.disable_serve_axon",
+            action="store_true",
+            help="If set, we will disable serving axon.",
+            default=False,
+        )
+
+        parser.add_argument(
             "--miner.is_layer_zero",
             action="store_true",
             help="If set, we will enable layer zero.",
