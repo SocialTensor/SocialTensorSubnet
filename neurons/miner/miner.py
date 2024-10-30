@@ -185,17 +185,17 @@ if __name__ == "__main__":
                 )
                 start_time = time.time()
                 miner.total_request_in_interval = 0
-            try:
-                bt.logging.debug("Syncing metagraph")
-                miner.resync_metagraph()
-                bt.logging.debug("Synced metagraph")
-                miner.volume_per_validator = image_generation_subnet.utils.volume_setting.get_volume_per_validator(
-                    miner.metagraph,
-                    miner.config.miner.total_volume,
-                    miner.config.miner.size_preference_factor,
-                    miner.config.miner.min_stake,
-                    log=False,
-                )
-            except Exception as e:
-                print(e)
+                try:
+                    bt.logging.debug("Syncing metagraph")
+                    miner.resync_metagraph()
+                    bt.logging.debug("Synced metagraph")
+                    miner.volume_per_validator = image_generation_subnet.utils.volume_setting.get_volume_per_validator(
+                        miner.metagraph,
+                        miner.config.miner.total_volume,
+                        miner.config.miner.size_preference_factor,
+                        miner.config.miner.min_stake,
+                        log=False,
+                    )
+                except Exception as e:
+                    print(e)
             time.sleep(60)
