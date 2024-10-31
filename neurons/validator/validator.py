@@ -549,7 +549,7 @@ class Validator(BaseValidatorNeuron):
                 in self.generate_response_offline_types
             ):
                 self.enqueue_synapse_for_validation(base_synapse)
-    
+
             axons = [self.metagraph.axons[int(uid)] for uid in uids]
             
             async def send_requests():
