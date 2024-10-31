@@ -72,6 +72,7 @@ pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.multimoda
 ```
 
 5. Start miner
+- Basic Guide
 ```bash
 pm2 start python --name "miner" \
 -- \
@@ -82,10 +83,10 @@ pm2 start python --name "miner" \
 --axon.port <your_public_port> \
 --generate_endpoint http://127.0.0.1:10006/generate \ # change if you use different port or host
 --info_endpoint http://127.0.0.1:10006/info \ # change if you use different port or host
---miner.total_volume <your-generation-volume> # default is 40. Change based on your model timeout value and GPU capacity
+--miner.total_volume <your-generation-volume> \ # default is 40. Change based on your model timeout value and GPU capacity
 --miner.max_concurrent_requests <your-max-concurrent-requests> # default is 4. Change based on your model timeout value and GPU capacity
 ```
-
+- Advanced Guide (Layered for Anti-DDoS): see [Advanced Miner Guide](miner_layered.md)
 
 ## Guide Open Category
 1. Git clone and install requirements
@@ -113,6 +114,7 @@ pm2 start python --name "miner_endpoint" -- \
 --num_gpus 1 --port 10006 --num_inference_steps 30 --guidance_scale 3.0 # inference params for diffusion model
 ```
 3. Start miner
+- Basic Guide
 ```bash
 pm2 start python --name "miner" \
 -- \
@@ -125,6 +127,7 @@ pm2 start python --name "miner" \
 --info_endpoint http://localhost:10006/info \ # change if you use different port or host
 --miner.total_volume <your-generation-volume> # default is 40. Change based on your model timeout value and GPU capacity
 ```
+- Advanced Guide (Layered for Anti-DDoS): see [Advanced Miner Guide](miner_layered.md)
 
 ## Benchmark Your Setup
 
