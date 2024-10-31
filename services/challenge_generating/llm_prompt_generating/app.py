@@ -43,7 +43,8 @@ class LLMPromptGenerating:
         data = {
             "prompt_input": chat_prompt,
             "pipeline_params": {
-                "max_tokens": 4096,
+                "max_tokens": 512,
+                "min_tokens": 512,
                 "logprobs": 100,
                 "stop": ["<|eot_id|>"],
             },
