@@ -197,7 +197,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["JuggernautXL"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.12,
+            "model_incentive_weight": 0.1,
             "reward_url": config.reward_url.JuggernautXL,
             "reward_type": "image",
             "inference_params": {
@@ -213,7 +213,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.16,
+            "model_incentive_weight": 0.13,
             "reward_url": config.reward_url.RealitiesEdgeXL,
             "reward_type": "image",
             "inference_params": {
@@ -229,7 +229,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.15,
+            "model_incentive_weight": 0.12,
             "reward_url": config.reward_url.AnimeV3,
             "reward_type": "image",
             "inference_params": {
@@ -320,7 +320,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenGeneral": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.04,
+            "model_incentive_weight": 0.08,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -329,7 +329,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenDigitalArt": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.04,
+            "model_incentive_weight": 0.08,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -732,23 +732,21 @@ class Validator(BaseValidatorNeuron):
                 )
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2024, 10, 3, 14, 0, 0):
+            if datetime.utcnow() < datetime(2024, 11, 2, 14, 0, 0):
                 temp_incentive_weight = {
-                    "AnimeV3": 0.18,
-                    "JuggernautXL": 0.15,
-                    "RealitiesEdgeXL": 0.19,
-                    "OpenGeneral": 0.01,
-                    "OpenDigitalArt": 0.01,
-                    "Pixtral_12b": 0.01,
+                    "AnimeV3": 0.15,
+                    "JuggernautXL": 0.12,
+                    "RealitiesEdgeXL": 0.16,
+                    "OpenGeneral": 0.04,
+                    "OpenDigitalArt": 0.04,
                 }
-            elif datetime.utcnow() < datetime(2024, 10, 5, 14, 0, 0):
+            elif datetime.utcnow() < datetime(2024, 11, 4, 14, 0, 0):
                 temp_incentive_weight = {
-                    "AnimeV3": 0.165,
-                    "JuggernautXL": 0.135,
-                    "RealitiesEdgeXL": 0.175,
-                    "OpenGeneral": 0.025,
-                    "OpenDigitalArt": 0.025,
-                    "Pixtral_12b": 0.025,
+                    "AnimeV3": 0.135,
+                    "JuggernautXL": 0.11,
+                    "RealitiesEdgeXL": 0.145,
+                    "OpenGeneral": 0.06,
+                    "OpenDigitalArt": 0.06,
                 }
 
             if model_name in temp_incentive_weight:
