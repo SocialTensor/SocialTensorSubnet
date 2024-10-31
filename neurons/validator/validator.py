@@ -538,7 +538,7 @@ class Validator(BaseValidatorNeuron):
         )
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
             uids, should_rewards = zip(*uids_should_rewards)
-            bt.logging.info(f"Quering {uids}, Should reward: {should_rewards}")
+            bt.logging.info(f"Querying {uids}, Should reward: {should_rewards}")
             if not synapse:
                 continue
             base_synapse = synapse.copy()
@@ -549,14 +549,44 @@ class Validator(BaseValidatorNeuron):
                 in self.generate_response_offline_types
             ):
                 self.enqueue_synapse_for_validation(base_synapse)
-
+    
             axons = [self.metagraph.axons[int(uid)] for uid in uids]
-            responses = dendrite.query(
-                axons=axons,
-                synapse=synapse,
-                deserialize=False,
-                timeout=self.nicheimage_catalogue[model_name]["timeout"],
-            )
+            
+            async def send_requests():
+                async def send_request(axon):
+                    start_time = time.perf_counter()
+                    response = await dendrite.call(
+                        target_axon=axon,
+                        synapse=synapse.model_copy(),
+                        timeout=self.nicheimage_catalogue[model_name]["timeout"],
+                        deserialize=False,
+                    )
+                    end_time = time.perf_counter()
+                    process_time = end_time - start_time
+                    return response, process_time
+    
+                tasks = [send_request(axon) for axon in axons]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                responses = []
+                process_times = []
+                for result in results:
+                    if isinstance(result, Exception):
+                        bt.logging.error(f"Request failed with exception: {result}")
+                        responses.append(None)
+                        process_times.append(-1)
+                    else:
+                        responses.append(result[0])
+                        process_times.append(result[1])
+                return responses, process_times
+    
+            def run_asyncio():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                responses, process_times = loop.run_until_complete(send_requests())
+                loop.close()
+                return responses, process_times
+    
+            responses, process_times = run_asyncio()
             reward_responses = [
                 response
                 for response, should_reward in zip(responses, should_rewards)
@@ -575,11 +605,7 @@ class Validator(BaseValidatorNeuron):
                 daemon=True,
             )
             store_thread.start()
-
-            process_times = [
-                synapse.dendrite.process_time if synapse.is_success else -1
-                for synapse in responses
-            ]
+            
             self.miner_manager.update_metadata(uids, process_times)
             if reward_uids:
                 if (
