@@ -737,7 +737,7 @@ class Validator(BaseValidatorNeuron):
                 )
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2024, 11, 2, 14, 0, 0):
+            if datetime.utcnow() < datetime(2024, 11, 7, 14, 0, 0):
                 temp_incentive_weight = {
                     "AnimeV3": 0.15,
                     "JuggernautXL": 0.12,
@@ -745,7 +745,7 @@ class Validator(BaseValidatorNeuron):
                     "OpenGeneral": 0.04,
                     "OpenDigitalArt": 0.04,
                 }
-            elif datetime.utcnow() < datetime(2024, 11, 4, 14, 0, 0):
+            elif datetime.utcnow() < datetime(2024, 11, 9, 14, 0, 0):
                 temp_incentive_weight = {
                     "AnimeV3": 0.135,
                     "JuggernautXL": 0.11,
