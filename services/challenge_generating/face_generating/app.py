@@ -13,6 +13,7 @@ from ray.serve.handle import DeploymentHandle
 from functools import partial
 from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limiter
 from services.challenge_generating.face_generating.generate_face import FaceGenerator
+from prometheus_fastapi_instrumentator import Instrumentator
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -58,6 +59,8 @@ class ChallengeImage:
         self.app.middleware("http")(partial(filter_allowed_ips, self))
         self.app.state.limiter = limiter
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        Instrumentator().instrument(self.app).expose(self.app)
+        
         if not self.args.disable_secure:
             self.allowed_ips_thread = threading.Thread(
                 target=define_allowed_ips,

@@ -5,6 +5,7 @@ from typing import Optional
 import uvicorn
 import random
 import openai
+from prometheus_fastapi_instrumentator import Instrumentator
 
 
 class Prompt(BaseModel, extra=Extra.allow):
@@ -60,7 +61,8 @@ class ChallengePrompt:
         }
 
         self.vllm_client = openai.AsyncOpenAI(base_url="http://localhost:8000/v1")
-
+        Instrumentator().instrument(self.app).expose(self.app)
+        
     async def __call__(
         self,
         payload: Prompt,

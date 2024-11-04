@@ -15,6 +15,7 @@ import httpx
 import traceback
 import copy
 import inspect
+from prometheus_fastapi_instrumentator import Instrumentator
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -76,6 +77,7 @@ class VllmRewardApp:
         self.app.middleware("http")(partial(filter_allowed_ips, self))
         self.app.state.limiter = limiter
         self.app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+        Instrumentator().instrument(self.app).expose(self.app)
         self.allowed_ips = []
 
         if not self.args.disable_secure:
