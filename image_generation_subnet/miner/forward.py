@@ -21,6 +21,7 @@ def set_info(self):
             "is_layer_zero": True,
         }
     else:
+        is_layer_one = True if self.config.miner.is_layer_one else False
         response = get_model_name(self)
         miner_info = {
             "model_name": response["model_name"],
@@ -33,6 +34,7 @@ def set_info(self):
                 "gpu_device_count": GPU_DEVICE_COUNT,
             },
             "is_layer_zero": False,
+            "is_layer_one": is_layer_one
         }
     return miner_info
 

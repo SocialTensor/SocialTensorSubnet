@@ -12,7 +12,6 @@ pm2 start python --name "miner" \
 --wallet.hotkey <wallet_hotkey> \
 --subtensor.network <network> \ # default is finney
 --axon.port <your_public_port> \
---miner.total_volume <your_generation_volume> \
 --miner.is_layer_zero \
 --miner.layer_one_ip <layer_one_ip> \ # change your layer one IP, default is 0.0.0.0
 --miner.layer_one_port <layer_one_port> # change your layer one port, default is 8091
@@ -33,6 +32,7 @@ pm2 start python --name "miner" \
 --axon.port <layer-one-port> \
 --miner.total_volume <your-generation-volume> \ # default is 40. Change based on your model timeout value and GPU capacity
 --miner.max_concurrent_requests <your-max-concurrent-requests> \ # default is 4. Change based on your model timeout value and GPU capacity
+--miner.is_layer_one \
 --miner.disable_serve_axon
 ```
 

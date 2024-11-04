@@ -378,6 +378,13 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--miner.is_layer_one",
+            action="store_true",
+            help="If set, we will enable layer one.",
+            default=False,
+        )
+
+        parser.add_argument(
             "--miner.layer_one_ip",
             type=str,
             help="The endpoint to send generate requests to.",
