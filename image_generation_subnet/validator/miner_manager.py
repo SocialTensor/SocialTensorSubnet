@@ -6,21 +6,27 @@ import requests
 from threading import Thread
 import image_generation_subnet as ig_subnet
 
+
 class MinerManager:
     def __init__(self, validator):
         self.validator = validator
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
         self.all_uids_info = {
-            uid: {"scores": [], "model_name": "", "process_time": []} for uid in self.all_uids
+            uid: {"scores": [], "model_name": "", "process_time": []}
+            for uid in self.all_uids
         }
-    
-    def get_miner_info(self):
+        self.layer_one_axons = {}
+
+    def get_miner_info(self, only_layer_one=False):
         """
         1. Query model_name of available uids
         """
-        self.all_uids = [int(uid) for uid in self.validator.metagraph.uids]
-        uid_to_axon = dict(zip(self.all_uids, self.validator.metagraph.axons))
-        query_axons = [uid_to_axon[int(uid)] for uid in self.all_uids]
+        if only_layer_one:
+            uids = self.layer_one_axons.keys()
+            query_axons = [self.layer_one_axons[uid] for uid in uids]
+        else:
+            uids = [int(uid) for uid in self.validator.metagraph.uids]
+            query_axons = [self.validator.metagraph.axons[uid] for uid in uids]
         synapse = Information()
         bt.logging.info("Requesting miner info using synapse Information")
         responses = self.validator.dendrite.query(
@@ -30,29 +36,26 @@ class MinerManager:
             timeout=10,
         )
         responses = {
-            uid: response.response_dict
-            for uid, response in zip(self.all_uids, responses)
+            uid: response.response_dict for uid, response in zip(uids, responses)
         }
-        remaining_uids = [uid for uid, info in responses.items() if not info]
-
-        if remaining_uids:
-            bt.logging.warning(f"Querying legacy for {len(remaining_uids)} remaining uids.")
-            remaining_axons = [uid_to_axon[uid] for uid in remaining_uids]
-            synapse = ImageGenerating()
-            synapse.request_dict = {"get_miner_info": True}
-            responses_legacy = self.validator.dendrite.query(
-                remaining_axons,
-                synapse,
-                deserialize=False,
-                timeout=10,
-            )
-            responses_legacy = {
-                uid: response.response_dict
-                for uid, response in zip(remaining_uids, responses_legacy)
-            }
-            responses.update(responses_legacy)
+        if only_layer_one:
+            bt.logging.debug(f"Some layer one miners: {list(responses.items())[:5]}")
         responses = {k: v for k, v in responses.items() if v}
         return responses
+
+    def update_layer_zero(self, responses: dict):
+        for uid, info in responses.items():
+            is_layer_zero = info.get("is_layer_zero", False)
+            is_layer_one = info.get("is_layer_one", False)
+            if is_layer_zero:
+                bt.logging.info(f"Layer zero: {uid}")
+                axon = self.validator.metagraph.axons[uid]
+                axon.ip = info["layer_one"]["ip"]
+                axon.port = info["layer_one"]["port"]
+                self.layer_one_axons[uid] = axon
+            if uid in self.layer_one_axons and not is_layer_zero and not is_layer_one:
+                self.layer_one_axons.pop(uid)
+        bt.logging.success("Updated layer zero")
 
     def update_miners_identity(self):
         """
@@ -60,16 +63,16 @@ class MinerManager:
         2. Update the available list
         """
         valid_miners_info = self.get_miner_info()
+        self.update_layer_zero(valid_miners_info)
+        layer_one_valid_miners_info = self.get_miner_info(only_layer_one=True)
+        valid_miners_info.update(layer_one_valid_miners_info)
+
         if not valid_miners_info:
             bt.logging.warning("No active miner available. Skipping setting weights.")
         for uid, info in valid_miners_info.items():
             miner_state = self.all_uids_info.setdefault(
                 uid,
-                {
-                    "scores": [],
-                    "model_name": "",
-                    "process_time": []
-                },
+                {"scores": [], "model_name": "", "process_time": []},
             )
             model_name = info.get("model_name", "")
             miner_state["total_volume"] = info.get("total_volume", 40)
@@ -126,7 +129,9 @@ class MinerManager:
             if "process_time" not in self.all_uids_info[uid]:
                 self.all_uids_info[uid]["process_time"] = []
             self.all_uids_info[uid]["process_time"].append(ptime)
-            self.all_uids_info[uid]["process_time"] = self.all_uids_info[uid]["process_time"][-500:]
+            self.all_uids_info[uid]["process_time"] = self.all_uids_info[uid][
+                "process_time"
+            ][-500:]
 
     def get_model_specific_weights(self, model_name, normalize=True):
         model_specific_weights = torch.zeros(len(self.all_uids))
@@ -168,4 +173,3 @@ class MinerManager:
     def reset_metadata(self):
         for uid in self.all_uids_info:
             self.all_uids_info[uid]["process_time"] = []
- 
