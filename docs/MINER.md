@@ -112,7 +112,7 @@ Alternatively, you can use together.ai's API to access various language models w
      --miner.epoch_volume 200 \
      --miner.llm_client.base_url https://api.together.xyz/v1 \
      --miner.llm_client.model "model_id_from_list" \
-     --llm_client.key $TOGETHER_API_KEY \
+     --miner.llm_client.key $TOGETHER_API_KEY \
      --logging.debug
    ```
    Replace `"model_id_from_list"` with the **Model ID** you have chosen from the together.ai model list. For example, `Qwen/Qwen2-Instruct-72B`.
