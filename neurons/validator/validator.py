@@ -102,9 +102,6 @@ class Validator(BaseValidatorNeuron):
             )
             time.sleep(sleep_per_batch)
 
-        bt.logging.debug(f"[1111111111111111111111VALIDATOR] Miner scores: {self.miner_scores}")
-        bt.logging.debug(f"[1111111111111111111111VALIDATOR] Miner reward logs: {self.miner_reward_logs}")
-        bt.logging.debug(f"[1111111111111111111111VALIDATOR] Miner uids: {self.miner_uids}")
         if self.miner_scores and self.miner_reward_logs and self.miner_uids:
             self.assign_incentive_rewards(self.miner_uids, self.miner_scores, self.miner_reward_logs)
         
