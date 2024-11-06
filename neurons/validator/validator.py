@@ -195,12 +195,9 @@ class Validator(BaseValidatorNeuron):
         Calculate incentive rewards based on the rank.
         Get the incentive rewards for the valid responses using the cubic function and valid_rewards rank.
         """
-        bt.logging.debug(f"[11111111] Valid rewards: {rewards}")
-        bt.logging.debug(f"[11111111] Valid uids: {uids}")
-        bt.logging.debug(f"[11111111] Valid reward logs: {reward_logs}")
         # Enumerate rewards with their original index
         original_rewards = list(enumerate(rewards))
-        bt.logging.debug(f"[REWARDER] Original rewards: {original_rewards}")
+        
         # Sort rewards in descending order based on the score
         sorted_rewards = sorted(original_rewards, key=lambda x: x[1], reverse=True)
         # Calculate ranks, handling ties
@@ -230,9 +227,6 @@ class Validator(BaseValidatorNeuron):
         # if total_reward > 0:
         #     incentive_rewards = [reward / total_reward for reward in incentive_rewards]
 
-        bt.logging.debug(f"[22222222] Incentive rewards: {incentive_rewards}")
-        bt.logging.debug(f"[22222222] Uids: {uids}")
-        bt.logging.debug(f"[22222222] Reward logs: {reward_logs}")  
         self.miner_manager.update_scores(uids, incentive_rewards, reward_logs)
         self.miner_scores = []
         self.miner_reward_logs = []
