@@ -65,39 +65,39 @@ class Miner(BaseMinerNeuron):
         return False, "All passed!"
 
     async def blacklist(self, synapse: LogicSynapse) -> Tuple[bool, str]:
-        bt.logging.info(f"synapse in blacklist {synapse}")
-        try:
-            if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
-                # Ignore requests from unrecognized entities.
-                bt.logging.trace(
-                    f"\033[1;35m🛑 Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}\033[0m"
-                )
-                return True, "Unrecognized hotkey"
+        # bt.logging.info(f"synapse in blacklist {synapse}")
+        # try:
+        #     if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
+        #         # Ignore requests from unrecognized entities.
+        #         bt.logging.trace(
+        #             f"\033[1;35m🛑 Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}\033[0m"
+        #         )
+        #         return True, "Unrecognized hotkey"
 
-            validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
-            stake = self.metagraph.stake[validator_uid].item()
+        #     validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
+        #     stake = self.metagraph.stake[validator_uid].item()
 
-            if validator_uid not in self.volume_per_validator:
-                bt.logging.trace(
-                    f"\033[1;35m🛑 Blacklisting {validator_uid}-validator has {stake} stake\033[0m"
-                )
-                return True, "Not enough stake"
-            if logicnet.miner.check_limit(
-                self,
-                uid=validator_uid,
-                stake=stake,
-                volume_per_validator=self.volume_per_validator,
-                interval=self.config.miner.limit_interval,
-            ):
-                bt.logging.trace(
-                    f"\033[1;35m🛑 Blacklisting {validator_uid}-validator for exceeding the limit\033[0m"
-                )
-                return True, "Limit exceeded"
+        #     if validator_uid not in self.volume_per_validator:
+        #         bt.logging.trace(
+        #             f"\033[1;35m🛑 Blacklisting {validator_uid}-validator has {stake} stake\033[0m"
+        #         )
+        #         return True, "Not enough stake"
+        #     if logicnet.miner.check_limit(
+        #         self,
+        #         uid=validator_uid,
+        #         stake=stake,
+        #         volume_per_validator=self.volume_per_validator,
+        #         interval=self.config.miner.limit_interval,
+        #     ):
+        #         bt.logging.trace(
+        #             f"\033[1;35m🛑 Blacklisting {validator_uid}-validator for exceeding the limit\033[0m"
+        #         )
+        #         return True, "Limit exceeded"
 
-            return False, "All passed!"
-        except Exception as e:
-            bt.logging.error(f"\033[1;31m❌ Error in blacklist: {e}\033[0m")
-            traceback.print_exc()
+        #     return False, "All passed!"
+        # except Exception as e:
+        #     bt.logging.error(f"\033[1;31m❌ Error in blacklist: {e}\033[0m")
+        #     traceback.print_exc()
             return False, "All passed!"
 
     async def priority(self, synapse: LogicSynapse) -> float:
