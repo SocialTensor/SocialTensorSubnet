@@ -1,4 +1,5 @@
 import time
+import datetime
 import bittensor as bt
 import random
 import torch
@@ -6,6 +7,7 @@ from logicnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
 import logicnet as ln
 from logicnet.validator import MinerManager, LogicChallenger, LogicRewarder, MinerInfo
+from logicnet.utils.wandb_manager import WandbManager
 import traceback
 import threading
 from neurons.validator.core.serving_queue import QueryQueue
@@ -46,6 +48,7 @@ class Validator(BaseValidatorNeuron):
         self.update_scores_on_chain()
         self.sync()
         self.miner_manager.update_miners_identity()
+        self.wandb_manager = WandbManager(validator=self)
         self.query_queue = QueryQueue(
             list(self.categories.keys()),
             time_per_loop=self.config.loop_base_time,
@@ -76,6 +79,12 @@ class Validator(BaseValidatorNeuron):
         threads = []
         loop_start = time.time()
         self.miner_manager.update_miners_identity()
+        # wandb log
+        if not self.config.wandb.off:
+            today = datetime.date.today()
+            if self.wandb_manager.wandb_start_date != today:
+                self.wandb_manager.wandb.finish()
+                self.wandb_manager.init_wandb()
         self.query_queue.update_queue(self.miner_manager.all_uids_info)
         for (
             category,
