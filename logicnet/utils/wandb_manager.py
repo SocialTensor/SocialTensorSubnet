@@ -34,8 +34,8 @@ class WandbManager:
         self.wandb = wandb.init(
             anonymous="allow",
             name=name,
-            project=f"sn35-{self.neuron.neuron_type}",
-            entity=self.neuron.config.wandb.entity,
+            project="logicnet-testnet",
+            entity="breo-workspace",
             config={
                 "uid":self.neuron.uid,
                 "hotkey":self.neuron.wallet.hotkey.ss58_address,
