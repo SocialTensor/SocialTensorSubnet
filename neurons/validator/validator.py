@@ -50,6 +50,9 @@ class Validator(BaseValidatorNeuron):
             list(self.categories.keys()),
             time_per_loop=self.config.loop_base_time,
         )
+        self.miner_scores = []
+        self.miner_reward_logs = []
+        self.miner_uids = []
         if self.config.proxy.port:
             try:
                 self.validator_proxy = ValidatorProxy(self)
@@ -98,6 +101,10 @@ class Validator(BaseValidatorNeuron):
                 f"\033[1;34m😴 Sleeping for {sleep_per_batch} seconds between batches\033[0m"
             )
             time.sleep(sleep_per_batch)
+
+        if self.miner_scores and self.miner_reward_logs and self.miner_uids:
+            self.assign_incentive_rewards(self.miner_uids, self.miner_scores, self.miner_reward_logs)
+        
 
         for thread in threads:
             thread.join()
@@ -176,8 +183,51 @@ class Validator(BaseValidatorNeuron):
                         )
 
                 bt.logging.info(f"\033[1;32m🏆 Scored responses: {rewards}\033[0m")
+                self.miner_reward_logs.append(reward_logs[0])
+                self.miner_uids.append(uids[0]) 
+                self.miner_scores.append(rewards[0])
 
-                self.miner_manager.update_scores(uids, rewards, reward_logs)
+    def assign_incentive_rewards(self, uids, rewards, reward_logs):
+        """
+        Calculate incentive rewards based on the rank.
+        Get the incentive rewards for the valid responses using the cubic function and valid_rewards rank.
+        """
+        # Enumerate rewards with their original index
+        original_rewards = list(enumerate(rewards))
+        
+        # Sort rewards in descending order based on the score
+        sorted_rewards = sorted(original_rewards, key=lambda x: x[1], reverse=True)
+        # Calculate ranks, handling ties
+        ranks = []
+        previous_score = None
+        rank = 0
+        for i, (reward_id, score) in enumerate(sorted_rewards):
+            rank = i + 1 if score != previous_score else rank  # Update rank only if the score changes
+            ranks.append((reward_id, rank, score))
+            previous_score = score
+        # Restore the original order of rewards
+        ranks.sort(key=lambda x: x[0])
+
+        # Calculate incentive rewards based on the rank, applying the cubic function for positive scores
+        def incentive_formula(rank):
+            reward_value = -1.038e-7 * rank**3 + 6.214e-5 * rank**2 - 0.0129 * rank - 0.0118
+            # Scale up the reward value between 0 and 1
+            scaled_reward_value = reward_value + 1
+            return scaled_reward_value
+        
+        incentive_rewards = [
+            (incentive_formula(rank) if score > 0 else 0) for _, rank, score in ranks
+        ]
+
+        # # Normalize the incentive rewards so that their sum is 1
+        # total_reward = sum(incentive_rewards)
+        # if total_reward > 0:
+        #     incentive_rewards = [reward / total_reward for reward in incentive_rewards]
+
+        self.miner_manager.update_scores(uids, incentive_rewards, reward_logs)
+        self.miner_scores = []
+        self.miner_reward_logs = []
+        self.miner_uids = []
 
     def prepare_challenge(self, uids_should_rewards, category):
         """

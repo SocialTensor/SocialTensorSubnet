@@ -126,43 +126,9 @@ class LogicRewarder:
                     f"[REWARDER] similarity: {similarities[i]}, correctness: {correctness[i]}, processing time: {process_times[i]}"
                 )
                 valid_rewards.append(reward)
-            
-            """
-            Calculate incentive rewards based on the rank.
-            Get the incentive rewards for the valid responses using the cubic function and valid_rewards rank.
-            """
-            # Enumerate rewards with their original index
-            original_rewards = list(enumerate(valid_rewards))
-
-            # Sort rewards in descending order based on the score
-            sorted_rewards = sorted(original_rewards, key=lambda x: x[1], reverse=True)
-
-            # Calculate ranks, handling ties
-            ranks = []
-            previous_score = None
-            # Initialize rank to 0
-            rank = 0
-            for i, (reward_id, score) in enumerate(sorted_rewards):
-                rank = i + 1 if score != previous_score else rank  # Update rank only if the score changes
-                ranks.append((reward_id, rank, score))
-                previous_score = score
-
-            # Restore the original order of rewards
-            ranks.sort(key=lambda x: x[0])
-
-            # Calculate incentive rewards based on the rank, applying the cubic function for positive scores
-            def incentive_formula(rank):
-                reward_value = -1.038e-7 * rank**3 + 6.214e-5 * rank**2 - 0.0129 * rank - 0.0118
-                # Scale up the reward value between 0 and 1
-                scaled_reward_value = reward_value + 1
-                return scaled_reward_value
-            
-            incentive_rewards = [
-                (incentive_formula(rank) if score > 0 else 0) for _, rank, score in ranks
-            ]
-
+                
         total_uids = valid_uids + invalid_uids
-        rewards = incentive_rewards + invalid_rewards
+        rewards = valid_rewards + invalid_rewards
         return total_uids, rewards, reward_logs
 
     def _get_correctness(
