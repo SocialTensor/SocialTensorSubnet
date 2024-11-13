@@ -176,3 +176,4 @@ main/*
 *.onnx
 example_env.env
 bittensor/
+query_log.csv
