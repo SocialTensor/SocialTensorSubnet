@@ -687,15 +687,12 @@ class Validator(BaseValidatorNeuron):
     ):
         if not self.config.share_response:
             return
-        nonce = str(time.time_ns())
-        # Calculate validator 's signature
-        message = f"{self.wallet.hotkey.ss58_address}{nonce}"
-        signature = f"0x{self.wallet.hotkey.sign(message).hex()}"
+        
         for uid, response in zip(uids, responses):
             if not response.is_success:
                 continue
             try:
-                response.store_response(storage_url, uid, self.uid, nonce, signature)
+                response.store_response(storage_url, uid, self.uid, self.wallet.hotkey)
                 break
             except Exception as e:
                 bt.logging.error(f"Error in storing response: {e}")
