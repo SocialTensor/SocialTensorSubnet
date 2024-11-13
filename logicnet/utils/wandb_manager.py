@@ -40,7 +40,7 @@ class WandbManager:
                 "uid":self.neuron.uid,
                 "hotkey":self.neuron.wallet.hotkey.ss58_address,
                 "version":version,
-                "type":self.neuron.neuron_type,
+                "type":self.neuron.config.neuron_type,
             }
         )
         
