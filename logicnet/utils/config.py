@@ -46,7 +46,8 @@ def add_args(cls, parser):
     # Netuid Arg: The netuid of the subnet to connect to.
     parser.add_argument("--netuid", type=int, help="Subnet netuid", default=1)
 
-    neuron_type = "validator" if "miner" not in cls.__name__.lower() else "miner"
+    # Neuron type
+    parser.add_argument("--neuron_type", type=str, help="Neuron type", default="validator")
 
     parser.add_argument(
         "--neuron.epoch_length",
@@ -68,6 +69,30 @@ def add_args(cls, parser):
         help="If set, we dont save events to a log file.",
         default=False,
     )
+
+    parser.add_argument(
+        "--wandb.off",
+        action="store_true",
+        help="Turn off wandb.",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--wandb.project_name",
+        type=str,
+        default="logicnet",
+        help="Wandb project to log to.",
+    )
+
+    parser.add_argument(
+        "--wandb.entity",
+        type=str,
+        default="logicnet",
+        help="Wandb entity to log to.",
+    )
+
+    # Neuron type
+    neuron_type = "validator" if "miner" not in cls.__name__.lower() else "miner"
 
     if neuron_type == "validator":
         parser.add_argument(
