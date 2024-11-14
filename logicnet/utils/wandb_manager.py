@@ -34,8 +34,8 @@ class WandbManager:
         self.wandb = wandb.init(
             anonymous="allow",
             name=name,
-            project="logicnet-testnet",
-            entity="breo-workspace",
+            project="logicnet-mainnet",
+            entity="ait-ai",
             config={
                 "uid":self.neuron.uid,
                 "hotkey":self.neuron.wallet.hotkey.ss58_address,
@@ -44,4 +44,4 @@ class WandbManager:
             }
         )
         
-        bt.logging.info(f"Init a new Wandb: {name}")
+        bt.logging.info(f"Init a new Wandb for LogicNet: {name}")
