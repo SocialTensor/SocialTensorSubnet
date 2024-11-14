@@ -207,6 +207,8 @@ This method involves self-hosting a vLLM server to run the Validator locally. It
   ```bash
   pm2 logs sn35-validator
   ```
+- **Wandb**: If you want to run the Validator with Wandb on testnet, please replace `logicnet-mainnet` with `logicnet-testnet` in the `project` argument for Wandb initialization in the `wandb_manager.py` file.
+
 - **Common Issues**:
   - **API Key Not Found**: Ensure `.env` is sourced and `TOGETHER_API_KEY` is set.
   - **Model ID Incorrect**: Verify the `--llm_client.model` matches the Together.AI Model ID.
