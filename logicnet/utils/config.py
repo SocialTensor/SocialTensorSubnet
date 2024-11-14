@@ -80,14 +80,14 @@ def add_args(cls, parser):
     parser.add_argument(
         "--wandb.project_name",
         type=str,
-        default="logicnet",
+        default="logicnet-mainnet",
         help="Wandb project to log to.",
     )
 
     parser.add_argument(
         "--wandb.entity",
         type=str,
-        default="logicnet",
+        default="ait-ai",
         help="Wandb entity to log to.",
     )
 
