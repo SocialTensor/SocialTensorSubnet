@@ -201,13 +201,23 @@ This method involves self-hosting a vLLM server to run the Validator locally. It
 
 ---
 
+### Wandb
+
+*Wandb is optional, but recommended for better tracking and analysis of the Validator and Miner.*
+- If you want to run the Validator with Wandb on testnet, please replace `logicnet-mainnet` with `logicnet-testnet` in the `project` argument for Wandb initialization in the `wandb_manager.py` file.
+- Set Up the Wandb API key at the .env File
+  ```bash
+  echo "WANDB_API_KEY=your_wandb_api_key" > .env
+  ```
+
+---
+
 ### Troubleshooting & Support
 
 - **Logs**: Use PM2 to check logs if you encounter issues.
   ```bash
   pm2 logs sn35-validator
   ```
-- **Wandb**: If you want to run the Validator with Wandb on testnet, please replace `logicnet-mainnet` with `logicnet-testnet` in the `project` argument for Wandb initialization in the `wandb_manager.py` file.
 
 - **Common Issues**:
   - **API Key Not Found**: Ensure `.env` is sourced and `TOGETHER_API_KEY` is set.
