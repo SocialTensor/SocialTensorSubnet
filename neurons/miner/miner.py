@@ -20,7 +20,7 @@ class Miner(BaseMinerNeuron):
             )
         )
         self.miner_info = {
-            "epoch_volume": self.config.miner.total_volume,
+            "epoch_volume": self.config.miner.epoch_volume,
             "category": "Logic",
         }
         self.num_processing_requests = 0
