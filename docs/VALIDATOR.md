@@ -143,7 +143,7 @@ We recommend using Together.AI to run the Validator, as it simplifies setup and 
 
 ### METHOD 2: Running the Validator Locally Using vLLM
 
-This method involves self-hosting a vLLM server to run the Validator locally. It requires more resources but provides more control over the environment.
+This method involves self-hosting a vLLM r to run the Validator locally. It requires more resources but provides more control over the environment.
 
 #### Minimum Compute Requirements:
 
@@ -173,7 +173,7 @@ This method involves self-hosting a vLLM server to run the Validator locally. It
 4. **Start the vLLM Server**
    ```bash
    . vllm/bin/activate
-   pm2 start "vllm serve "Qwen/Qwen2.5-Math-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm"
+   pm2 start "vllm  Qwen/Qwen2.5-Math-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm"
    ```
    *Adjust the model, port, and host as needed.*
 
