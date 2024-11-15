@@ -1,3 +1,5 @@
+import json
+import time
 import bittensor as bt
 from image_generation_subnet.protocol import ImageGenerating, Information
 import torch
@@ -150,21 +152,31 @@ class MinerManager:
         return model_specific_weights
 
     def store_miner_info(self):
+        catalogue = {}
+        for k, v in self.validator.nicheimage_catalogue.items():
+            catalogue[k] = {
+                "model_incentive_weight": v.get("model_incentive_weight", 0),
+                "supporting_pipelines": v.get("supporting_pipelines", []),
+            }
+        data = {
+            "uid": self.validator.uid,
+            "info": self.all_uids_info,
+            "version": ig_subnet.__version__,
+            "catalogue": catalogue,
+        }
+        serialized_data = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        nonce = str(time.time_ns())
+        # Calculate validator 's signature
+        keypair = self.validator.wallet.hotkey
+        message = f"{serialized_data}{keypair.ss58_address}{nonce}"
+        signature = f"0x{keypair.sign(message).hex()}"
+        # Add validator 's signature
+        data["nonce"] = nonce
+        data["signature"] = signature
         try:
-            catalogue = {}
-            for k, v in self.validator.nicheimage_catalogue.items():
-                catalogue[k] = {
-                    "model_incentive_weight": v.get("model_incentive_weight", 0),
-                    "supporting_pipelines": v.get("supporting_pipelines", []),
-                }
             requests.post(
                 self.validator.config.storage_url + "/store_miner_info",
-                json={
-                    "uid": self.validator.uid,
-                    "info": self.all_uids_info,
-                    "version": ig_subnet.__version__,
-                    "catalogue": catalogue,
-                },
+                json=data
             )
             self.reset_metadata()
         except Exception as e:
