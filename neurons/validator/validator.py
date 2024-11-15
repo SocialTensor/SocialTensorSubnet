@@ -213,7 +213,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.13,
+            "model_incentive_weight": 0.11,
             "reward_url": config.reward_url.RealitiesEdgeXL,
             "reward_type": "image",
             "inference_params": {
@@ -229,7 +229,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.12,
+            "model_incentive_weight": 0.10,
             "reward_url": config.reward_url.AnimeV3,
             "reward_type": "image",
             "inference_params": {
@@ -329,7 +329,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenDigitalArt": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.08,
+            "model_incentive_weight": 0.02,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -338,7 +338,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenDigitalArtAnime": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.02,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -347,7 +347,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenDigitalArtMinimalist": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.02,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -356,7 +356,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenDigitalArtPixelArt": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.02,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -366,7 +366,7 @@ def initialize_nicheimage_catalogue(config):
 
         "OpenLandscape": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.0,
+            "model_incentive_weight": 0.005,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -375,7 +375,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenLandscapeNature": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.005,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -384,7 +384,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenLandscapeCity": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.005,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -393,7 +393,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenLandscapeAnimal": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.005,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -403,7 +403,7 @@ def initialize_nicheimage_catalogue(config):
 
         "OpenRealisticPeople": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.0,
+            "model_incentive_weight": 0.005,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -412,7 +412,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenPeoplePortrait": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.005,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -421,7 +421,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenPeopleLifestyle": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.005,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -430,7 +430,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenPeopleFashion": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
+            "model_incentive_weight": 0.005,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -839,21 +839,22 @@ class Validator(BaseValidatorNeuron):
                 )
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2024, 11, 7, 14, 0, 0):
+            if datetime.utcnow() < datetime(2024, 11, 21, 14, 0, 0):
                 temp_incentive_weight = {
-                    "AnimeV3": 0.15,
-                    "JuggernautXL": 0.12,
-                    "RealitiesEdgeXL": 0.16,
-                    "OpenGeneral": 0.04,
-                    "OpenDigitalArt": 0.04,
-                }
-            elif datetime.utcnow() < datetime(2024, 11, 9, 14, 0, 0):
-                temp_incentive_weight = {
-                    "AnimeV3": 0.135,
-                    "JuggernautXL": 0.11,
-                    "RealitiesEdgeXL": 0.145,
-                    "OpenGeneral": 0.06,
-                    "OpenDigitalArt": 0.06,
+                    "AnimeV3": 0.12,
+                    "RealitiesEdgeXL": 0.13,
+                    "OpenDigitalArt": 0.08,
+                    "OpenDigitalArtAnime": 0.00,
+                    "OpenDigitalArtMinimalist": 0.00,
+                    "OpenDigitalArtPixelArt": 0.00,
+                    "OpenLandscape": 0.00,
+                    "OpenLandscapeNature": 0.00,
+                    "OpenLandscapeCity": 0.00,
+                    "OpenLandscapeAnimal": 0.00,
+                    "OpenRealisticPeople": 0.00,
+                    "OpenPeoplePortrait": 0.00,
+                    "OpenPeopleLifestyle": 0.00,
+                    "OpenPeopleFashion": 0.00
                 }
 
             if model_name in temp_incentive_weight:
