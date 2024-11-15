@@ -18,7 +18,7 @@ from starlette.concurrency import run_in_threadpool
 import threading
 
 class ValidatorProxy:
-    def __init__(self, validator):
+    def __init__(self, validator: "neurons.validator.validator.Validator"):
         self.validator = validator
         self.get_credentials()
         self.miner_request_counter = {}
