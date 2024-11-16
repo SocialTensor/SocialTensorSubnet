@@ -14,10 +14,10 @@ class MinerInfo:
     def __init__(
         self,
         category: str = "",
-        scores: list[float] = [],
-        epoch_volume: int = 42,
+        scores: list[float] = None,
+        epoch_volume: int = None,
         reward_scale: float = 0.0,
-        reward_logs: list[dict] = [],
+        reward_logs: list[dict] = None,
         *args,
         **kwargs,
     ):
@@ -29,12 +29,12 @@ class MinerInfo:
             epoch_volume (int, optional): No of requests / epoch commited by miner. Defaults to 42.
             reward_scale (float, optional): The scale value applied to miner reward each epoch. Defaults to 0.0.
         """
-        self.scores: list[float] = scores
-        self.epoch_volume: int = epoch_volume
+        self.scores: list[float] = scores if scores is not None else []
+        self.epoch_volume: int = epoch_volume if epoch_volume is not None else 512
         self.rate_limit = 0
         self.category: str = category
         self.reward_scale: float = reward_scale
-        self.reward_logs = reward_logs
+        self.reward_logs = reward_logs if reward_logs is not None else []
 
     def __str__(self):
         return str(self.to_dict()) + "\n"
