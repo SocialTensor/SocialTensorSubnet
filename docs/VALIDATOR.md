@@ -173,7 +173,7 @@ This method involves self-hosting a vLLM r to run the Validator locally. It requ
 4. **Start the vLLM Server**
    ```bash
    . vllm/bin/activate
-   pm2 start "vllm  Qwen/Qwen2.5-Math-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm"
+   pm2 start "vllm  Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm"
    ```
    *Adjust the model, port, and host as needed.*
 
@@ -190,7 +190,7 @@ This method involves self-hosting a vLLM r to run the Validator locally. It requ
        --wallet.hotkey "your-hotkey-name" \
        --subtensor.network finney \
        --llm_client.base_url http://localhost:8000/v1 \
-       --llm_client.model Qwen/Qwen2.5-Math-7B-Instruct \
+       --llm_client.model Qwen/Qwen2-7B-Instruct \
        --logging.debug
      ```
 
