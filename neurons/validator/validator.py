@@ -48,6 +48,7 @@ class Validator(BaseValidatorNeuron):
         self.update_scores_on_chain()
         self.sync()
         self.miner_manager.update_miners_identity()
+        self.neuron_type = self.config.neuron_type
         self.wandb_manager = WandbManager(neuron = self)
         self.query_queue = QueryQueue(
             list(self.categories.keys()),
