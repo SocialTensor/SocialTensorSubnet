@@ -29,7 +29,7 @@ class WandbManager:
         self.wandb_start_date = datetime.date.today()
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         
-        name = f"{self.neuron.neuron_type}-{self.neuron.uid}--{version}--{current_time}"
+        name = f"{self.neuron.config.neuron_type}-{self.neuron.uid}--{version}--{current_time}"
         # wandb init
         self.wandb = wandb.init(
             anonymous="allow",
