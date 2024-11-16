@@ -93,7 +93,7 @@ class LogicRewarder:
         ]
         invalid_rewards = [0 for _ in invalid_uids]
         reward_logs = []
-        incentive_rewards = []
+        
         if valid_uids:
             ref_ground_truth: str = self._get_ground_truth(
                 base_synapse.raw_logic_question
