@@ -53,9 +53,6 @@ class Validator(BaseValidatorNeuron):
             list(self.categories.keys()),
             time_per_loop=self.config.loop_base_time,
         )
-        self.miner_scores = []
-        self.miner_reward_logs = []
-        self.miner_uids = []
         if self.config.proxy.port:
             try:
                 self.validator_proxy = ValidatorProxy(self)
@@ -82,13 +79,18 @@ class Validator(BaseValidatorNeuron):
         threads = []
         loop_start = time.time()
         self.miner_manager.update_miners_identity()
-        # wandb log
+        self.query_queue.update_queue(self.miner_manager.all_uids_info)
+        
+        # Set up wandb log
         if not self.config.wandb.off:
             today = datetime.date.today()
-            if self.wandb_manager.wandb_start_date != today:
+            if (self.wandb_manager.wandb_start_date != today and 
+                hasattr(self.wandb_manager, 'wandb') and 
+                self.wandb_manager.wandb is not None):
                 self.wandb_manager.wandb.finish()
                 self.wandb_manager.init_wandb()
-        self.query_queue.update_queue(self.miner_manager.all_uids_info)
+
+        # Query and reward
         for (
             category,
             uids,
@@ -110,13 +112,12 @@ class Validator(BaseValidatorNeuron):
                 f"\033[1;34m😴 Sleeping for {sleep_per_batch} seconds between batches\033[0m"
             )
             time.sleep(sleep_per_batch)
-
-        if self.miner_scores and self.miner_reward_logs and self.miner_uids:
-            self.assign_incentive_rewards(self.miner_uids, self.miner_scores, self.miner_reward_logs)
         
-
+        # Wait for all threads to complete
         for thread in threads:
             thread.join()
+
+        # Update scores on chain
         self.update_scores_on_chain()
         self.save_state()
         bt.logging.info(
@@ -145,6 +146,9 @@ class Validator(BaseValidatorNeuron):
         synapses, batched_uids_should_rewards = self.prepare_challenge(
             uids_should_rewards, category
         )
+        miner_reward_logs = []
+        miner_uids = []
+        miner_scores = []
         
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
             uids, should_rewards = zip(*uids_should_rewards)
@@ -192,20 +196,31 @@ class Validator(BaseValidatorNeuron):
                         )
 
                 bt.logging.info(f"\033[1;32m🏆 Scored responses: {rewards}\033[0m")
-                self.miner_reward_logs.append(reward_logs[0])
-                self.miner_uids.append(uids[0]) 
-                self.miner_scores.append(rewards[0])
+
+                if rewards and reward_logs and uids: 
+                    miner_reward_logs.append(reward_logs)
+                    miner_uids.append(uids) 
+                    miner_scores.append(rewards)
+
+        # Assign incentive rewards
+        self.assign_incentive_rewards(miner_uids, miner_scores, miner_reward_logs)
 
     def assign_incentive_rewards(self, uids, rewards, reward_logs):
         """
         Calculate incentive rewards based on the rank.
         Get the incentive rewards for the valid responses using the cubic function and valid_rewards rank.
         """
+        # Flatten the nested lists
+        flat_uids = [uid for uid_list in uids for uid in uid_list]
+        flat_rewards = [reward for reward_list in rewards for reward in reward_list]
+        flat_reward_logs = [log for log_list in reward_logs for log in log_list]
+
         # Enumerate rewards with their original index
-        original_rewards = list(enumerate(rewards))
+        original_rewards = list(enumerate(flat_rewards))
         
         # Sort rewards in descending order based on the score
         sorted_rewards = sorted(original_rewards, key=lambda x: x[1], reverse=True)
+        
         # Calculate ranks, handling ties
         ranks = []
         previous_score = None
@@ -214,6 +229,7 @@ class Validator(BaseValidatorNeuron):
             rank = i + 1 if score != previous_score else rank  # Update rank only if the score changes
             ranks.append((reward_id, rank, score))
             previous_score = score
+        
         # Restore the original order of rewards
         ranks.sort(key=lambda x: x[0])
 
@@ -227,16 +243,9 @@ class Validator(BaseValidatorNeuron):
         incentive_rewards = [
             (incentive_formula(rank) if score > 0 else 0) for _, rank, score in ranks
         ]
-
-        # # Normalize the incentive rewards so that their sum is 1
-        # total_reward = sum(incentive_rewards)
-        # if total_reward > 0:
-        #     incentive_rewards = [reward / total_reward for reward in incentive_rewards]
-
-        self.miner_manager.update_scores(uids, incentive_rewards, reward_logs)
-        self.miner_scores = []
-        self.miner_reward_logs = []
-        self.miner_uids = []
+        
+        # Update scores on chain
+        self.miner_manager.update_scores(flat_uids, incentive_rewards, flat_reward_logs)
 
     def prepare_challenge(self, uids_should_rewards, category):
         """
@@ -252,7 +261,8 @@ class Validator(BaseValidatorNeuron):
                 if info.category == category
             ]
         )
-        batch_size = min(4, 1 + model_miner_count // 4)
+        # The batch size is 8 or the number of miners
+        batch_size = min(8, model_miner_count)
         random.shuffle(uids_should_rewards)
         batched_uids_should_rewards = [
             uids_should_rewards[i * batch_size : (i + 1) * batch_size]
