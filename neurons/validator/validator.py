@@ -80,7 +80,10 @@ class Validator(BaseValidatorNeuron):
         loop_start = time.time()
         self.miner_manager.update_miners_identity()
         self.query_queue.update_queue(self.miner_manager.all_uids_info)
-        
+        self.miner_uids = []
+        self.miner_scores = []
+        self.miner_reward_logs = []
+
         # Set up wandb log
         if not self.config.wandb.off:
             today = datetime.date.today()
@@ -117,6 +120,9 @@ class Validator(BaseValidatorNeuron):
         for thread in threads:
             thread.join()
 
+        # Assign incentive rewards
+        self.assign_incentive_rewards(self.miner_uids, self.miner_scores, self.miner_reward_logs)
+
         # Update scores on chain
         self.update_scores_on_chain()
         self.save_state()
@@ -146,9 +152,6 @@ class Validator(BaseValidatorNeuron):
         synapses, batched_uids_should_rewards = self.prepare_challenge(
             uids_should_rewards, category
         )
-        miner_reward_logs = []
-        miner_uids = []
-        miner_scores = []
         
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
             uids, should_rewards = zip(*uids_should_rewards)
@@ -198,12 +201,9 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.info(f"\033[1;32m🏆 Scored responses: {rewards}\033[0m")
 
                 if rewards and reward_logs and uids: 
-                    miner_reward_logs.append(reward_logs)
-                    miner_uids.append(uids) 
-                    miner_scores.append(rewards)
-
-        # Assign incentive rewards
-        self.assign_incentive_rewards(miner_uids, miner_scores, miner_reward_logs)
+                    self.miner_reward_logs.append(reward_logs)
+                    self.miner_uids.append(uids) 
+                    self.miner_scores.append(rewards)
 
     def assign_incentive_rewards(self, uids, rewards, reward_logs):
         """
@@ -246,6 +246,11 @@ class Validator(BaseValidatorNeuron):
         
         # Update scores on chain
         self.miner_manager.update_scores(flat_uids, incentive_rewards, flat_reward_logs)
+        
+        # Reset the miner reward logs, uids, and scores for next loop
+        self.miner_scores = []
+        self.miner_reward_logs = []
+        self.miner_uids = []
 
     def prepare_challenge(self, uids_should_rewards, category):
         """
