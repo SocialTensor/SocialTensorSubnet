@@ -346,13 +346,38 @@ class Validator(BaseValidatorNeuron):
         miner_informations = self.miner_manager.to_dict()
 
         def _post_miner_informations(miner_informations):
-            requests.post(
-                url=self.config.storage.storage_url,
-                json={
-                    "miner_information": miner_informations,
-                    "validator_uid": int(self.uid),
-                },
-            )
+            # Convert miner_informations to a JSON-serializable format
+            serializable_miner_informations = convert_to_serializable(miner_informations)
+            
+            try:
+                response = requests.post(
+                    url=self.config.storage.storage_url,
+                    json={
+                        "miner_information": serializable_miner_informations,
+                        "validator_uid": int(self.uid),
+                    },
+                )
+                if response.status_code == 200:
+                    bt.logging.info("\033[1;32m✅ Miner information successfully stored.\033[0m")
+                else:
+                    bt.logging.warning(
+                        f"\033[1;33m⚠️ Failed to store miner information, status code: {response.status_code}\033[0m"
+                    )
+            except requests.exceptions.RequestException as e:
+                bt.logging.error(f"\033[1;31m❌ Error storing miner information: {e}\033[0m")
+
+        def convert_to_serializable(data):
+            # Implement conversion logic for serialization
+            if isinstance(data, dict):
+                return {key: convert_to_serializable(value) for key, value in data.items()}
+            elif isinstance(data, list):
+                return [convert_to_serializable(element) for element in data]
+            elif isinstance(data, (int, str, bool, float)):
+                return data
+            elif hasattr(data, '__float__'):
+                return float(data)
+            else:
+                return str(data)
 
         thread = threading.Thread(
             target=_post_miner_informations,
