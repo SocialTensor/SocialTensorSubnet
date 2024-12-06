@@ -162,6 +162,7 @@ class Validator(BaseValidatorNeuron):
                 continue
             base_synapse = synapse.copy()
             synapse = synapse.miner_synapse()
+            bt.logging.info(f"\033[1;34m🧠 Synapse to be sent to miners: {synapse}\033[0m")
             axons = [self.metagraph.axons[int(uid)] for uid in uids]
             bt.logging.debug(f"\033[1;34m🧠 Axon: {axons}\033[0m")
             responses = dendrite.query(
@@ -170,9 +171,10 @@ class Validator(BaseValidatorNeuron):
                 deserialize=False,
                 timeout=self.categories[category]["timeout"],
             )
-            bt.logging.debug(
-                f"\033[1;34m🧠 Miner response: {responses[0].logic_answer}\033[0m"
-            )
+            # for response, uid in zip(responses, uids):
+            #     bt.logging.debug(
+            #         f"\033[1;34m🧠 Miner response for {uid}: {response.logic_answer}\033[0m"
+            #     )
             reward_responses = [
                 response
                 for response, should_reward in zip(responses, should_rewards)
