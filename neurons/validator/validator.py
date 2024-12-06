@@ -126,11 +126,6 @@ class Validator(BaseValidatorNeuron):
         # Update scores on chain
         self.update_scores_on_chain()
         self.save_state()
-        bt.logging.info(
-            "\033[1;32m✅ Loop completed, uids info:\n"
-            + str(self.miner_manager.all_uids_info).replace("},", "},\n")
-            + "\033[0m"
-        )
         self.store_miner_infomation()
 
         actual_time_taken = time.time() - loop_start
