@@ -1,4 +1,5 @@
 # Challenge for Synthetic Request
+import os
 import openai
 import random
 from logicnet.protocol import LogicSynapse
@@ -42,9 +43,8 @@ class LogicChallenger:
         synapse.logic_question = revised_logic_question
 
     def get_atom_logic_problem(self) -> str:
-        # resources = ['mathgenerator', 'zebralogicbench', 'ultrainteract', 'gsm8k', 'mmlustem', 'satmath']
-        resources = ['mathgenerator', 'ultrainteract', 'gsm8k', 'mmlustem', 'satmath']
-        selected_resource = random.choices(resources, weights=DATASET_WEIGHT[:5], k=1)[0]
+        resources = ['mathgenerator', 'zebralogicbench', 'ultrainteract', 'gsm8k', 'mmlustem', 'satmath']
+        selected_resource = random.choices(resources, weights=DATASET_WEIGHT[:6], k=1)[0]
 
         # Select an atom question and answer from the Mathgenerator
         if selected_resource == 'mathgenerator':
@@ -58,14 +58,14 @@ class LogicChallenger:
             atom_question = f"Find the solution of this math problem:\n---\nTopic: {topic}, Subtopic: {subtopic}.\n{atom_question}\n---\n"
         
         # Select an atom question and answer from the ZebraLogicBench
-        # elif selected_resource == 'zebralogicbench':
-        #     ds = load_dataset("allenai/ZebraLogicBench-private", "grid_mode", use_auth_token=True)
-        #     data_set = ds['test']
-        #     random_index = random.randint(0, len(data_set['puzzle']) - 1)
-        #     puzzle = data_set['puzzle'][random_index]
-        #     solution = data_set['solution'][random_index]
-        #     atom_question = f"Find the solution of this puzzle:\n---\n{puzzle}\n---\n"
-        #     atom_answer = solution
+        elif selected_resource == 'zebralogicbench':
+            ds = load_dataset("allenai/ZebraLogicBench-private", "grid_mode", token=os.environ.get('HF_TOKEN'))
+            data_set = ds['test']
+            random_index = random.randint(0, len(data_set['puzzle']) - 1)
+            puzzle = data_set['puzzle'][random_index]
+            solution = data_set['solution'][random_index]
+            atom_question = f"Find the solution of this puzzle:\n---\n{puzzle}\n---\n"
+            atom_answer = solution
 
         # Select an atom question and answer from the UltraInteract
         elif selected_resource == 'ultrainteract':
