@@ -23,6 +23,7 @@ def init_category(config=None):
                 config.llm_client.base_url,
                 config.llm_client.key,
                 config.llm_client.model,
+                config.dataset_weight,
             ),
             "rewarder": LogicRewarder(
                 config.llm_client.base_url,
