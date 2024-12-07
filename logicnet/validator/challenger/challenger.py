@@ -14,7 +14,7 @@ DATASET_WEIGHT = [40,10,10,10,10,10,10]
 class LogicChallenger:
     def __init__(self, base_url: str, api_key: str, model: str, dataset_weight: list):
         bt.logging.info(
-            f"Logic Challenger initialized with model: {model}, base_url: {base_url}"
+            f"Initializing Logic Challenger with model: {model}, base URL: {base_url}."
         )
         self.model = model
         self.openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
@@ -28,8 +28,7 @@ class LogicChallenger:
         # Get an atom logic problem
         atom_logic_question, atom_logic_answer = self.get_atom_logic_problem()
         if atom_logic_question is None or atom_logic_answer is None:
-            bt.logging.error(f"Failed to get atom logic problem")
-            bt.logging.info("Retrying...")
+            bt.logging.error("Unable to retrieve atom logic problem. Retrying...")
             atom_logic_question, atom_logic_answer = self.get_atom_logic_problem()
 
         # Revise the problem
@@ -48,7 +47,7 @@ class LogicChallenger:
         if len(self.dataset_weight) == 7:
             selected_resource = random.choices(resources, weights=self.dataset_weight, k=1)[0]
         else:
-            bt.logging.warning(f"You didn't provide right dataset weight config, using default weight: {DATASET_WEIGHT}")
+            bt.logging.warning("Invalid dataset weight configuration provided. Using default weights.")
             selected_resource = random.choices(resources, weights=DATASET_WEIGHT, k=1)[0]
 
         try:
@@ -60,7 +59,7 @@ class LogicChallenger:
                 atom_question, atom_answer = eval(f"mathgenerator.{topic}.{subtopic}()")
                 if atom_question is None or atom_answer is None:
                     raise ValueError("Failed to get atom logic problem")
-                bt.logging.debug(f"Using {mathgenerator.__name__} to generate math problem")
+                bt.logging.debug("Generating math problem using Mathgenerator.")
                 subtopic = subtopic.replace("_", " ").capitalize()
                 topic = topic.replace("_", " ").capitalize()
                 atom_question = atom_question.replace("$", "").strip()
@@ -69,7 +68,7 @@ class LogicChallenger:
             # Select an atom question and answer from the ZebraLogicBench grid_mode
             elif selected_resource == 'zebralogicbench-grid':
                 ds_grid = load_dataset("allenai/ZebraLogicBench-private", "grid_mode", token=os.environ.get('HF_TOKEN'))
-                bt.logging.debug("Using ZebraLogicBench (grid_mode) to generate math problem")
+                bt.logging.debug("Generating problem using ZebraLogicBench (grid mode).")
                 data_set_grid = ds_grid['test']
                 bt.logging.info(f"Loaded ZebraLogicBench (grid_mode) dataset with {len(data_set_grid['puzzle'])} entries")
                 random_index = random.randint(0, len(data_set_grid['puzzle']) - 1)
@@ -81,7 +80,7 @@ class LogicChallenger:
             # Select an atom question and answer from the ZebraLogicBench mc_mode
             elif selected_resource == 'zebralogicbench-mc':
                 ds_mc = load_dataset("allenai/ZebraLogicBench-private", "mc_mode", token=os.environ.get('HF_TOKEN'))
-                bt.logging.debug("Using ZebraLogicBench (mc_mode) to generate math problem")
+                bt.logging.debug("Generating problem using ZebraLogicBench (multiple choice mode).")
                 data_set_mc = ds_mc['test']
                 bt.logging.info(f"Loaded ZebraLogicBench (mc_mode) dataset with {len(data_set_mc['puzzle'])} entries")
                 random_index = random.randint(0, len(data_set_mc['puzzle']) - 1)
@@ -94,7 +93,7 @@ class LogicChallenger:
             # Select an atom question and answer from the UltraInteract
             elif selected_resource == 'ultrainteract':
                 ds = load_dataset("openbmb/UltraInteract_sft")
-                bt.logging.debug("Using UltraInteract to generate math problem")
+                bt.logging.debug("Generating problem using UltraInteract dataset.")
                 data_set = ds['train']
                 bt.logging.info(f"Loaded UltraInteract dataset with {len(data_set['instruction'])} entries")
                 random_index = random.randint(0, len(data_set['instruction']) - 1)
@@ -106,7 +105,7 @@ class LogicChallenger:
             # Select an atom question and answer from the GSM8K
             elif selected_resource == 'gsm8k':
                 ds = load_dataset("openai/gsm8k", "main")
-                bt.logging.debug("Using GSM8K to generate math problem")
+                bt.logging.debug("Generating problem using GSM8K dataset.")
                 data_set = ds['train']
                 bt.logging.info(f"Loaded GSM8K dataset with {len(data_set['question'])} entries")
                 random_index = random.randint(0, len(data_set['question']) - 1)
@@ -118,7 +117,7 @@ class LogicChallenger:
             # Select an atom question and answer from the MMLU-STEM
             elif selected_resource == 'mmlustem':
                 ds = load_dataset("TIGER-Lab/MMLU-STEM")
-                bt.logging.debug("Using MMLU-STEM to generate math problem")
+                bt.logging.debug("Generating problem using MMLU-STEM dataset.")
                 data_set = ds['test']
                 bt.logging.info(f"Loaded MMLU-STEM dataset with {len(data_set['question'])} entries")
                 random_index = random.randint(0, len(data_set['question']) - 1)
@@ -131,7 +130,7 @@ class LogicChallenger:
             # Select an atom question and answer from the SAT Math
             elif selected_resource == 'satmath':
                 ds = load_dataset("mcaleste/sat_multiple_choice_math_may_23")
-                bt.logging.debug("Using SAT Math to generate math problem")
+                bt.logging.debug("Generating problem using SAT Math dataset.")
                 data_set = ds['train']
                 bt.logging.info(f"Loaded SAT Math dataset with {len(data_set['Question'])} entries")
                 random_index = random.randint(0, len(data_set['Question']) - 1)
@@ -142,8 +141,7 @@ class LogicChallenger:
                 atom_answer = self.get_answer_value(possible_answers, answer_id)
 
         except Exception as e:
-            bt.logging.error(f"Error loading dataset {selected_resource}, maybe the dataset is not available or you don't have the permission to access it or network issue: {e}")
-            bt.logging.info("Attempting to load a different dataset...")
+            bt.logging.error(f"Error accessing dataset {selected_resource}: {e}. Attempting to load an alternative dataset.")
             # Retry with a different dataset
             return self.get_atom_logic_problem()  
 
