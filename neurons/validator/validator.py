@@ -268,10 +268,21 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["Llama3_70b"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.05,
+            "model_incentive_weight": 0.00,
             "timeout": 128,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Llama3_70b,
+            "reward_type": "text",
+            "inference_params": {},
+        },
+        "Llama3_3_70b": {
+            "supporting_pipelines": MODEL_CONFIGS["Llama3_3_70b"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.05,
+            "timeout": 128,
+            "synapse_type": ig_subnet.protocol.TextGenerating,
+            "reward_url": config.reward_url.Llama3_3_70b,
             "reward_type": "text",
             "inference_params": {},
         },
@@ -737,21 +748,15 @@ class Validator(BaseValidatorNeuron):
                 )
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2024, 11, 7, 14, 0, 0):
+            if datetime.utcnow() < datetime(2024, 12, 12, 14, 0, 0):
                 temp_incentive_weight = {
-                    "AnimeV3": 0.15,
-                    "JuggernautXL": 0.12,
-                    "RealitiesEdgeXL": 0.16,
-                    "OpenGeneral": 0.04,
-                    "OpenDigitalArt": 0.04,
+                    "Llama3_3_70b": 0.00,
+                    "Llama3_70b": 0.05,
                 }
-            elif datetime.utcnow() < datetime(2024, 11, 9, 14, 0, 0):
+            elif datetime.utcnow() < datetime(2024, 12, 14, 14, 0, 0):
                 temp_incentive_weight = {
-                    "AnimeV3": 0.135,
-                    "JuggernautXL": 0.11,
-                    "RealitiesEdgeXL": 0.145,
-                    "OpenGeneral": 0.06,
-                    "OpenDigitalArt": 0.06,
+                    "Llama3_3_70b": 0.025,
+                    "Llama3_70b": 0.025,
                 }
 
             if model_name in temp_incentive_weight:
