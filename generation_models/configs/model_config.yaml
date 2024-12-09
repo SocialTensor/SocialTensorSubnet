@@ -34,6 +34,13 @@ Llama3_70b:
     supporting_pipelines:
       - "text_generation"
 
+Llama3_3_70b:
+  target: ""
+  repo_id: "casperhansen/llama-3.3-70b-instruct-awq"
+  params:
+    supporting_pipelines:
+      - "text_generation"
+
 Pixtral_12b:
   target: ""
   repo_id: "mistralai/Pixtral-12B-2409"

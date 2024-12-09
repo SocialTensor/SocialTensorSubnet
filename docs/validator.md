@@ -31,3 +31,4 @@ If you want to run validation APIs locally, check out [Setup validator endpoint]
 ```
 pm2 start auto_update.sh --name "auto-update"
 ```
+

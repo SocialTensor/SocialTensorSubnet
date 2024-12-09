@@ -5,7 +5,7 @@ controlnet_aux @ git+https://github.com/toilaluan/controlnet_aux.git
 litserve @ git+https://github.com/toilaluan/LitServe.git
 pyiqa @ git+https://github.com/toilaluan/IQA-PyTorch.git
 openai @ git+https://github.com/vietbeu/openai-python.git
-transformers==4.42.4
+transformers==4.47.0
 accelerate==0.32.0
 cryptography==42.0.0
 ImageHash==4.3.1

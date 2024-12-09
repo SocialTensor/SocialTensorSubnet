@@ -5,6 +5,7 @@ Find the model name and repo_id for the model you want to mine with
 |------------|---------|
 | Gemma7b | `google/gemma-7b-it` |
 | Llama3_70b | `casperhansen/llama-3-70b-instruct-awq` |
+| Llama3.3_70b | `casperhansen/llama-3.3-70b-instruct-awq` |
 | Pixtral_12B | `mistralai/Pixtral-12B-2409` |
 
 To start mining with this model, follow these steps:
@@ -20,13 +21,16 @@ pip install vllm==0.4.1
 pip install git+https://github.com/vietbeu/mistral-common.git
 pip install git+https://github.com/vietbeu/openai-python.git
 pip install vllm==0.6.1.post2
+
+## For Llama3.3_70b
+pip install vllm==0.6.4
 ```
 
 2. Start the API server with your Hugging Face token (ensure access to the model repo at https://huggingface.co/repo_id):
 ```bash
 HF_TOKEN=<your-huggingface-token> python -m vllm.entrypoints.openai.api_server --model repo_id \
 --max-logprobs 120 \
---quantization awq \ # apply for Llama3_70b only
+--quantization awq \ # apply for Llama3_70b and Llama3.3_70b only
 --tokenizer_mode mistral --limit_mm_per_prompt 'image=1' --enable-chunked-prefill False --max-model-len 8192 \ # apply for Pixtral_12b only
 --tensor-parallel-size X # optional, set if you have multi-gpu
 ```

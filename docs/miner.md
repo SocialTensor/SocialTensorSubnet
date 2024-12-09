@@ -5,23 +5,26 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 ### Incentive Distribution
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
-| RealitiesEdgeXL  | 19%                    | 12 |
-| AnimeV3         | 19%                    | 12 |
-| JuggernautXL | 15%                    | 12 |
+| RealitiesEdgeXL  | 9%                    | 12 |
+| AnimeV3         | 9%                    | 12 |
+| JuggernautXL | 7%                    | 12 |
 | GoJourney       | 4%                     | 12 |
-| Llama3_70b         | 4%                     | 128 |
+| Llama3_70b         | 0%                     | 128 |
+| Llama3_3_70b         | 7%                     | 128 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | SUPIR     | 8%                     | 180 |
 | FluxSchnell | 12% | 24 |
 | Kolors | 10% | 32 |
-| **OpenGeneral** | 1% | 32 |
-| **OpenDigitalArt** | 1% | 32 |
-| **Pixtral_12b** | 1% | 64 |
+| **OpenGeneral** | 8% | 32 |
+| **OpenDigitalArt** | 8% | 32 |
+| **OpenTraditionalArt** | 8% | 32 |
+| **Pixtral_12b** | 4% | 64 |
 
 ## Guide Fixed Category
 1. Git clone and install requirements
 ```bash
+apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 git clone https://github.com/NicheTensor/NicheImage
 cd NicheImage
 python -m venv main_env
@@ -35,7 +38,7 @@ git submodule update --init --recursive
 2. Select miner based on incentive distribution and subnet state at https://nicheimage.streamlit.app/
 3. Setup prequisites if needed
 - For StickerMaker & FaceToMany, find the guide [here](comfyui_category.md)
-- For Gemma7b & Llama3_70b, find the guide [here](vllm_category.md)
+- For Gemma7b, Llama3_70b, Llama3_3_70b, Pixtral_12B, find the guide [here](vllm_category.md)
 - For GoJourney, register [here](https://www.goapi.ai/midjourney-api) and get the `GOJOURNEY_API_KEY`
 
 4. Start the endpoint

@@ -4,6 +4,7 @@ import uvicorn
 from transformers import AutoTokenizer
 import httpx
 import yaml
+import copy
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -55,10 +56,12 @@ class LLMPromptGenerating:
 
     async def generate(self, data: dict):
         data["model"] = self.repo_id
+        json_data = copy.deepcopy(data)
+        json_data.pop("timeout")
         async with httpx.AsyncClient() as httpx_client:
             response = await httpx_client.post(
                 f"{self.args.vllm_url}/v1/completions",
-                json=data,
+                json=json_data,
                 timeout=data["timeout"],
             )
         response.raise_for_status()

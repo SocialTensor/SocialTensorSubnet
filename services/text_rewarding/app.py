@@ -116,6 +116,7 @@ class VllmRewardApp:
             _base_data = base_data.copy()
             _base_data = self.get_prompt_to_check(_base_data, base_prompt, miner_data, offset)
             _base_data["max_tokens"] = 1
+            _base_data.pop("min_tokens", None)
             valid_response = self.call_vllm(_base_data)
             valid_top_logprobs = valid_response["choices"][0]["logprobs"][
                 "top_logprobs"
