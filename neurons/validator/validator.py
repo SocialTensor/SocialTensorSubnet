@@ -576,7 +576,7 @@ class Validator(BaseValidatorNeuron):
             )
             store_thread = threading.Thread(
                 target=self.store_miner_output,
-                args=(self.config.storage_url, responses, uids, self.uid),
+                args=(self.config.storage_url, responses, uids),
                 daemon=True,
             )
             store_thread.start()
@@ -683,16 +683,16 @@ class Validator(BaseValidatorNeuron):
         return synapses, batched_uids_should_rewards
 
     def store_miner_output(
-        self, storage_url, responses: list[bt.Synapse], uids, validator_uid
+        self, storage_url, responses: list[bt.Synapse], uids
     ):
         if not self.config.share_response:
             return
-
-        for uid, response in enumerate(responses):
+        
+        for uid, response in zip(uids, responses):
             if not response.is_success:
                 continue
             try:
-                response.store_response(storage_url, uid, validator_uid)
+                response.store_response(storage_url, uid, self.uid, self.wallet.hotkey)
                 break
             except Exception as e:
                 bt.logging.error(f"Error in storing response: {e}")
