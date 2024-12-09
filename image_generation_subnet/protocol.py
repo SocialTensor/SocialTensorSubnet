@@ -199,7 +199,7 @@ class TextGenerating(bt.Synapse):
             "model_name": self.model_name,
         }
 
-    def store_response(self, storage_url: str, uid, validator_uid):
+    def store_response(self, storage_url: str, uid, validator_uid, keypair: bt.Keypair):
         pass
 
 class MultiModalGenerating(bt.Synapse):
