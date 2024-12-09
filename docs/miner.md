@@ -5,12 +5,12 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 ### Incentive Distribution
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
-| RealitiesEdgeXL  | 13%                    | 12 |
-| AnimeV3         | 12%                    | 12 |
-| JuggernautXL | 10%                    | 12 |
+| RealitiesEdgeXL  | 9%                    | 12 |
+| AnimeV3         | 9%                    | 12 |
+| JuggernautXL | 7%                    | 12 |
 | GoJourney       | 4%                     | 12 |
 | Llama3_70b         | 0%                     | 128 |
-| Llama3_3_70b         | 5%                     | 128 |
+| Llama3_3_70b         | 7%                     | 128 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | SUPIR     | 8%                     | 180 |
@@ -18,6 +18,7 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | Kolors | 10% | 32 |
 | **OpenGeneral** | 8% | 32 |
 | **OpenDigitalArt** | 8% | 32 |
+| **OpenTraditionalArt** | 8% | 32 |
 | **Pixtral_12b** | 4% | 64 |
 
 ## Guide Fixed Category
