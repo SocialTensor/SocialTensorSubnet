@@ -11,6 +11,7 @@ if __name__ == "__main__":
         "--category", choices=[
             "OpenGeneral", 
             "OpenDigitalArt", "OpenDigitalArtAnime", "OpenDigitalArtMinimalist", "OpenDigitalArtPixelArt",
+            "OpenTraditionalArt", "OpenTraditionalArtPainting", "OpenTraditionalArtSketch", "OpenTraditionalArtComic",
             "OpenLandscape", "OpenLandscapeNature", "OpenLandscapeCity", "OpenLandscapeAnimal",
             "OpenRealisticPeople", "OpenPeoplePortrait", "OpenPeopleLifestyle", "OpenPeopleFashion"
         ], default="OpenGeneral"

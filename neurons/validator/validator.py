@@ -197,7 +197,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["JuggernautXL"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.1,
+            "model_incentive_weight": 0.07,
             "reward_url": config.reward_url.JuggernautXL,
             "reward_type": "image",
             "inference_params": {
@@ -213,7 +213,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.11,
+            "model_incentive_weight": 0.09,
             "reward_url": config.reward_url.RealitiesEdgeXL,
             "reward_type": "image",
             "inference_params": {
@@ -229,7 +229,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.10,
+            "model_incentive_weight": 0.09,
             "reward_url": config.reward_url.AnimeV3,
             "reward_type": "image",
             "inference_params": {
@@ -279,7 +279,7 @@ def initialize_nicheimage_catalogue(config):
             "supporting_pipelines": MODEL_CONFIGS["Llama3_3_70b"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.05,
+            "model_incentive_weight": 0.07,
             "timeout": 128,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Llama3_3_70b,
@@ -374,81 +374,42 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-
-        "OpenLandscape": {
+        "OpenTraditionalArt": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.005,
+            "model_incentive_weight": 0.02,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "OpenLandscapeNature": {
+        "OpenTraditionalArtPainting": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.005,
+            "model_incentive_weight": 0.02,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "OpenLandscapeCity": {
+        "OpenTraditionalArtSketch": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.005,
+            "model_incentive_weight": 0.02,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "OpenLandscapeAnimal": {
+        "OpenTraditionalArtComic": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.005,
+            "model_incentive_weight": 0.02,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
             "timeout": 32,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-
-        "OpenRealisticPeople": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.005,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenPeoplePortrait": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.005,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenPeopleLifestyle": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.005,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenPeopleFashion": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.005,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-
         "Pixtral_12b": {
             "supporting_pipelines": ["visual_question_answering"],
             "model_incentive_weight": 0.04,
@@ -850,15 +811,54 @@ class Validator(BaseValidatorNeuron):
                 )
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2024, 12, 12, 14, 0, 0):
+            if datetime.utcnow() < datetime(2024, 12, 18, 14, 0, 0):
                 temp_incentive_weight = {
+                    "RealitiesEdgeXL": 0.13,
+                    "AnimeV3": 0.12,
+                    "JuggernautXL": 0.10,
                     "Llama3_3_70b": 0.00,
                     "Llama3_70b": 0.05,
+                    "OpenDigitalArt": 0.08,
+                    "OpenDigitalArtAnime": 0.00,
+                    "OpenDigitalArtMinimalist": 0.00,
+                    "OpenDigitalArtPixelArt": 0.00,
+                    "OpenTraditionalArt": 0.00,
+                    "OpenTraditionalArtPainting": 0.00,
+                    "OpenTraditionalArtSketch": 0.00,
+                    "OpenTraditionalArtComic": 0.00,
                 }
-            elif datetime.utcnow() < datetime(2024, 12, 14, 14, 0, 0):
+            elif datetime.utcnow() < datetime(2024, 12, 25, 14, 0, 0):
                 temp_incentive_weight = {
+                    "RealitiesEdgeXL": 0.115,
+                    "AnimeV3": 0.11,
+                    "JuggernautXL": 0.095,
                     "Llama3_3_70b": 0.025,
                     "Llama3_70b": 0.025,
+                    "OpenDigitalArt": 0.05,
+                    "OpenDigitalArtAnime": 0.01,
+                    "OpenDigitalArtMinimalist": 0.01,
+                    "OpenDigitalArtPixelArt": 0.01,
+                    "OpenTraditionalArt": 0.0075,
+                    "OpenTraditionalArtPainting": 0.0075,
+                    "OpenTraditionalArtSketch": 0.0075,
+                    "OpenTraditionalArtComic": 0.0075,
+                }
+
+            elif datetime.utcnow() < datetime(2025, 1, 1, 14, 0, 0):
+                temp_incentive_weight = {
+                    "RealitiesEdgeXL": 0.10,
+                    "AnimeV3": 0.10,
+                    "JuggernautXL": 0.09,
+                    "Llama3_3_70b": 0.03,
+                    "Llama3_70b": 0.02,
+                    "OpenDigitalArt": 0.035,
+                    "OpenDigitalArtAnime": 0.015,
+                    "OpenDigitalArtMinimalist": 0.015,
+                    "OpenDigitalArtPixelArt": 0.015,
+                    "OpenTraditionalArt": 0.015,
+                    "OpenTraditionalArtPainting": 0.015,
+                    "OpenTraditionalArtSketch": 0.015,
+                    "OpenTraditionalArtComic": 0.015,
                 }
 
             if model_name in temp_incentive_weight:

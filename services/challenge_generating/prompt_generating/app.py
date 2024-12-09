@@ -75,6 +75,47 @@ class ChallengePrompt:
                 "a pixel character sprite of",
                 "a classic 8-bit artwork of",
             ],
+
+            ### Traditional Art Category
+            "OpenTraditionalArt": [
+                "a traditional artwork of",
+                "a hand-drawn piece of art featuring",
+                "a beautiful traditional illustration of",
+                "a classic art piece depicting",
+                "a traditional depiction of",
+                "a detailed handmade artwork of",
+                "an artistic creation featuring",
+                "a timeless traditional art style of",
+            ],
+            "OpenTraditionalArtPainting": [
+                "a traditional oil painting of",
+                "a watercolor painting of",
+                "an acrylic painting of",
+                "a still life painting of",
+                "a historical painting illustrating",
+                "an impressionist painting of",
+                "a renaissance-style painting of",
+            ],
+            "OpenTraditionalArtSketch": [
+                "a pencil sketch of",
+                "a charcoal sketch of",
+                "a quick hand-drawn sketch of",
+                "a detailed line sketch of",
+                "a black-and-white sketch of",
+                "a rough draft sketch of",
+                "an artistic concept sketch of",
+                "a traditional hand-drawn sketch featuring",
+            ],
+            "OpenTraditionalArtComic": [
+                "a traditional comic book illustration of",
+                "a hand-drawn comic panel featuring",
+                "a vintage comic-style drawing of",
+                "a dynamic comic scene depicting",
+                "a retro comic strip showing",
+                "a hand-inked comic drawing of",
+                "a comic book cover art featuring",
+            ],  
+            
             ### Landscape Category
             "OpenLandscape": [
                 "an landscape image of",
@@ -152,9 +193,7 @@ class ChallengePrompt:
                 "a model wearing",
                 "a model showcasing",
                 "a glamorous photo of a modelg",
-        ]
-
-
+            ]
         }
 
         self.vllm_client = openai.AsyncOpenAI(base_url="http://localhost:8000/v1")
