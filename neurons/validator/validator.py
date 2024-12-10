@@ -811,7 +811,7 @@ class Validator(BaseValidatorNeuron):
                 )
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2024, 12, 18, 14, 0, 0):
+            if datetime.utcnow() < datetime(2024, 12, 12, 14, 0, 0):
                 temp_incentive_weight = {
                     "RealitiesEdgeXL": 0.13,
                     "AnimeV3": 0.12,
@@ -827,7 +827,7 @@ class Validator(BaseValidatorNeuron):
                     "OpenTraditionalArtSketch": 0.00,
                     "OpenTraditionalArtComic": 0.00,
                 }
-            elif datetime.utcnow() < datetime(2024, 12, 25, 14, 0, 0):
+            elif datetime.utcnow() < datetime(2024, 12, 19, 14, 0, 0):
                 temp_incentive_weight = {
                     "RealitiesEdgeXL": 0.115,
                     "AnimeV3": 0.11,
@@ -844,7 +844,7 @@ class Validator(BaseValidatorNeuron):
                     "OpenTraditionalArtComic": 0.0075,
                 }
 
-            elif datetime.utcnow() < datetime(2025, 1, 1, 14, 0, 0):
+            elif datetime.utcnow() < datetime(2024, 12, 26, 14, 0, 0):
                 temp_incentive_weight = {
                     "RealitiesEdgeXL": 0.10,
                     "AnimeV3": 0.10,
