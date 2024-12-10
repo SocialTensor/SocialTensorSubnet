@@ -8,7 +8,13 @@ if __name__ == "__main__":
     parser.add_argument("--port", default=10006, type=int)
     parser.add_argument("--model_id", default="black-forest-labs/FLUX.1-dev")
     parser.add_argument(
-        "--category", choices=["OpenGeneral", "OpenLandscape"], default="OpenGeneral"
+        "--category", choices=[
+            "OpenGeneral", 
+            "OpenDigitalArt", "OpenDigitalArtAnime", "OpenDigitalArtMinimalist", "OpenDigitalArtPixelArt",
+            "OpenTraditionalArt", "OpenTraditionalArtPainting", "OpenTraditionalArtSketch", "OpenTraditionalArtComic",
+            "OpenLandscape", "OpenLandscapeNature", "OpenLandscapeCity", "OpenLandscapeAnimal",
+            "OpenRealisticPeople", "OpenPeoplePortrait", "OpenPeopleLifestyle", "OpenPeopleFashion"
+        ], default="OpenGeneral"
     )
     parser.add_argument("--num_inference_steps", default=30, type=int)
     parser.add_argument("--guidance_scale", default=3.0, type=float)

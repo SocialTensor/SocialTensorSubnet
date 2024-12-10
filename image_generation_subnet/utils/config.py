@@ -188,8 +188,15 @@ def add_args(cls, parser):
         parser.add_argument(
             "--reward_url.Llama3_70b",
             type=str,
-            help="The endpoint to get the reward for FaceToMany.",
+            help="The endpoint to get the reward for Llama3_70b.",
             default="https://nicheimage-api.nichetensor.com/reward/Llama3_70b",
+        )
+
+        parser.add_argument(
+            "--reward_url.Llama3_3_70b",
+            type=str,
+            help="The endpoint to get the reward for Llama3_3_70b.",
+            default="https://nicheimage-api.nichetensor.com/reward/Llama3_3_70b",
         )
 
         parser.add_argument(
