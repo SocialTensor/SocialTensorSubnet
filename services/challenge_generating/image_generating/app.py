@@ -1,7 +1,7 @@
 import diffusers
 import torch
 from fastapi import FastAPI
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 import uvicorn
 import argparse
 import threading
@@ -16,7 +16,9 @@ from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limi
 from prometheus_fastapi_instrumentator import Instrumentator
 
 
-class TextToImagePrompt(BaseModel, extra=Extra.allow):
+class TextToImagePrompt(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     prompt: str
     negative_prompt: Optional[str] = "bad image, low quality, blurry"
 

@@ -8,7 +8,7 @@ import torch
 import requests
 from fastapi import FastAPI
 from typing import Optional, List
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 from services.rays.image_generating import ModelDeployment
 
 MODEL_CONFIG = yaml.load(
@@ -49,7 +49,9 @@ class RequestCancelledMiddleware:
             print("Cancelling request due to disconnect")
 
 
-class Prompt(BaseModel, extra=Extra.allow):
+class Prompt(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     prompt: str
     seed: int
     pipeline_type: str

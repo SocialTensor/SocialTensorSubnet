@@ -59,7 +59,7 @@ class ImageGenerating(bt.Synapse):
         title="Dictionary contains response",
         description="Dict contains arbitary information",
     )
-    image = pydantic.Field(
+    image: str = pydantic.Field(
         default="",
         title="Base64 Image",
         description="Base64 encoded image",

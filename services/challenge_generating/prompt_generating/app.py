@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 import argparse
 from typing import Optional
 import uvicorn
@@ -8,7 +8,9 @@ import openai
 from prometheus_fastapi_instrumentator import Instrumentator
 
 
-class Prompt(BaseModel, extra=Extra.allow):
+class Prompt(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     prompt: str
     seed: Optional[int] = 0
     max_length: Optional[int] = 77

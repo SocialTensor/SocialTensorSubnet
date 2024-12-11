@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from typing import Optional
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel, ConfigDict
 import argparse
 import uvicorn
 from ray.serve.handle import DeploymentHandle
@@ -47,7 +47,9 @@ class RequestCancelledMiddleware:
             print("Cancelling request due to disconnect")
 
 
-class Prompt(BaseModel, extra=Extra.allow):
+class Prompt(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
     prompt: str
     seed: int
     pipeline_type: str
