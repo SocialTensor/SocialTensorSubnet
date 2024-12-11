@@ -2,6 +2,7 @@ import time, asyncio
 import bittensor as bt
 import random
 import torch
+import numpy as np
 from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
 from image_generation_subnet.validator import MinerManager
@@ -713,14 +714,14 @@ class Validator(BaseValidatorNeuron):
         - Apply rank weight for open category model.
         """
 
-        weights = torch.zeros(len(self.miner_manager.all_uids))
+        # weights = torch.zeros(len(self.miner_manager.all_uids))
+        weights = np.zeros(len(self.miner_manager.all_uids))
         for model_name in self.nicheimage_catalogue.keys():
-            model_specific_weights = self.miner_manager.get_model_specific_weights(
-                model_name
-            )
+            model_specific_weights = self.miner_manager.get_model_specific_weights(model_name)
             if self.nicheimage_catalogue[model_name]["reward_type"] == "open_category":
                 mask = model_specific_weights > 1e-4
-                ranked_model_specific_weights = self.rank_tensor(model_specific_weights)
+                # ranked_model_specific_weights = self.rank_tensor(model_specific_weights)
+                ranked_model_specific_weights = self.rank_array(model_specific_weights)
                 bt.logging.debug(
                     f"Unique ranked weights for {model_name}\n{model_specific_weights.unique()}"
                 )
@@ -729,9 +730,10 @@ class Validator(BaseValidatorNeuron):
                 )
                 model_specific_weights = 0.8 + 0.2 * model_specific_weights
                 model_specific_weights = model_specific_weights * mask
-                model_specific_weights = torch.nn.functional.normalize(
-                    model_specific_weights, p=1, dim=0
-                )
+                # model_specific_weights = torch.nn.functional.normalize(
+                #     model_specific_weights, p=1, dim=0
+                # )
+                model_specific_weights = model_specific_weights / np.sum(np.abs(self.scores), axis=0, keepdims=True)
                 bt.logging.debug(
                     f"Normalized {model_name} weights\n{model_specific_weights}"
                 )
@@ -773,16 +775,18 @@ class Validator(BaseValidatorNeuron):
             weights = weights + model_specific_weights
 
         # Check if rewards contains NaN values.
-        if torch.isnan(weights).any():
+        # if torch.isnan(weights).any():
+        if np.isnan(weights).any():
             bt.logging.warning(f"NaN values detected in weights: {weights}")
             # Replace any NaN values in rewards with 0.
-            weights = torch.nan_to_num(weights, 0)
-        self.scores: torch.FloatTensor = weights
+            # weights = torch.nan_to_num(weights, 0)
+            weights = np.nan_to_num(weights, 0)
+        # self.scores: torch.FloatTensor = weights
+        self.scores: np.ndarray = weights
         bt.logging.success(f"Updated scores: {self.scores}")
 
     def save_state(self):
         """Saves the state of the validator to a file."""
-
         torch.save(
             {
                 "step": self.step,
@@ -834,6 +838,35 @@ class Validator(BaseValidatorNeuron):
         # All others (rank 4 and below) get 0 (already initialized)
 
         return ranked_tensor
+    
+    @staticmethod
+    def rank_array(array: np.ndarray):
+        # Return Zeros if array is zeros
+        if np.sum(array) == 0:
+            return array
+        # Step 1: Sort the array and get the original indices
+        sorted_array, indices = np.sort(array)[::-1]
+
+        # Step 2: Create a new array for rankings
+        ranked_array = np.zeros_like(array)
+
+        # Step 3: Assign ranks based on conditions
+        # First element gets 1.0
+        ranked_array[indices[0]] = 1.0
+
+        # Check for tie between second and third elements
+        if sorted_array[1] == sorted_array[2]:
+            # If there's a tie, both get 0.5
+            ranked_array[indices[1]] = 0.5
+            ranked_array[indices[2]] = 0.5
+        else:
+            # Otherwise, assign 2/3 and 1/3
+            ranked_array[indices[1]] = 2 / 3
+            ranked_array[indices[2]] = 1 / 3
+
+        # All others (rank 4 and below) get 0 (already initialized)
+
+        return ranked_array
 
 
 # The main function parses the configuration and runs the validator.

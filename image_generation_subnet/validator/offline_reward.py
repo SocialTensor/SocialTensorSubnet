@@ -93,88 +93,88 @@ def get_reward_GoJourney(
     return uids, rewards
 
 
-def calculate_image_similarity(image, description, max_length: int = 77):
-    """Calculate the cosine similarity between a description and an image."""
-    # Truncate the description
-    inputs = processor(
-        text=description,
-        images=None,
-        return_tensors="pt",
-        padding=True,
-        truncation=True,
-        max_length=max_length,
-    )
-    text_embedding = model.get_text_features(**inputs)
+# def calculate_image_similarity(image, description, max_length: int = 77):
+#     """Calculate the cosine similarity between a description and an image."""
+#     # Truncate the description
+#     inputs = processor(
+#         text=description,
+#         images=None,
+#         return_tensors="pt",
+#         padding=True,
+#         truncation=True,
+#         max_length=max_length,
+#     )
+#     text_embedding = model.get_text_features(**inputs)
 
-    # Process the image
-    inputs = processor(
-        text=None, images=image, return_tensors="pt", padding=True, truncation=True
-    )
-    image_embedding = model.get_image_features(**inputs)
+#     # Process the image
+#     inputs = processor(
+#         text=None, images=image, return_tensors="pt", padding=True, truncation=True
+#     )
+#     image_embedding = model.get_image_features(**inputs)
 
-    # Calculate cosine similarity
-    return torch.cosine_similarity(image_embedding, text_embedding, dim=1).item()
+#     # Calculate cosine similarity
+#     return torch.cosine_similarity(image_embedding, text_embedding, dim=1).item()
 
 
-def get_reward_dalle(
-    base_synapse: ImageGenerating,
-    synapses: list[ImageGenerating],
-    uids: list,
-    similarity_threshold=0.25,
-    *args,
-    **kwargs,
-) -> float:
-    """Calculate the image score based on similarity and size."""
-    global MODEL
-    global PROCESSOR
+# def get_reward_dalle(
+#     base_synapse: ImageGenerating,
+#     synapses: list[ImageGenerating],
+#     uids: list,
+#     similarity_threshold=0.25,
+#     *args,
+#     **kwargs,
+# ) -> float:
+#     """Calculate the image score based on similarity and size."""
+#     global MODEL
+#     global PROCESSOR
 
-    if MODEL is None:
-        MODEL = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
-    if PROCESSOR is None:
-        PROCESSOR = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
-    global moderation_model
-    if moderation_model is None:
-        moderation_model = Moderation()
+#     if MODEL is None:
+#         MODEL = CLIPModel.from_pretrained("openai/clip-vit-large-patch14")
+#     if PROCESSOR is None:
+#         PROCESSOR = CLIPProcessor.from_pretrained("openai/clip-vit-large-patch14")
+#     global moderation_model
+#     if moderation_model is None:
+#         moderation_model = Moderation()
 
-    rewards = []
-    prompt = base_synapse.prompt
+#     rewards = []
+#     prompt = base_synapse.prompt
 
-    flagged, response = moderation_model(prompt)
-    if flagged:
-        bt.logging.debug(prompt)
-        bt.logging.debug(response)
-        return uids, [1] * len(synapses)
+#     flagged, response = moderation_model(prompt)
+#     if flagged:
+#         bt.logging.debug(prompt)
+#         bt.logging.debug(response)
+#         return uids, [1] * len(synapses)
 
-    def check_size(size):
-        return size in ["1792x1024", "1024x1792"]
+#     def check_size(size):
+#         return size in ["1792x1024", "1024x1792"]
 
-    def check_regex(url):
-        return re.match(URL_REGEX, url)
+#     def check_regex(url):
+#         return re.match(URL_REGEX, url)
 
-    for synapse in synapses:
-        try:
-            bt.logging.debug(synapse.response_dict)
-            bt.logging.debug(synapse.prompt)
-            response = synapse.response_dict
-            url = response.get("url", "")
-            prompt = base_synapse.prompt
-            image: Image.Image = load_image(url)
-            size_str = f"{image.width}x{image.height}"
-            sim = calculate_image_similarity(image, prompt)
-            bt.logging.info(f"CLIP Similarity DallE: {sim}")
-            if sim > similarity_threshold:
-                max_reward = 1
-            elif 0.15 < sim < similarity_threshold:
-                max_reward = sim / similarity_threshold
-            else:
-                max_reward = 0.0
+#     for synapse in synapses:
+#         try:
+#             bt.logging.debug(synapse.response_dict)
+#             bt.logging.debug(synapse.prompt)
+#             response = synapse.response_dict
+#             url = response.get("url", "")
+#             prompt = base_synapse.prompt
+#             image: Image.Image = load_image(url)
+#             size_str = f"{image.width}x{image.height}"
+#             sim = calculate_image_similarity(image, prompt)
+#             bt.logging.info(f"CLIP Similarity DallE: {sim}")
+#             if sim > similarity_threshold:
+#                 max_reward = 1
+#             elif 0.15 < sim < similarity_threshold:
+#                 max_reward = sim / similarity_threshold
+#             else:
+#                 max_reward = 0.0
 
-            if check_size(size_str) and check_regex(url):
-                rewards.append(max_reward)
-            else:
-                rewards.append(0)
-        except Exception as e:
-            bt.logging.warning(f"Error in get_reward_dalle: {e}")
-            rewards.append(0)
+#             if check_size(size_str) and check_regex(url):
+#                 rewards.append(max_reward)
+#             else:
+#                 rewards.append(0)
+#         except Exception as e:
+#             bt.logging.warning(f"Error in get_reward_dalle: {e}")
+#             rewards.append(0)
 
-    return uids, rewards
+#     return uids, rewards

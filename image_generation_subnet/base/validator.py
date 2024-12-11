@@ -19,10 +19,11 @@
 
 
 import copy
-import torch
+# import torch
 import asyncio
 import threading
 import bittensor as bt
+import numpy as np
 
 from typing import List
 from traceback import print_exception
@@ -48,7 +49,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Set up initial scoring weights for validation
         bt.logging.info("Building validation weights.")
-        self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
+        self.scores = np.zeros_like(self.metagraph.S, dtype=np.float32)
 
         # Init sync with the network. Updates the metagraph.
         self.resync_metagraph()
@@ -214,25 +215,28 @@ class BaseValidatorNeuron(BaseNeuron):
         """
 
         # Check if self.scores contains any NaN values and log a warning if it does.
-        if torch.isnan(self.scores).any():
+        if np.isnan(self.scores).any():
             bt.logging.warning(
                 "Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
             )
 
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
-        raw_weights = torch.nn.functional.normalize(self.scores, p=1, dim=0)
+        # raw_weights = torch.nn.functional.normalize(self.scores, p=1, dim=0)
+        raw_weights = self.scores / np.sum(np.abs(self.scores), axis=0, keepdims=True)
         bt.logging.trace("raw_weights", raw_weights)
-        bt.logging.trace("top10 values", raw_weights.sort()[0])
-        bt.logging.trace("top10 uids", raw_weights.sort()[1])
+        # bt.logging.trace("top10 values", raw_weights.sort()[0])
+        # bt.logging.trace("top10 uids", raw_weights.sort()[1])
+        bt.logging.trace("top10 values", np.sort(raw_weights))
+        bt.logging.trace("top10 uids", np.argsort(raw_weights))
 
         # Process the raw weights to final_weights via subtensor limitations.
         (
             processed_weight_uids,
             processed_weights,
         ) = bt.utils.weight_utils.process_weights_for_netuid(
-            uids=self.metagraph.uids.to("cpu"),
-            weights=raw_weights.to("cpu"),
+            uids=self.metagraph.uids,
+            weights=raw_weights.numpy(),
             netuid=self.config.netuid,
             subtensor=self.subtensor,
             metagraph=self.metagraph,
@@ -278,7 +282,7 @@ class BaseValidatorNeuron(BaseNeuron):
         # If so, we need to add new hotkeys and moving averages.
         if len(self.hotkeys) < len(self.metagraph.hotkeys):
             # Update the size of the moving average scores.
-            new_moving_average = torch.zeros((self.metagraph.n)).to(self.device)
+            new_moving_average = np.zeros((self.metagraph.n))
             min_len = min(len(self.hotkeys), len(self.scores))
             new_moving_average[:min_len] = self.scores[:min_len]
             self.scores = new_moving_average
@@ -286,26 +290,26 @@ class BaseValidatorNeuron(BaseNeuron):
         # Update the hotkeys.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
 
-    def update_scores(self, rewards: torch.FloatTensor, uids: List[int]):
-        """Performs exponential moving average on the scores based on the rewards received from the miners."""
+    # def update_scores(self, rewards: torch.FloatTensor, uids: List[int]):
+    #     """Performs exponential moving average on the scores based on the rewards received from the miners."""
 
-        # Check if rewards contains NaN values.
-        if torch.isnan(rewards).any():
-            bt.logging.warning(f"NaN values detected in rewards: {rewards}")
-            # Replace any NaN values in rewards with 0.
-            rewards = torch.nan_to_num(rewards, 0)
+    #     # Check if rewards contains NaN values.
+    #     if torch.isnan(rewards).any():
+    #         bt.logging.warning(f"NaN values detected in rewards: {rewards}")
+    #         # Replace any NaN values in rewards with 0.
+    #         rewards = torch.nan_to_num(rewards, 0)
 
-        # Compute forward pass rewards, assumes uids are mutually exclusive.
-        # shape: [ metagraph.n ]
-        scattered_rewards: torch.FloatTensor = self.scores.scatter(
-            0, torch.tensor(uids).to(self.device), rewards
-        ).to(self.device)
-        bt.logging.debug(f"Scattered rewards: {rewards}")
+    #     # Compute forward pass rewards, assumes uids are mutually exclusive.
+    #     # shape: [ metagraph.n ]
+    #     scattered_rewards: torch.FloatTensor = self.scores.scatter(
+    #         0, torch.tensor(uids).to(self.device), rewards
+    #     ).to(self.device)
+    #     bt.logging.debug(f"Scattered rewards: {rewards}")
 
-        # Update scores with rewards produced by this step.
-        # shape: [ metagraph.n ]
-        alpha: float = self.config.neuron.moving_average_alpha
-        self.scores: torch.FloatTensor = alpha * scattered_rewards + (
-            1 - alpha
-        ) * self.scores.to(self.device)
-        bt.logging.info(f"Updated moving avg scores: {self.scores}")
+    #     # Update scores with rewards produced by this step.
+    #     # shape: [ metagraph.n ]
+    #     alpha: float = self.config.neuron.moving_average_alpha
+    #     self.scores: torch.FloatTensor = alpha * scattered_rewards + (
+    #         1 - alpha
+    #     ) * self.scores.to(self.device)
+    #     bt.logging.info(f"Updated moving avg scores: {self.scores}")

@@ -1,38 +1,79 @@
-# The MIT License (MIT)
-# Copyright © 2023 Yuma Rao
-# TODO(developer): Set your name
-# Copyright © 2023 <your name>
-
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
-# and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-# The above copyright notice and this permission notice shall be included in all copies or substantial portions of
-# the Software.
-
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-# THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-# THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-# DEALINGS IN THE SOFTWARE.
-
 import re
 import os
+import sys
 import codecs
 from os import path
 from io import open
+import subprocess
 from setuptools import setup, find_packages
+from setuptools.command.install import install
+from setuptools.command.develop import develop
+from setuptools.command.egg_info import egg_info
 
-
-def read_requirements(path):
-    with open(path, "r") as f:
-        requirements = f.read().splitlines()
-        return requirements
-
-
-requirements = read_requirements("requirements.txt")
 here = path.abspath(path.dirname(__file__))
+
+
+class CustomInstallCommand(install):
+    """Custom install command to run additional pip installs"""
+
+    def run(self):
+        # First, run the default install behavior
+        print("Running standard install...")
+        install.run(self)
+
+        # Now, run the additional pip install commands sequentially
+        try:
+            # Install base requirements from requirements.txt
+            print("Installing base requirements from requirements.txt...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], stdout=sys.stdout, stderr=sys.stderr)
+            
+            # Install controlnet-aux and pyiqa with --no-deps
+            print("Installing controlnet-aux and pyiqa...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "controlnet-aux", "pyiqa", "--no-deps"], stdout=sys.stdout, stderr=sys.stderr)
+            
+            # Install onnxruntime-gpu with extra index URL for CUDA support
+            print("Installing onnxruntime-gpu...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "onnxruntime-gpu", "--extra-index-url", "https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/"], stdout=sys.stdout, stderr=sys.stderr)
+
+            # Optional: Remove or adjust LD_LIBRARY_PATH setting for your environment
+            print("Setting LD_LIBRARY_PATH...")
+            subprocess.check_call(['bash', '-c', 'export LD_LIBRARY_PATH=$(pwd)/venv/lib/python3.11/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH'], stdout=sys.stdout, stderr=sys.stderr)
+            
+        except subprocess.CalledProcessError as e:
+            print(f"Error during the installation process: {e}")
+            sys.exit(1)
+
+
+class CustomDevelopCommand(develop):
+    """Custom develop command to run additional pip install --editable / -e"""
+
+    def run(self):
+        # First, run the default develop behavior
+        print("Running standard pip install -e...")
+        develop.run(self)
+
+        # Now, run the additional pip develop commands sequentially
+        try:
+            # Install base requirements from requirements.txt
+            print("Installing base requirements from requirements.txt...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"], stdout=sys.stdout, stderr=sys.stderr)
+            
+            # Install controlnet-aux and pyiqa with --no-deps
+            print("Installing controlnet-aux and pyiqa...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "controlnet-aux", "pyiqa", "--no-deps"], stdout=sys.stdout, stderr=sys.stderr)
+            
+            # Install onnxruntime-gpu with extra index URL for CUDA support
+            print("Installing onnxruntime-gpu...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "onnxruntime-gpu", "--extra-index-url", "https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/"], stdout=sys.stdout, stderr=sys.stderr)
+
+            # Optional: Remove or adjust LD_LIBRARY_PATH setting for your environment
+            print("Setting LD_LIBRARY_PATH...")
+            subprocess.check_call(['bash', '-c', 'export LD_LIBRARY_PATH=$(pwd)/venv/lib/python3.11/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH'], stdout=sys.stdout, stderr=sys.stderr)
+            
+        except subprocess.CalledProcessError as e:
+            print(f"Error during the installation process: {e}")
+            sys.exit(1)
+
 
 with open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
@@ -46,6 +87,8 @@ with codecs.open(
     )
     version_string = version_match.group(1)
 
+print('gauhasiufhsaifhsduifhuds')
+
 setup(
     name="image_generation_subnet",
     version=version_string,
@@ -58,8 +101,8 @@ setup(
     include_package_data=True,
     author_email="",
     license="MIT",
-    python_requires=">=3.8",
-    install_requires=requirements,
+    python_requires=">=3.11",
+    install_requires=[],  # No deps here, as we'll handle them manually
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
@@ -77,8 +120,8 @@ setup(
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
+    cmdclass={
+        "install": CustomInstallCommand,
+        "develop": CustomDevelopCommand
+    },
 )
-
-# Uninstall "uvloop" due to incompatibility with "bittensor-loop which use asyncio"
-# os.system("pip3 uninstall -y uvloop")
-# os.system("pip uninstall -y uvloop")

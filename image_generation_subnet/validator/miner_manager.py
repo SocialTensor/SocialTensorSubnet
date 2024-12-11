@@ -1,6 +1,7 @@
 import bittensor as bt
 from image_generation_subnet.protocol import ImageGenerating, Information
 import torch
+import numpy as np
 from image_generation_subnet.utils.volume_setting import get_volume_per_validator
 import requests
 from threading import Thread
@@ -134,19 +135,23 @@ class MinerManager:
             ][-500:]
 
     def get_model_specific_weights(self, model_name, normalize=True):
-        model_specific_weights = torch.zeros(len(self.all_uids))
+        # model_specific_weights = torch.zeros(len(self.all_uids))
+        model_specific_weights = np.zeros(len(self.all_uids))
         for uid in self.get_miner_uids(model_name):
             num_past_to_check = 10
             model_specific_weights[int(uid)] = (
                 sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
                 / num_past_to_check
             )
-        model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
+        # model_specific_weights = torch.clamp(model_specific_weights, 0, 1)
+        model_specific_weights = np.clip(model_specific_weights, a_min=0, a_max=1)
         if normalize:
-            tensor_sum = torch.sum(model_specific_weights)
+            # tensor_sum = torch.sum(model_specific_weights)
+            array_sum = np.sum(model_specific_weights)
             # Normalizing the tensor
-            if tensor_sum > 0:
-                model_specific_weights = model_specific_weights / tensor_sum
+            if array_sum > 0:
+                # model_specific_weights = model_specific_weights / tensor_sum
+                model_specific_weights = model_specific_weights / array_sum
         return model_specific_weights
 
     def store_miner_info(self):
