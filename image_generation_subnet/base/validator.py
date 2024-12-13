@@ -223,7 +223,12 @@ class BaseValidatorNeuron(BaseNeuron):
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
         # raw_weights = torch.nn.functional.normalize(self.scores, p=1, dim=0)
-        raw_weights = self.scores / np.sum(np.abs(self.scores), axis=0, keepdims=True)
+
+        raw_weights = self.scores
+        raw_weight_sum = np.sum(np.abs(self.scores), axis=0, keepdims=True)
+        if not raw_weight_sum == 0:
+            raw_weights = raw_weights/ raw_weight_sum
+
         bt.logging.trace("raw_weights", raw_weights)
         # bt.logging.trace("top10 values", raw_weights.sort()[0])
         # bt.logging.trace("top10 uids", raw_weights.sort()[1])
@@ -236,7 +241,7 @@ class BaseValidatorNeuron(BaseNeuron):
             processed_weights,
         ) = bt.utils.weight_utils.process_weights_for_netuid(
             uids=self.metagraph.uids,
-            weights=raw_weights.numpy(),
+            weights=raw_weights,
             netuid=self.config.netuid,
             subtensor=self.subtensor,
             metagraph=self.metagraph,

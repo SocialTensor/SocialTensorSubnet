@@ -66,7 +66,8 @@ class ImageGenerating(bt.Synapse):
     )
 
     def miner_update(self, update: dict):
-        return self.copy(update=update)
+        # return self.copy(update=update)
+        return self.model_copy(update=update)
 
     def deserialize_input(self) -> dict:
         return self.deserialize()

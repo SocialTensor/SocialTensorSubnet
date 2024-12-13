@@ -542,7 +542,8 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(f"Quering {uids}, Should reward: {should_rewards}")
             if not synapse:
                 continue
-            base_synapse = synapse.copy()
+            # base_synapse = synapse.copy()
+            base_synapse = synapse.model_copy()
             if (
                 self.offline_reward
                 and any([should_reward for should_reward in should_rewards])
@@ -722,8 +723,11 @@ class Validator(BaseValidatorNeuron):
                 mask = model_specific_weights > 1e-4
                 # ranked_model_specific_weights = self.rank_tensor(model_specific_weights)
                 ranked_model_specific_weights = self.rank_array(model_specific_weights)
+                # bt.logging.debug(
+                #     f"Unique ranked weights for {model_name}\n{model_specific_weights.unique()}"
+                # )
                 bt.logging.debug(
-                    f"Unique ranked weights for {model_name}\n{model_specific_weights.unique()}"
+                    f"Unique ranked weights for {model_name}\n{np.unique(model_specific_weights)}"
                 )
                 model_specific_weights = (
                     model_specific_weights * 0.5 + ranked_model_specific_weights * 0.5
@@ -733,10 +737,11 @@ class Validator(BaseValidatorNeuron):
                 # model_specific_weights = torch.nn.functional.normalize(
                 #     model_specific_weights, p=1, dim=0
                 # )
-                model_specific_weights = model_specific_weights / np.sum(np.abs(self.scores), axis=0, keepdims=True)
-                bt.logging.debug(
-                    f"Normalized {model_name} weights\n{model_specific_weights}"
-                )
+                raw_weight_sum = np.sum(np.abs(self.scores), axis=0, keepdims=True)
+                if not raw_weight_sum == 0:
+                    model_specific_weights = model_specific_weights / raw_weight_sum
+
+                bt.logging.debug(f"Normalized {model_name} weights\n{model_specific_weights}")
             # Smoothing update incentive
             temp_incentive_weight = {}
             if datetime.utcnow() < datetime(2024, 11, 7, 14, 0, 0):
