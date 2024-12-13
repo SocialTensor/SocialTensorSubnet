@@ -1,3 +1,4 @@
+import time
 from fastapi import FastAPI, HTTPException, Depends
 from concurrent.futures import ThreadPoolExecutor
 import uvicorn
@@ -16,12 +17,8 @@ import httpx
 from starlette.concurrency import run_in_threadpool
 import threading
 
-
 class ValidatorProxy:
-    def __init__(
-        self,
-        validator,
-    ):
+    def __init__(self, validator: "neurons.validator.validator.Validator"):
         self.validator = validator
         self.get_credentials()
         self.miner_request_counter = {}
@@ -41,16 +38,26 @@ class ValidatorProxy:
             self.start_server()
 
     def get_credentials(self):
+        postfix = (
+            f":{self.validator.config.proxy.port}/validator_proxy"
+            if self.validator.config.proxy.port
+            else ""
+        )
+        ss58_address = self.validator.wallet.hotkey.ss58_address
+        uid = self.validator.uid
+        nonce = str(time.time_ns())
+        # Calculate validator 's signature
+        message = f"{postfix}{ss58_address}{nonce}"
+        signature = f"0x{self.validator.wallet.hotkey.sign(message).hex()}"
+
         with httpx.Client(timeout=httpx.Timeout(30)) as client:
             response = client.post(
                 f"{self.validator.config.proxy.proxy_client_url}/get_credentials",
                 json={
-                    "postfix": (
-                        f":{self.validator.config.proxy.port}/validator_proxy"
-                        if self.validator.config.proxy.port
-                        else ""
-                    ),
-                    "uid": self.validator.uid,
+                    "postfix": postfix,
+                    "uid": uid,
+                    "signature": signature,
+                    "nonce": nonce
                 },
             )
         response.raise_for_status()

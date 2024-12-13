@@ -1,3 +1,5 @@
+import time
+import json
 import bittensor as bt
 import pydantic
 from generation_models.utils import base64_to_pil_image
@@ -101,7 +103,7 @@ class ImageGenerating(bt.Synapse):
             "response_dict": self.response_dict,
         }
 
-    def store_response(self, storage_url: str, uid, validator_uid):
+    def store_response(self, storage_url: str, uid, validator_uid, keypair: bt.Keypair):
         if self.model_name == "GoJourney":
             storage_url = storage_url + "/upload-go-journey-item"
             data = {
@@ -130,6 +132,14 @@ class ImageGenerating(bt.Synapse):
                     "pipeline_params": self.pipeline_params,
                 }
             }
+        serialized_data = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        nonce = str(time.time_ns())
+        # Calculate validator 's signature
+        message = f"{serialized_data}{keypair.ss58_address}{nonce}"
+        signature = f"0x{keypair.sign(message).hex()}"
+        # Add validator 's signature
+        data["nonce"] = nonce
+        data["signature"] = signature
         try:
             response = requests.post(storage_url, json=data)
             response.raise_for_status()
@@ -191,7 +201,7 @@ class TextGenerating(bt.Synapse):
             "model_name": self.model_name,
         }
 
-    def store_response(self, storage_url: str, uid, validator_uid):
+    def store_response(self, storage_url: str, uid, validator_uid, keypair: bt.Keypair):
         pass
 
 class MultiModalGenerating(bt.Synapse):
@@ -303,7 +313,7 @@ class MultiModalGenerating(bt.Synapse):
             "model_name": self.model_name,
         }
 
-    def store_response(self, storage_url: str, uid, validator_uid):
+    def store_response(self, storage_url: str, uid, validator_uid, keypair: bt.Keypair):
         storage_url = storage_url + "/upload-multimodal-item"
         minimized_prompt_output: dict = copy.deepcopy(self.prompt_output)
         minimized_prompt_output['choices'][0].pop("logprobs")
@@ -319,6 +329,14 @@ class MultiModalGenerating(bt.Synapse):
                 "pipeline_params": self.pipeline_params,
             }
         }
+        serialized_data = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        nonce = str(time.time_ns())
+        # Calculate validator 's signature
+        message = f"{serialized_data}{keypair.ss58_address}{nonce}"
+        signature = f"0x{keypair.sign(message).hex()}"
+        # Add validator 's signature
+        data["nonce"] = nonce
+        data["signature"] = signature
         try:
             response = requests.post(storage_url, json=data)
             response.raise_for_status()
