@@ -43,7 +43,7 @@ class BaseNeuron(ABC):
         add_args(cls, parser)
 
     @classmethod
-    def config(cls):
+    def config(cls) -> bt.Config:
         return config(cls)
 
     subtensor: "bt.subtensor"

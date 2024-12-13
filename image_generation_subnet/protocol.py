@@ -14,9 +14,11 @@ MODEL_CONFIG = yaml.load(
 
 
 class Information(bt.Synapse):
+    """
+    Synapse for information exchange between miner and validator in this subnet.
+    """
     request_dict: dict = {}
     response_dict: dict = {}
-
 
 class ImageGenerating(bt.Synapse):
     prompt: str = pydantic.Field(

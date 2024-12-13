@@ -84,10 +84,10 @@ class MinerManager:
 
             volume_per_validator = get_volume_per_validator(
                 self.validator.metagraph,
-                miner_state["total_volume"],
-                1.03,
-                10000,
-                False,
+                total_volume=miner_state["total_volume"],
+                size_preference_factor=1.03,
+                min_stake=10000,
+                log=False,
             )
             miner_state["rate_limit"] = volume_per_validator.get(self.validator.uid, 2)
             bt.logging.info(f"Rate limit for {uid}: {miner_state['rate_limit']}")

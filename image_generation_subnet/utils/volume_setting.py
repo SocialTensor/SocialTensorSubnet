@@ -9,6 +9,10 @@ def get_volume_per_validator(
     min_stake: int,
     log: bool = True,
 ) -> dict:
+    """
+    Get volume per validator.
+    Volume is max task validator need to send per loop_base_time.
+    """
     all_stakes = [stake for stake in metagraph.total_stake.tolist()]
     all_uids = [uid for uid in range(len(all_stakes))]
     valid_stakes = [stake for stake in all_stakes if stake >= min_stake]
@@ -36,7 +40,7 @@ def get_volume_per_validator(
     volume_per_validator = dict(zip(valid_uids, volume_per_validator.tolist()))
     for uid, volume in volume_per_validator.items():
         if metagraph.total_stake[uid] >= min_stake:
-            volume_per_validator[uid] = max(2, volume)
+            volume_per_validator[uid] = max(2, volume) # minimum volume is 2, 1 for synthetic, 1 for organic
         if log:
             bt.logging.info(
                 f"Volume for {uid}-validator: stake: {metagraph.total_stake[uid]}, volume: {volume_per_validator[uid]}"
