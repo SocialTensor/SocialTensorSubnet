@@ -1,5 +1,5 @@
 import time
-from typing import Tuple, TypeVar
+from typing import Tuple, TypeVar, Union
 import bittensor as bt
 from image_generation_subnet.base.miner import BaseMinerNeuron
 import image_generation_subnet
@@ -32,6 +32,11 @@ class Miner(BaseMinerNeuron):
         bt.logging.info(f"Miner info: {self.miner_info}")
 
     async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
+        """
+        Handle image generation requests. \n
+        If the request is for getting miner info, use forward_info_legacy method to get miner info. \n
+        Otherwise, limit params and process the image generation request.
+        """
         if "get_miner_info" in synapse.request_dict:
             return await self.forward_info_legacy(synapse)
         self.num_processing_requests += 1
@@ -49,6 +54,9 @@ class Miner(BaseMinerNeuron):
         return synapse
 
     async def forward_info_legacy(self, synapse: ImageGenerating) -> ImageGenerating:
+        """
+        Legacy method for handling info requests.
+        """
         synapse.response_dict = self.miner_info
         bt.logging.info(f"Response dict: {self.miner_info}")
         validator_uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
@@ -64,7 +72,12 @@ class Miner(BaseMinerNeuron):
         return synapse
 
     async def forward_text(self, synapse: TextGenerating) -> TextGenerating:
-        if synapse.request_dict:
+        """
+        Handle text generation requests. \n
+        If the request is for getting miner info, use forward_info_legacy method to get miner info. \n
+        Otherwise, limit params and process the text generation request.
+        """
+        if synapse.request_dict: # TODO: check why request_dict is not empty means it is a info request
             return await self.forward_info_legacy(synapse)
         self.num_processing_requests += 1
         self.total_request_in_interval += 1
@@ -83,7 +96,12 @@ class Miner(BaseMinerNeuron):
     async def forward_multimodal(
         self, synapse: MultiModalGenerating
     ) -> MultiModalGenerating:
-        if synapse.request_dict:
+        """
+        Handle multimodal generation requests. \n
+        If the request is for getting miner info, use forward_info_legacy method to get miner info. \n
+        Otherwise, limit params and process the multimodal generation request.
+        """
+        if synapse.request_dict: # TODO: check why request_dict is not empty means it is a info request
             return await self.forward_info_legacy(synapse)
         self.num_processing_requests += 1
         self.total_request_in_interval += 1
@@ -104,6 +122,19 @@ class Miner(BaseMinerNeuron):
         return synapse
 
     async def blacklist_info(self, synapse: Information) -> Tuple[bool, str]:
+        """
+        Determines whether an incoming request should be blacklisted and thus ignored.
+
+        Args:
+            synapse (Union[ImageGenerating, TextGenerating, MultiModalGenerating]): A synapse object constructed from the headers of the incoming request.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating whether the synapse's hotkey is blacklisted,
+                            and a string providing the reason for the decision.
+        
+        Current blacklist criteria:
+        - Validator does not have enough stake 
+        """
         stake = self.metagraph.stake[
             self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
         ].item()
@@ -112,7 +143,23 @@ class Miner(BaseMinerNeuron):
 
         return False, "All passed!"
 
-    async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
+    async def blacklist(self, synapse: Union[ImageGenerating, TextGenerating, MultiModalGenerating]) -> Tuple[bool, str]:
+        """
+        Determines whether an incoming request should be blacklisted and thus ignored.
+
+        Args:
+            synapse (Union[ImageGenerating, TextGenerating, MultiModalGenerating]): A synapse object constructed from the headers of the incoming request.
+
+        Returns:
+            Tuple[bool, str]: A tuple containing a boolean indicating whether the synapse's hotkey is blacklisted,
+                            and a string providing the reason for the decision.
+        
+        Current blacklist criteria:
+        - Hotkey not in metagraph
+        - Processing requests exceed max concurrent requests
+        - Validator does not have enough stake 
+        - Validator has exceeded the request limit (the volume of validators / max task per validator in the interval)
+        """
         bt.logging.info(f"synapse in blacklist {synapse}")
         try:
             if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
@@ -171,6 +218,7 @@ class Miner(BaseMinerNeuron):
         return await self.blacklist(synapse)
 
     async def priority(self, synapse: ImageGenerating) -> float:
+        """This function is currently not in use."""
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
         )  # Get the caller index.

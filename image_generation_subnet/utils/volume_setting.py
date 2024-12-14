@@ -10,8 +10,11 @@ def get_volume_per_validator(
     log: bool = True,
 ) -> dict:
     """
-    Get volume per validator.
-    Volume is max task validator need to send per loop_base_time.
+    Return volume per validator.
+    Volume is max task validator can send per loop_base_time.
+    The returned dictionary contains the following structure:
+    - Key: `uid` (str) - The unique identifier of the validator.
+    - Value: `volume` (int or float) - The maximum task volume the validator can send per loop base time.
     """
     all_stakes = [stake for stake in metagraph.total_stake.tolist()]
     all_uids = [uid for uid in range(len(all_stakes))]

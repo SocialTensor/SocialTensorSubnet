@@ -23,6 +23,20 @@ class Information(bt.Synapse):
     response_dict: dict = {}
 
 class ImageGenerating(bt.Synapse):
+    """
+    A synapse for image generation, which use bt.Synapse as base class.
+
+    Attributes:
+    - prompt: prompt for generation
+    - seed: seed for generation
+    - model_name: name of the model used for generation
+    - conditional_image: base64 encoded image
+    - pipeline_type: type of pipeline used for generation
+    - pipeline_params: dictionary of additional parameters for diffusers pipeline
+    - request_dict: dictionary contains request
+    - response_dict: dictionary contains response
+    - image: base64 encoded image
+    """
     prompt: str = pydantic.Field(
         default="",
         title="Prompt",
@@ -76,6 +90,12 @@ class ImageGenerating(bt.Synapse):
         return self.deserialize()
 
     def limit_params(self):
+        """
+        This method modifies the pipeline_params dictionary to ensure that the values for certain parameters are within acceptable ranges.
+        - num_inference_steps: maximum 50
+        - width: maximum 1536
+        - height: maximum 1536
+        """
         for k, v in self.pipeline_params.items():
             if k == "num_inference_steps":
                 self.pipeline_params[k] = min(50, v)

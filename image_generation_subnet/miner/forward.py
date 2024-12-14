@@ -1,7 +1,10 @@
+from typing import Union
 import requests
 import httpx
 import bittensor as bt
 import torch
+
+from image_generation_subnet.protocol import ImageGenerating, TextGenerating, MultiModalGenerating
 
 try:
     GPU_DEVICE_NAME = torch.cuda.get_device_name()
@@ -11,7 +14,45 @@ except Exception:
     GPU_DEVICE_COUNT = 0
 
 
-def set_info(self):
+def set_info(self) -> dict:
+    """
+    Returns miner information, which can vary depending on the layer type (layer zero or layer one).
+
+    The returned dictionary may have different structures based on the context. Examples:
+
+    #### For Layer One:
+    {
+        "layer_one": {
+            "ip": "127.0.0.1",
+            "port": 8080
+        },
+        "is_layer_zero": True
+    }
+
+    #### For Layer Zero (or other configurations):
+    {
+        "model_name": "Llama3_70b",
+        "total_volume": 1000,
+        "size_preference_factor": 1.0,
+        "min_stake": 100,
+        "volume_per_validator": {
+            0: 100,
+            1: 200,
+            2: 300
+        },
+        "device_info": {
+            "gpu_device_name": "A100",
+            "gpu_device_count": 8
+        },
+        "is_layer_zero": False,
+        "is_layer_one": True
+    }
+
+    Returns:
+        dict: A dictionary containing miner configuration data, which may include information about the miner's layer, 
+              model, volume per validator, device information, and other configuration details.
+    """
+
     if self.config.miner.is_layer_zero:
         miner_info = {
             "layer_one": {
@@ -39,7 +80,10 @@ def set_info(self):
     return miner_info
 
 
-async def generate(self, synapse: bt.Synapse) -> bt.Synapse:
+async def generate(self, synapse: Union[ImageGenerating, TextGenerating, MultiModalGenerating]) -> ImageGenerating | TextGenerating | MultiModalGenerating:
+    """
+    Deserialize the synapse and send request to the generate endpoint.
+    """
     data = synapse.deserialize_input()
     data["timeout"] = synapse.timeout
     async with httpx.AsyncClient() as client:
