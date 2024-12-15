@@ -6,6 +6,11 @@ import torch
 
 from image_generation_subnet.protocol import ImageGenerating, TextGenerating, MultiModalGenerating
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from neurons.miner.miner import Miner
+
 try:
     GPU_DEVICE_NAME = torch.cuda.get_device_name()
     GPU_DEVICE_COUNT = torch.cuda.device_count()
@@ -14,7 +19,7 @@ except Exception:
     GPU_DEVICE_COUNT = 0
 
 
-def set_info(self) -> dict:
+def set_info(self: "Miner") -> dict:
     """
     Returns miner information, which can vary depending on the layer type (layer zero or layer one).
 

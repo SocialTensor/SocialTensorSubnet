@@ -35,7 +35,7 @@ class BaseNeuron(ABC):
     """
 
     @classmethod
-    def check_config(cls, config: "bt.Config"):
+    def check_config(cls, config: "bt.config"):
         check_config(cls, config)
 
     @classmethod
@@ -43,7 +43,7 @@ class BaseNeuron(ABC):
         add_args(cls, parser)
 
     @classmethod
-    def config(cls) -> bt.Config:
+    def config(cls) -> bt.config:
         return config(cls)
 
     subtensor: "bt.subtensor"

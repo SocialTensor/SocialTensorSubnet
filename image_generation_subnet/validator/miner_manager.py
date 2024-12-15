@@ -8,20 +8,55 @@ import requests
 from threading import Thread
 import image_generation_subnet as ig_subnet
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from neurons.validator.validator import Validator
 
 class MinerManager:
-    def __init__(self, validator):
+    """
+    Class to manage miners.
+    """
+    def __init__(self, validator: "Validator"):
         self.validator = validator
         self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
-        self.all_uids_info = {
+        self.all_uids_info: dict = {
             uid: {"scores": [], "model_name": "", "process_time": []}
             for uid in self.all_uids
         }
-        self.layer_one_axons = {}
-
-    def get_miner_info(self, only_layer_one=False):
         """
-        1. Query model_name of available uids
+        A dictionary mapping each UID to a dictionary, initialized with empty values:
+
+        {
+            uid(int): {
+                'scores': list[float],
+                'process_time': list[float],
+                'model_name': str,
+            }
+        }
+        """
+        self.layer_one_axons = {}
+        """ 
+        A dictionary mapping each UID to an axon of layer one miners:
+
+        {
+            uid(int): axon(bittensor.axon),
+            ...
+        }
+        """
+
+    def get_miner_info(self, only_layer_one=False) -> dict:
+        """
+        Query miner info.
+        Return a dictionary of miner info.
+
+        Example:
+        {
+            uid(int): {
+                'model_name': str,
+                ...
+            }
+        }
         """
         if only_layer_one:
             uids = self.layer_one_axons.keys()
@@ -113,7 +148,8 @@ class MinerManager:
         thread = Thread(target=self.store_miner_info, daemon=True)
         thread.start()
 
-    def get_miner_uids(self, model_name: str):
+    def get_miner_uids(self, model_name: str) -> list[int]:
+        """Get uids of miners running a specific model."""
         available_uids = [
             int(uid)
             for uid in self.all_uids_info.keys()
@@ -135,7 +171,8 @@ class MinerManager:
                 "process_time"
             ][-500:]
 
-    def get_model_specific_weights(self, model_name, normalize=True):
+    def get_model_specific_weights(self, model_name: str, normalize=True):
+        """Get the weights of miners running a specific model."""
         model_specific_weights = torch.zeros(len(self.all_uids))
         for uid in self.get_miner_uids(model_name):
             num_past_to_check = 10
@@ -152,6 +189,7 @@ class MinerManager:
         return model_specific_weights
 
     def store_miner_info(self):
+        """Store miner info to the validator's storage."""
         catalogue = {}
         for k, v in self.validator.nicheimage_catalogue.items():
             catalogue[k] = {

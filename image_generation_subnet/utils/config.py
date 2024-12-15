@@ -22,7 +22,7 @@ import bittensor as bt
 from loguru import logger
 
 
-def check_config(cls, config: "bt.Config"):
+def check_config(cls, config: "bt.config"):
     r"""Checks/validates the config namespace object."""
     bt.logging.check_config(config)
 
@@ -406,7 +406,7 @@ def add_args(cls, parser):
         )
 
 
-def config(cls) -> bt.Config:
+def config(cls) -> bt.config:
     """
     Returns the configuration object specific to this miner or validator after adding relevant arguments.
     """

@@ -118,6 +118,7 @@ class Miner(BaseMinerNeuron):
         return synapse
 
     async def forward_info(self, synapse: Information) -> Information:
+        """Handle info requests."""
         synapse.response_dict = self.miner_info
         return synapse
 

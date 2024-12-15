@@ -3,7 +3,7 @@ import torch
 
 
 def get_volume_per_validator(
-    metagraph,
+    metagraph: "bt.metagraph",
     total_volume: int,
     size_preference_factor: float,
     min_stake: int,
