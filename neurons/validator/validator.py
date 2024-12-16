@@ -1,17 +1,18 @@
+import os
 import time
+import threading
 import datetime
-import bittensor as bt
 import random
+import traceback
 import torch
-from logicnet.base.validator import BaseValidatorNeuron
-from neurons.validator.validator_proxy import ValidatorProxy
+import requests
+import bittensor as bt
 import logicnet as ln
+from neurons.validator.validator_proxy import ValidatorProxy
+from logicnet.base.validator import BaseValidatorNeuron
 from logicnet.validator import MinerManager, LogicChallenger, LogicRewarder, MinerInfo
 from logicnet.utils.wandb_manager import WandbManager
-import traceback
-import threading
 from neurons.validator.core.serving_queue import QueryQueue
-import requests
 
 
 def init_category(config=None):
@@ -19,16 +20,8 @@ def init_category(config=None):
         "Logic": {
             "synapse_type": ln.protocol.LogicSynapse,
             "incentive_weight": 1.0,
-            "challenger": LogicChallenger(
-                config.llm_client.base_url,
-                config.llm_client.key,
-                config.llm_client.model,
-            ),
-            "rewarder": LogicRewarder(
-                config.llm_client.base_url,
-                config.llm_client.key,
-                config.llm_client.model,
-            ),
+            "challenger": LogicChallenger(config),
+            "rewarder": LogicRewarder(config),
             "timeout": 64,
         }
     }
@@ -42,7 +35,53 @@ class Validator(BaseValidatorNeuron):
         """
         super(Validator, self).__init__(config=config)
         bt.logging.info("\033[1;32m🧠 load_state()\033[0m")
-        self.categories = init_category(self.config)
+
+        ### Initialize model rotation pool ###
+        self.model_rotation_pool = {}
+        openai_key = os.getenv("OPENAI_API_KEY")
+        togetherai_key = os.getenv("TOGETHERAI_API_KEY")
+        if not openai_key and not togetherai_key:
+            bt.logging.warning("OPENAI_API_KEY or TOGETHERAI_API_KEY is not set. Please set it to use OpenAI or TogetherAI.")
+            raise ValueError("OPENAI_API_KEY or TOGETHERAI_API_KEY is not set. Please set it to use OpenAI or TogetherAI and restart the validator.")
+        
+        base_urls = self.config.llm_client.base_urls.split(",")
+        models = self.config.llm_client.models.split(",")
+        
+        # Ensure the lists have enough elements
+        if len(base_urls) < 3 or len(models) < 3:
+            bt.logging.warning("base_urls or models configuration is incomplete. Please ensure they have just 3 entries.")
+            raise ValueError("base_urls or models configuration is incomplete. Please ensure they have just 3 entries.")
+        
+        self.model_rotation_pool = {
+            "vllm": [base_urls[0].strip(), "xyz", models[0]],
+            "openai": [base_urls[1].strip(), openai_key, models[1]],
+            "togetherai": [base_urls[2].strip(), togetherai_key, models[2]],
+        }
+        
+        # Check if 'null' is at the same index in both cli lsts
+        for i in range(3):
+            if base_urls[i].strip() == 'null' or models[i].strip() == 'null':
+                if i == 0:
+                    self.model_rotation_pool["vllm"] = "no use"
+                elif i == 1:
+                    self.model_rotation_pool["openai"] = "no use"
+                elif i == 2:
+                    self.model_rotation_pool["togetherai"] = "no use"
+        
+        # Check if all models are set to "no use"
+        if all(value == "no use" for value in self.model_rotation_pool.values()):
+            bt.logging.warning("All models are set to 'no use'. Validator cannot proceed.")
+            raise ValueError("All models are set to 'no use'. Please configure at least one model and restart the validator.")
+        
+        # Create a model_rotation_pool_without_keys
+        model_rotation_pool_without_keys = {
+            key: "no use" if value == "no use" else [value[0], "Not allowed to see.", value[2]]
+            if key in ["openai", "togetherai"] else value
+            for key, value in self.model_rotation_pool.items()
+        }
+        bt.logging.info(f"Model rotation pool without keys: {model_rotation_pool_without_keys}")
+
+        self.categories = init_category(self.model_rotation_pool)
         self.miner_manager = MinerManager(self)
         self.load_state()
         self.update_scores_on_chain()
