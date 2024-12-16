@@ -1,6 +1,12 @@
 import re
 import os
 import sys
+# Get the current Python version
+python_version = sys.version_info
+python_version_str = f"{python_version.major}.{python_version.minor}"
+# Get the virtual environment's base path
+venv_base_path = sys.prefix
+
 import codecs
 from os import path
 from io import open
@@ -37,7 +43,10 @@ class CustomInstallCommand(install):
 
             # Optional: Remove or adjust LD_LIBRARY_PATH setting for your environment
             print("Setting LD_LIBRARY_PATH...")
-            subprocess.check_call(['bash', '-c', 'export LD_LIBRARY_PATH=$(pwd)/venv/lib/python3.11/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH'], stdout=sys.stdout, stderr=sys.stderr)
+            cudnn_lib_path = os.path.join(venv_base_path, "lib", f"python{python_version_str}", "site-packages", "nvidia", "cudnn", "lib")
+            # subprocess.check_call(['bash', '-c', f'export LD_LIBRARY_PATH={cudnn_lib_path}:$LD_LIBRARY_PATH'], stdout=sys.stdout, stderr=sys.stderr)
+            # Print the helpful message in a box
+            print(f"**To use onnxruntime with CUDA support, run this command in your shell: export LD_LIBRARY_PATH={cudnn_lib_path}:$LD_LIBRARY_PATH**")
             
         except subprocess.CalledProcessError as e:
             print(f"Error during the installation process: {e}")
@@ -68,7 +77,10 @@ class CustomDevelopCommand(develop):
 
             # Optional: Remove or adjust LD_LIBRARY_PATH setting for your environment
             print("Setting LD_LIBRARY_PATH...")
-            subprocess.check_call(['bash', '-c', 'export LD_LIBRARY_PATH=$(pwd)/venv/lib/python3.11/site-packages/nvidia/cudnn/lib:$LD_LIBRARY_PATH'], stdout=sys.stdout, stderr=sys.stderr)
+            cudnn_lib_path = os.path.join(venv_base_path, "lib", f"python{python_version_str}", "site-packages", "nvidia", "cudnn", "lib")
+            # subprocess.check_call(['bash', '-c', f'export LD_LIBRARY_PATH={cudnn_lib_path}:$LD_LIBRARY_PATH'], stdout=sys.stdout, stderr=sys.stderr)
+            # Print the helpful message in a box
+            print(f"**To use onnxruntime with CUDA support, run this command in your shell: export LD_LIBRARY_PATH={cudnn_lib_path}:$LD_LIBRARY_PATH**")
             
         except subprocess.CalledProcessError as e:
             print(f"Error during the installation process: {e}")
@@ -100,7 +112,7 @@ setup(
     include_package_data=True,
     author_email="",
     license="MIT",
-    python_requires=">=3.11",
+    python_requires=">=3.10",
     install_requires=[],  # No deps here, as we'll handle them manually
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -109,9 +121,8 @@ setup(
         # Pick your license as you wish
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Scientific/Engineering",
         "Topic :: Scientific/Engineering :: Mathematics",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
