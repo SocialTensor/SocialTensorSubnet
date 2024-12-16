@@ -222,18 +222,14 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
-        # raw_weights = torch.nn.functional.normalize(self.scores, p=1, dim=0)
-
-        raw_weights = self.scores
-        raw_weight_sum = np.sum(np.abs(self.scores), axis=0, keepdims=True)
+        raw_weights = np.nan_to_num(self.scores, nan=0)
+        raw_weight_sum = np.sum(np.abs(raw_weights), axis=0, keepdims=True)
         if not raw_weight_sum == 0:
-            raw_weights = raw_weights/ raw_weight_sum
+            raw_weights = raw_weights / raw_weight_sum
 
-        bt.logging.trace("raw_weights", raw_weights)
-        # bt.logging.trace("top10 values", raw_weights.sort()[0])
-        # bt.logging.trace("top10 uids", raw_weights.sort()[1])
-        bt.logging.trace("top10 values", np.sort(raw_weights))
-        bt.logging.trace("top10 uids", np.argsort(raw_weights))
+        bt.logging.trace("Raw weights:", raw_weights)
+        bt.logging.trace("Top 10 values:", np.sort(raw_weights))
+        bt.logging.trace("Top 10 uids:", np.argsort(raw_weights))
 
         # Process the raw weights to final_weights via subtensor limitations.
         (
@@ -246,8 +242,8 @@ class BaseValidatorNeuron(BaseNeuron):
             subtensor=self.subtensor,
             metagraph=self.metagraph,
         )
-        bt.logging.trace("processed_weights", processed_weights)
-        bt.logging.trace("processed_weight_uids", processed_weight_uids)
+        bt.logging.trace("Processed weights:", processed_weights)
+        bt.logging.trace("Processed weight uids:", processed_weight_uids)
 
         # Set the weights on chain via our subtensor connection.
         self.subtensor.set_weights(

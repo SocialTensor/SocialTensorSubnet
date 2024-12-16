@@ -2,6 +2,7 @@ import time, asyncio
 import bittensor as bt
 import random
 import torch
+import pickle
 import numpy as np
 from image_generation_subnet.base.validator import BaseValidatorNeuron
 from neurons.validator.validator_proxy import ValidatorProxy
@@ -788,18 +789,13 @@ class Validator(BaseValidatorNeuron):
         Update weights based on incentive pool and model specific weights.
         - Apply rank weight for open category model.
         """
-
-        # weights = torch.zeros(len(self.miner_manager.all_uids))
         weights = np.zeros(len(self.miner_manager.all_uids))
+
         for model_name in self.nicheimage_catalogue.keys():
             model_specific_weights = self.miner_manager.get_model_specific_weights(model_name)
             if self.nicheimage_catalogue[model_name]["reward_type"] == "open_category":
                 mask = model_specific_weights > 1e-4
-                # ranked_model_specific_weights = self.rank_tensor(model_specific_weights)
                 ranked_model_specific_weights = self.rank_array(model_specific_weights)
-                # bt.logging.debug(
-                #     f"Unique ranked weights for {model_name}\n{model_specific_weights.unique()}"
-                # )
                 bt.logging.debug(
                     f"Unique ranked weights for {model_name}\n{np.unique(model_specific_weights)}"
                 )
@@ -808,9 +804,6 @@ class Validator(BaseValidatorNeuron):
                 )
                 model_specific_weights = 0.8 + 0.2 * model_specific_weights
                 model_specific_weights = model_specific_weights * mask
-                # model_specific_weights = torch.nn.functional.normalize(
-                #     model_specific_weights, p=1, dim=0
-                # )
                 raw_weight_sum = np.sum(np.abs(self.scores), axis=0, keepdims=True)
                 if not raw_weight_sum == 0:
                     model_specific_weights = model_specific_weights / raw_weight_sum
@@ -887,69 +880,122 @@ class Validator(BaseValidatorNeuron):
             weights = weights + model_specific_weights
 
         # Check if rewards contains NaN values.
-        # if torch.isnan(weights).any():
         if np.isnan(weights).any():
             bt.logging.warning(f"NaN values detected in weights: {weights}")
             # Replace any NaN values in rewards with 0.
-            # weights = torch.nan_to_num(weights, 0)
-            weights = np.nan_to_num(weights, 0)
-        # self.scores: torch.FloatTensor = weights
+            weights = np.nan_to_num(weights, nan=0)
+
         self.scores: np.ndarray = weights
         bt.logging.success(f"Updated scores: {self.scores}")
 
+    # def save_state(self):
+    #     """Saves the state of the validator to a file."""
+    #     torch.save(
+    #         {
+    #             "step": self.step,
+    #             "all_uids_info": self.miner_manager.all_uids_info,
+    #         },
+    #         self.config.neuron.full_path + "/state.pt",
+    #     )
+
     def save_state(self):
-        """Saves the state of the validator to a file."""
-        torch.save(
-            {
-                "step": self.step,
-                "all_uids_info": self.miner_manager.all_uids_info,
-            },
-            self.config.neuron.full_path + "/state.pt",
-        )
+        """Saves the state of the validator to a file using pickle."""
+        state = {
+            "step": self.step,
+            "all_uids_info": self.miner_manager.all_uids_info,
+        }
+        try:
+            # Open the file in write-binary mode
+            with open(self.config.neuron.full_path + "/state.pkl", "wb") as f:
+                pickle.dump(state, f)
+            bt.logging.info("State successfully saved to state.pkl")
+        except Exception as e:
+            bt.logging.error(f"Failed to save state: {e}")
+
+    # def load_state(self):
+    #     """Loads the state of the validator from a file."""
+
+    #     # Load the state of the validator from file.
+    #     try:
+    #         path = self.config.neuron.full_path + "/state.pt"
+    #         bt.logging.info("Loading validator state from: " + path)
+    #         state = torch.load(path)
+    #         self.step = state["step"]
+    #         self.miner_manager.all_uids_info = state["all_uids_info"]
+    #         bt.logging.info("Succesfully loaded state")
+    #     except Exception as e:
+    #         self.step = 0
+    #         bt.logging.info("Could not find previously saved state.", e)
 
     def load_state(self):
-        """Loads the state of the validator from a file."""
-
-        # Load the state of the validator from file.
+        """Loads the state of the validator from a file, with fallback to .pt if .pkl is not found."""
+        # TODO: After a transition period, remove support for the old .pt format.
         try:
-            path = self.config.neuron.full_path + "/state.pt"
-            bt.logging.info("Loading validator state from: " + path)
-            state = torch.load(path)
-            self.step = state["step"]
-            self.miner_manager.all_uids_info = state["all_uids_info"]
-            bt.logging.info("Succesfully loaded state")
+            path_pt = self.config.neuron.full_path + "/state.pt"
+            path_pkl = self.config.neuron.full_path + "/state.pkl"
+
+            # Try to load the newer .pkl format first
+            try:
+                bt.logging.info(f"Loading validator state from: {path_pkl}")
+                with open(path_pkl, "rb") as f:
+                    state = pickle.load(f)
+
+                # Restore state from pickle file
+                self.step = state["step"]
+                self.miner_manager.all_uids_info = state["all_uids_info"]
+                bt.logging.info("Successfully loaded state from .pkl file")
+                return  # Exit after successful load from .pkl
+
+            except Exception as e:
+                bt.logging.warning(f"Failed to load from .pkl format: {e}")
+
+            # If .pkl loading fails, try to load from the old .pt file (PyTorch format)
+            try:
+                bt.logging.info(f"Loading validator state from: {path_pt}")
+                state = torch.load(path_pt)
+
+                # Restore state from .pt file
+                self.step = state["step"]
+                self.miner_manager.all_uids_info = state["all_uids_info"]
+                bt.logging.info("Successfully loaded state from .pt file")
+
+            except Exception as e:
+                bt.logging.error(f"Failed to load from .pt format: {e}")
+                self.step = 0  # Default fallback when both load attempts fail
+                bt.logging.error("Could not find previously saved state or error loading it.")
+
         except Exception as e:
-            self.step = 0
-            bt.logging.info("Could not find previously saved state.", e)
+            self.step = 0  # Default fallback in case of an unknown error
+            bt.logging.error(f"Error loading state: {e}")
 
-    @staticmethod
-    def rank_tensor(tensor):
-        # Return Zeros if tensor is zeros
-        if torch.sum(tensor) == 0:
-            return tensor
-        # Step 1: Sort the tensor and get the original indices
-        sorted_tensor, indices = torch.sort(tensor, descending=True)
+    # @staticmethod
+    # def rank_tensor(tensor):
+    #     # Return Zeros if tensor is zeros
+    #     if torch.sum(tensor) == 0:
+    #         return tensor
+    #     # Step 1: Sort the tensor and get the original indices
+    #     sorted_tensor, indices = torch.sort(tensor, descending=True)
 
-        # Step 2: Create a new tensor for rankings
-        ranked_tensor = torch.zeros_like(tensor)
+    #     # Step 2: Create a new tensor for rankings
+    #     ranked_tensor = torch.zeros_like(tensor)
 
-        # Step 3: Assign ranks based on conditions
-        # First element gets 1.0
-        ranked_tensor[indices[0]] = 1.0
+    #     # Step 3: Assign ranks based on conditions
+    #     # First element gets 1.0
+    #     ranked_tensor[indices[0]] = 1.0
 
-        # Check for tie between second and third elements
-        if sorted_tensor[1] == sorted_tensor[2]:
-            # If there's a tie, both get 0.5
-            ranked_tensor[indices[1]] = 0.5
-            ranked_tensor[indices[2]] = 0.5
-        else:
-            # Otherwise, assign 2/3 and 1/3
-            ranked_tensor[indices[1]] = 2 / 3
-            ranked_tensor[indices[2]] = 1 / 3
+    #     # Check for tie between second and third elements
+    #     if sorted_tensor[1] == sorted_tensor[2]:
+    #         # If there's a tie, both get 0.5
+    #         ranked_tensor[indices[1]] = 0.5
+    #         ranked_tensor[indices[2]] = 0.5
+    #     else:
+    #         # Otherwise, assign 2/3 and 1/3
+    #         ranked_tensor[indices[1]] = 2 / 3
+    #         ranked_tensor[indices[2]] = 1 / 3
 
-        # All others (rank 4 and below) get 0 (already initialized)
+    #     # All others (rank 4 and below) get 0 (already initialized)
 
-        return ranked_tensor
+    #     return ranked_tensor
     
     @staticmethod
     def rank_array(array: np.ndarray):

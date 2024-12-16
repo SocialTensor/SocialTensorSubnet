@@ -27,15 +27,10 @@ def get_volume_per_validator(
         valid_stakes = [0] * len(all_stakes)
         min_stake = 0
 
-    # valid_stakes = torch.tensor(valid_stakes) + 1e-4
     valid_stakes = np.array(valid_stakes) + 1e-4
     prefered_valid_stakes = valid_stakes**size_preference_factor
-    # normalized_prefered_valid_stakes = (
-    #     prefered_valid_stakes / prefered_valid_stakes.sum()
-    # )
     normalized_prefered_valid_stakes = prefered_valid_stakes / prefered_valid_stakes.sum()
     volume_per_validator = total_volume * normalized_prefered_valid_stakes
-    # volume_per_validator = torch.floor(volume_per_validator)
     volume_per_validator = np.floor(volume_per_validator)
     
     volume_per_validator = dict(zip(valid_uids, volume_per_validator.tolist()))

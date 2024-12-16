@@ -414,6 +414,9 @@ def config(cls):
     bt.wallet.add_args(parser)
     bt.subtensor.add_args(parser)
     bt.logging.add_args(parser)
+    # Set logging level to INFO
+    bt.logging.before_enable_info()
+    bt.logging.enable_info()
     bt.axon.add_args(parser)
     cls.add_args(parser)
     return bt.config(parser)

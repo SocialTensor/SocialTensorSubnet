@@ -87,7 +87,6 @@ with codecs.open(
     )
     version_string = version_match.group(1)
 
-print('gauhasiufhsaifhsduifhuds')
 
 setup(
     name="image_generation_subnet",
