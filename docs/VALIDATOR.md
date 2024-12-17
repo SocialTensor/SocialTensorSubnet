@@ -73,10 +73,11 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
 
 #### Prerequisites
 
-- **Accounts**: Sign up for [Together AI](https://together.ai/) and [Open AI](https://platform.openai.com/api-keys).
-- **API Keys**: Obtain keys from the respective dashboards.
-- **Python**: 3.10
-- **PM2**: For process management (*optional*).
+- **Account on Together.AI**: [Sign up here](https://together.ai/).
+- **Account on Hugging Face**: [Sign up here](https://huggingface.co/).
+- **API Key**: Obtain from the Together.AI dashboard.
+- **Python 3.10**
+- **PM2 Process Manager**: For running and managing the Validator process. *OPTIONAL*
 
 #### Steps
 
@@ -104,6 +105,7 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
    ```bash
    echo "TOGETHERAI_API_KEY=your_together_ai_api_key" > .env
    echo "OPENAI_API_KEY=your_openai_api_key" >> .env
+   echo "HF_TOKEN=your_hugging_face_token" >> .env (needed for some vLLM model)
    ```
 
 4. **Select a Model**

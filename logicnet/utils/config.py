@@ -189,6 +189,13 @@ def add_args(cls, parser):
             default="xyz",
         )
 
+        parser.add_argument(
+            "--dataset_weight",
+            type=str,
+            help="The weight of the dataset",
+            default="40,10,10,10,10,10,10",
+        )
+
     else:
         parser.add_argument(
             "--miner.category",
