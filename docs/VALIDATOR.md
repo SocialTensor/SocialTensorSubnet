@@ -37,6 +37,7 @@ We recommend using Together.AI to run the Validator, as it simplifies setup and 
 #### Prerequisites:
 
 - **Account on Together.AI**: [Sign up here](https://together.ai/).
+- **Account on Hugging Face**: [Sign up here](https://huggingface.co/).
 - **API Key**: Obtain from the Together.AI dashboard.
 - **Python 3.10**
 - **PM2 Process Manager**: For running and managing the Validator process. *OPTIONAL*
@@ -70,6 +71,7 @@ We recommend using Together.AI to run the Validator, as it simplifies setup and 
 4. **Set Up the `.env` File**
    ```bash
    echo "TOGETHER_API_KEY=your_together_ai_api_key" > .env
+   echo "HF_TOKEN=your_hugging_face_token" >> .env
    ```
 
 5. **Select a Model**
@@ -131,6 +133,9 @@ We recommend using Together.AI to run the Validator, as it simplifies setup and 
 - Ensure your `TOGETHER_API_KEY` is correctly set and sourced:
   - Check the `.env` file: `cat .env`
   - Verify the API key is loaded: `echo $TOGETHER_API_KEY`
+- Ensure your `HF_TOKEN` is correctly set and sourced:
+  - Check the `.env` file: `cat .env`
+  - Verify the API key is loaded: `echo $HF_TOKEN`
 - The `--llm_client.base_url` should be `https://api.together.xyz/v1`.
 - Match `--llm_client.model` with the **Model ID** from Together.AI.
 
@@ -177,7 +182,12 @@ This method involves self-hosting a vLLM r to run the Validator locally. It requ
    ```
    *Adjust the model, port, and host as needed.*
 
-5. **Run the Validator with Self-Hosted LLM**
+5. **Set Up the `.env` File**
+   ```bash
+   echo "HF_TOKEN=your_hugging_face_token" > .env
+   ```
+
+6. **Run the Validator with Self-Hosted LLM**
    - **Activate Virtual Environment**:
      ```bash
      . main/bin/activate
@@ -194,7 +204,7 @@ This method involves self-hosting a vLLM r to run the Validator locally. It requ
        --logging.debug
      ```
 
-6. **(Optional) Enable Public Access**
+7. **(Optional) Enable Public Access**
    ```bash
    --axon.port "your-public-open-port"
    ```
@@ -226,6 +236,7 @@ This method involves self-hosting a vLLM r to run the Validator locally. It requ
 
 - **Common Issues**:
   - **API Key Not Found**: Ensure `.env` is sourced and `TOGETHER_API_KEY` is set.
+  - **HF Token Not Found**: Ensure `.env` is sourced and `HF_TOKEN` is set.
   - **Model ID Incorrect**: Verify the `--llm_client.model` matches the Together.AI Model ID.
   - **Connection Errors**: Check internet connectivity and Together.AI service status.
 

@@ -128,7 +128,6 @@ class MinerManager:
         """
         Get miner uids based on category, useful if subnet has multiple categories
         """
-        print(self.all_uids_info)
         available_uids = [
             int(uid)
             for uid in self.all_uids_info.keys()
