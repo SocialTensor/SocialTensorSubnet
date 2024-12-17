@@ -61,7 +61,7 @@ This setup allows you to run the Validator locally by hosting a vLLM server. Whi
 4. **Start the vLLM Server**
    ```bash
    . vllm/bin/activate
-   pm2 start "vllm Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm"
+   pm2 start "vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm"
    ```
    *Adjust the model, port, and host as needed.*
 
