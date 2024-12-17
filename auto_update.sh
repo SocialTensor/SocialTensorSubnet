@@ -20,7 +20,8 @@ while true; do
     if [ "$current_head" != "$new_head" ]; then
         # The HEAD has changed, meaning there's a new version
         echo "$(date): New version detected, installing requirements and restarting the validator."
-        pip install -e .
+        # Reinstall dependencies
+        python setup.py install
         pm2 restart validator_nicheimage
     else
         # No new version, no action needed

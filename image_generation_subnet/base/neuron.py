@@ -26,6 +26,7 @@ from image_generation_subnet.utils.config import check_config, add_args, config
 from image_generation_subnet.utils.misc import ttl_get_block
 from image_generation_subnet import __spec_version__ as spec_version
 
+bt.logging.get_level
 
 class BaseNeuron(ABC):
     """

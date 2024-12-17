@@ -29,7 +29,7 @@ git clone https://github.com/NicheTensor/NicheImage
 cd NicheImage
 python -m venv main_env
 source main_env/bin/activate
-pip install -e .
+python setup.py install
 pip uninstall uvloop -y
 git submodule update --init --recursive
 . generation_models/custom_pipelines/scripts/download_antelopev2.sh
@@ -98,7 +98,7 @@ git clone https://github.com/NicheTensor/NicheImage
 cd NicheImage
 python -m venv main_env
 source main_env/bin/activate
-pip install -e .
+python setup.py install
 pip uninstall uvloop -y
 git submodule update --init --recursive
 . generation_models/custom_pipelines/scripts/download_antelopev2.sh
