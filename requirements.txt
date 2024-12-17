@@ -11,5 +11,4 @@ sentence-transformers==3.0.1
 python-dotenv==1.0.1
 sympy
 wandb
-datasets
 git+https://github.com/lukew3/mathgenerator.git
