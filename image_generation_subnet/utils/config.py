@@ -22,7 +22,7 @@ import bittensor as bt
 from loguru import logger
 
 
-def check_config(cls, config: "bt.Config"):
+def check_config(cls, config: "bt.config"):
     r"""Checks/validates the config namespace object."""
     bt.logging.check_config(config)
 
@@ -120,7 +120,7 @@ def add_args(cls, parser):
         parser.add_argument(
             "--loop_base_time",
             type=int,
-            help="The base time for the loop to run in seconds.",
+            help="The base time for the loop to run in seconds. Default is 10 minutes.",
             default=600,
         )
 
@@ -337,7 +337,7 @@ def add_args(cls, parser):
         parser.add_argument(
             "--miner.total_volume",
             type=int,
-            help="The total volume of requests to be served per 10 minutes",
+            help="The total volume of requests to be served per loop_base_time (default loop_base_time is 10 minutes).",
             default=40,
         )
 
@@ -406,7 +406,7 @@ def add_args(cls, parser):
         )
 
 
-def config(cls):
+def config(cls) -> bt.config:
     """
     Returns the configuration object specific to this miner or validator after adding relevant arguments.
     """

@@ -3,12 +3,19 @@ import torch
 
 
 def get_volume_per_validator(
-    metagraph,
+    metagraph: "bt.metagraph",
     total_volume: int,
     size_preference_factor: float,
     min_stake: int,
     log: bool = True,
 ) -> dict:
+    """
+    Return volume per validator.
+    Volume is max task validator can send per loop_base_time.
+    The returned dictionary contains the following structure:
+    - Key: `uid` (str) - The unique identifier of the validator.
+    - Value: `volume` (int or float) - The maximum task volume the validator can send per loop base time.
+    """
     all_stakes = [stake for stake in metagraph.total_stake.tolist()]
     all_uids = [uid for uid in range(len(all_stakes))]
     valid_stakes = [stake for stake in all_stakes if stake >= min_stake]
@@ -36,7 +43,7 @@ def get_volume_per_validator(
     volume_per_validator = dict(zip(valid_uids, volume_per_validator.tolist()))
     for uid, volume in volume_per_validator.items():
         if metagraph.total_stake[uid] >= min_stake:
-            volume_per_validator[uid] = max(2, volume)
+            volume_per_validator[uid] = max(2, volume) # minimum volume is 2, 1 for synthetic, 1 for organic
         if log:
             bt.logging.info(
                 f"Volume for {uid}-validator: stake: {metagraph.total_stake[uid]}, volume: {volume_per_validator[uid]}"

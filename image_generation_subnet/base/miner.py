@@ -24,13 +24,18 @@ import bittensor as bt
 
 from image_generation_subnet.base.neuron import BaseNeuron
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from neurons.miner.miner import Miner
+
 
 class BaseMinerNeuron(BaseNeuron):
     """
     Base class for Bittensor miners.
     """
 
-    def __init__(self, config=None):
+    def __init__(self: "Miner", config=None):
         super().__init__(config=config)
 
         # Warn if allowing incoming requests from anyone.
@@ -103,7 +108,7 @@ class BaseMinerNeuron(BaseNeuron):
             )
             self.axon.serve(netuid=self.config.netuid, subtensor=self.subtensor)
 
-        # Start  starts the miner's axon, making it active on the network.
+        # Start the miner's axon, making it active on the network.
         self.axon.start()
 
         bt.logging.info(f"Miner starting at block: {self.block}")

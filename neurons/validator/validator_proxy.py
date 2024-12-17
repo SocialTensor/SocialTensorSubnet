@@ -17,8 +17,13 @@ import httpx
 from starlette.concurrency import run_in_threadpool
 import threading
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from neurons.validator.validator import Validator
+
 class ValidatorProxy:
-    def __init__(self, validator: "neurons.validator.validator.Validator"):
+    def __init__(self, validator: "Validator"):
         self.validator = validator
         self.get_credentials()
         self.miner_request_counter = {}

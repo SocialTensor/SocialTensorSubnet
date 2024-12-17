@@ -34,18 +34,41 @@ class QueryItem:
 
 
 class QueryQueue:
+    """Class to manage query queue."""
     def __init__(self, model_names: list[str], time_per_loop: int = 600):
         self.synthentic_queue: dict[str, queue.Queue[QueryItem]] = {
             model_name: queue.Queue() for model_name in model_names
         }
+        """
+        A dictionary of queues for synthetic requests. \n
+        The dictionary is structured as follows: \n
+        {
+            model_name: queue.Queue(),
+            ...
+        }
+        """
         self.proxy_queue: dict[str, queue.Queue[QueryItem]] = {
             model_name: queue.Queue() for model_name in model_names
         }
+        """
+        A dictionary of queues for organic requests. \n
+        The dictionary is structured as follows: \n
+        {
+            model_name: queue.Queue(),
+            ...
+        }
+        """
         self.synthentic_rewarded = []
         self.time_per_loop = time_per_loop
         self.total_uids_remaining = 0
+        """
+        Total number of uids remaining in the synthentic_queue.
+        """
 
-    def update_queue(self, all_uids_info):
+    def update_queue(self, all_uids_info: dict):
+        """
+        Delete all items in the synthentic_queue and proxy_queue, and update the queue with new items.
+        """
         self.total_uids_remaining = 0
         self.synthentic_rewarded = []
         for q in self.synthentic_queue.values():
@@ -82,6 +105,9 @@ class QueryQueue:
             )
 
     def get_batch_query(self, batch_size: int):
+        """
+        Yield model_name, uids_to_query, should_rewards, time_to_sleep from the synthentic_queue.
+        """
         if not self.total_uids_remaining:
             return
         more_data = True
@@ -128,7 +154,17 @@ class QueryQueue:
         return synthentic_rate_limit, proxy_rate_limit
 
 
-def initialize_challenge_urls(config):
+def initialize_challenge_urls(config: bt.config) -> dict:
+    """
+    Return a dictionary of challenge urls for each pipeline. \n
+    The dictionary is structured as follows: \n
+    {
+        "pipeline_name": {
+            "main": [list of main challenge urls],
+            "backup": [list of backup functions],
+        }
+    }
+    """
     challenge_urls = {
         "txt2img": {
             "main": [config.challenge.prompt],
@@ -180,7 +216,22 @@ def initialize_challenge_urls(config):
     return challenge_urls
 
 
-def initialize_nicheimage_catalogue(config):
+def initialize_nicheimage_catalogue(config: bt.config) -> dict:
+    """
+    Return a dictionary of model configurations for each model.
+    The dictionary is structured as follows:
+    {
+        "model_name": {
+            "model_incentive_weight": float,
+            "supporting_pipelines": list[str],
+            "reward_url": str | function,
+            "reward_type": str,
+            "timeout": int,
+            "inference_params": dict,
+            "synapse_type": ig_subnet.protocol.SynapseType,
+        }
+    }
+    """
     nicheimage_catalogue = {
         "GoJourney": {
             "model_incentive_weight": 0.04,
@@ -442,6 +493,21 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info("load_state()")
         self.challenge_urls = initialize_challenge_urls(self.config)
         self.nicheimage_catalogue = initialize_nicheimage_catalogue(self.config)
+        """
+        A dictionary of model configurations for each model. \n
+        The dictionary is structured as follows: \n
+        {
+            "model_name": {
+                "model_incentive_weight": float,
+                "supporting_pipelines": list[str],
+                "reward_url": str | function,
+                "reward_type": str,
+                "timeout": int,
+                "inference_params": dict,
+                "synapse_type": ig_subnet.protocol.SynapseType,
+            }
+        }
+        """
         self.open_category_reward_synapses = self.init_reward_open_category_synapses()
         self.miner_manager = MinerManager(self)
         self.load_state()
@@ -452,7 +518,7 @@ class Validator(BaseValidatorNeuron):
             list(self.nicheimage_catalogue.keys()),
             time_per_loop=self.config.loop_base_time,
         )
-        self.offline_reward = self.config.offline_reward.enable
+        self.offline_reward: bool = self.config.offline_reward.enable
         self.supporting_offline_reward_types = ["image", "custom_offline"]
         self.generate_response_offline_types = ["image"]
         if self.offline_reward:
@@ -702,7 +768,7 @@ class Validator(BaseValidatorNeuron):
                     self.miner_manager.update_scores(reward_uids, rewards)
             store_thread.join()
 
-    def prepare_challenge(self, uids_should_rewards, model_name, pipeline_type):
+    def prepare_challenge(self, uids_should_rewards: list, model_name: str, pipeline_type: str):
         """
         Batch the batch (max = 16) into smaller batch size (max = 4) and prepare synapses for each batch.
         """
@@ -771,9 +837,16 @@ class Validator(BaseValidatorNeuron):
             except Exception as e:
                 bt.logging.error(f"Error in storing response: {e}")
 
-    def init_reward_open_category_synapses(self):
+    def init_reward_open_category_synapses(self) -> dict:
         """
         Initialize synapses to be rewarded for open category models.
+
+        Return a dictionary of synapses to be rewarded for each open category model.
+        The dictionary is structured as follows:
+
+        {
+            "model_name": None, ...
+        }
         """
         return {
             k: None
