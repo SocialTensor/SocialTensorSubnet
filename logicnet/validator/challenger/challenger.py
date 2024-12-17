@@ -2,23 +2,20 @@
 import os
 import openai
 import random
-from logicnet.protocol import LogicSynapse
+import mathgenerator
 import bittensor as bt
+from logicnet.protocol import LogicSynapse
 from .human_noise import get_condition
 from .math_generator.topics import TOPICS as topics
+from logicnet.utils.model_selector import model_selector
 import mathgenerator
 from datasets import load_dataset
 
 DATASET_WEIGHT = [40,10,10,10,10,10,10]
 
 class LogicChallenger:
-    def __init__(self, base_url: str, api_key: str, model: str, dataset_weight: list):
-        bt.logging.info(
-            f"Initializing Logic Challenger with model: {model}, base URL: {base_url}."
-        )
-        self.model = model
-        self.openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
-        self.dataset_weight = [float(weight) for weight in dataset_weight.split(',')]
+    def __init__(self, model_rotation_pool: dict):
+        self.model_rotation_pool = model_rotation_pool
 
     def __call__(self, synapse: LogicSynapse) -> LogicSynapse:
         self.get_challenge(synapse)
@@ -184,21 +181,29 @@ class LogicChallenger:
             {"role": "user", "content": prompt},
         ]
 
-        response = self.openai_client.chat.completions.create(
-            model=self.model,
-            messages=messages,
-            max_tokens=256,
-            temperature=0.7,
-        )
-        
-        response = response.choices[0].message.content.strip()
-        return response
-    
+        max_attempts = 3
 
-    def get_answer_value(self, possible_answers, answer):
-        # Get the value of the answer from the possible answers
-        options = possible_answers.split()
-        for i, option in enumerate(options):
-            if option.startswith(answer + ")"):
-                return options[i + 1]
-        return None  # Return None if the answer is not found
+        for attempt in range(max_attempts):
+            model, base_url, api_key = model_selector(self.model_rotation_pool)
+            if not model or not base_url or not api_key:
+                raise ValueError("Model configuration is incomplete.")
+
+            openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
+            bt.logging.debug(f"Initiating request with model '{model}' at base URL '{base_url}'.")
+
+            try:
+                response = openai_client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    max_tokens=256,
+                    temperature=0.7,
+                )
+                revised_question = response.choices[0].message.content.strip()
+                bt.logging.debug(f"Generated revised math question: {revised_question}")
+                return revised_question
+            
+            except openai.error.OpenAIError as e:
+                bt.logging.error(f"OpenAI API request failed (attempt {attempt + 1}): {e}")
+                if attempt == max_attempts - 1:
+                    raise RuntimeError("Failed to get a response after multiple attempts with different models.")
+                bt.logging.info("Switching to a different model configuration.")
