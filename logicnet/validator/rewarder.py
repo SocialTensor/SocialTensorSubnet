@@ -236,6 +236,8 @@ class LogicRewarder:
             gt_abs = abs(gt_value) + epsilon
 
             relative_error = abs_difference / gt_abs
+            # Logs for debugging
+            bt.logging.debug(f"[CORRECTNESS DEBUG FOR NUMERICAL COMPARISON] Ground truth: {gt_value}, Miner answer: {miner_value}, Absolute difference: {abs_difference}, Relative error: {relative_error}")
 
             # Map relative error to correctness score between 0 and 1
             # Assuming that a relative error of 0 corresponds to correctness 1
