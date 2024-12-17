@@ -1,11 +1,10 @@
 import torch
 import openai
-import sympy
-import bittensor as bt
-from concurrent import futures
 from logicnet.protocol import LogicSynapse
 from sentence_transformers import SentenceTransformer
-from logicnet.utils.model_selector import model_selector
+import bittensor as bt
+from concurrent import futures
+import sympy
 
 SIMILARITY_WEIGHT = 0.2
 CORRECTNESS_WEIGHT = 0.8
@@ -37,11 +36,15 @@ Response:
 Correctness Score (a number between 0 and 1, output only the number):"""
 
 class LogicRewarder:
-    def __init__(self, model_rotation_pool: dict):
+    def __init__(self, base_url: str, api_key: str, model: str):
         """
         READ HERE TO LEARN HOW VALIDATOR REWARD THE MINER
         """
-        self.model_rotation_pool = model_rotation_pool
+        bt.logging.info(
+            f"Logic Rewarder initialized with model: {model}, base_url: {base_url}"
+        )
+        self.openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
+        self.model = model
         self.embedder = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
 
     def __call__(self, uids, responses: list[LogicSynapse], base_synapse: LogicSynapse):
@@ -115,17 +118,6 @@ class LogicRewarder:
         Returns:
             list[float]: List of correctness scores for each response (float between 0 and 1).
         """
-        model, base_url, api_key = model_selector(self.model_rotation_pool)
-        if not model:
-            raise ValueError("Model ID is not valid or not provided.")
-        if not base_url:
-            raise ValueError("Base URL is not valid or not provided.")
-        if not api_key:
-            raise ValueError("API key is not valid or not provided.")
-        
-        openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
-        bt.logging.debug(f"Initiating request with model '{model}' at base URL '{base_url}'.")
-
         ground_truth_answer = base_synapse.ground_truth_answer
         bt.logging.debug(f"[CORRECTNESS] Ground truth: {ground_truth_answer}")
         correctness = []
@@ -158,66 +150,27 @@ class LogicRewarder:
 
         if batch_messages:
             with futures.ThreadPoolExecutor() as executor:
-                for attempt in range(3):  # Retry up to 3 times
+                results = executor.map(
+                    lambda messages: self.openai_client.chat.completions.create(
+                        model=self.model,
+                        messages=messages,
+                        max_tokens=5,
+                        temperature=0,
+                    ),
+                    batch_messages,
+                )
+                for idx, result in zip(indices_for_llm, results):
+                    response_str = result.choices[0].message.content.strip().lower()
+                    bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
                     try:
-                        results = executor.map(
-                            lambda messages: openai_client.chat.completions.create(
-                                model=model,
-                                messages=messages,
-                                max_tokens=5,
-                                temperature=0,
-                            ),
-                            batch_messages,
-                        )
-                        for idx, result in zip(indices_for_llm, results):
-                            response_str = result.choices[0].message.content.strip().lower()
-                            bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
-                            try:
-                                correctness_score = float(response_str)
-                                correctness[idx] = min(max(correctness_score, 0.0), 1.0)
-                            except ValueError:
-                                default_score = 0.5
-                                bt.logging.warning(f"Failed to parse correctness score for response {idx}. Assigning default score of {default_score}.")
-                                correctness[idx] = default_score
-                        break
-                    
-                    except openai.error.OpenAIError as e:
-                        bt.logging.error(f"API request failed: {e}")
-                        if attempt == 2:  # Last attempt
-                            # Switch to another model, base URL, and API key
-                            model, base_url, api_key = model_selector(self.model_rotation_pool)
-                            if not model or not base_url or not api_key:
-                                bt.logging.error("No alternative model, base URL, or API key available.")
-                                for idx in indices_for_llm:
-                                    correctness[idx] = 0.5
-                            else:
-                                openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
-                                bt.logging.debug(f"Initiating request with model '{model}' at base URL '{base_url}'.")
-                                try:
-                                    results = executor.map(
-                                        lambda messages: openai_client.chat.completions.create(
-                                            model=model,
-                                            messages=messages,
-                                            max_tokens=5,
-                                            temperature=0,
-                                        ),
-                                        batch_messages,
-                                    )
-                                    for idx, result in zip(indices_for_llm, results):
-                                        response_str = result.choices[0].message.content.strip().lower()
-                                        bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
-                                        try:
-                                            correctness_score = float(response_str)
-                                            correctness[idx] = min(max(correctness_score, 0.0), 1.0)
-                                        except ValueError:
-                                            default_score = 0.5
-                                            bt.logging.warning(f"Failed to parse correctness score for response {idx}. Assigning default score of {default_score}.")
-                                            correctness[idx] = default_score
-                                    break
-                                except openai.error.OpenAIError as e:
-                                    bt.logging.error(f"API request failed after switching: {e}")
-                                    for idx in indices_for_llm:
-                                        correctness[idx] = 0.5
+                        correctness_score = float(response_str)
+                        correctness[idx] = min(max(correctness_score, 0.0), 1.0)
+                    except ValueError:
+                        # If parsing fails, assign a default score
+                        default_score = 0.5
+                        bt.logging.warning(f"Failed to parse correctness score for response {idx}. Assigning default score of {default_score}.")
+                        correctness[idx] = default_score
+
         return correctness
 
     def _compare_numerical_answers(self, ground_truth: str, miner_answer: str):
@@ -236,8 +189,6 @@ class LogicRewarder:
             gt_abs = abs(gt_value) + epsilon
 
             relative_error = abs_difference / gt_abs
-            # Logs for debugging
-            bt.logging.debug(f"[CORRECTNESS DEBUG FOR NUMERICAL COMPARISON] Ground truth: {gt_value}, Miner answer: {miner_value}, Absolute difference: {abs_difference}, Relative error: {relative_error}")
 
             # Map relative error to correctness score between 0 and 1
             # Assuming that a relative error of 0 corresponds to correctness 1
@@ -288,52 +239,12 @@ class LogicRewarder:
         messages = [
             {"role": "user", "content": question},
         ]
-        model, base_url, api_key = model_selector(self.model_rotation_pool)
-        if not model:
-            raise ValueError("Model ID is not valid or not provided.")
-        if not base_url:
-            raise ValueError("Base URL is not valid or not provided.")
-        if not api_key:
-            raise ValueError("API key is not valid or not provided.")
-
-        openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
-        bt.logging.debug(f"Initiating request with model '{model}' at base URL '{base_url}'.")
-
-        response = ""
-        for attempt in range(3):  # Retry up to 3 times
-            try:
-                response = openai_client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    max_tokens=1024,
-                    temperature=0.7,
-                )
-                response = response.choices[0].message.content
-                bt.logging.debug(f"[SIMILARITY] Self-generated ground truth: {response}")
-                return response  # Return response if successful
-            
-            except openai.error.OpenAIError as e:
-                bt.logging.error(f"API request failed on attempt {attempt + 1}: {e}")
-                if attempt == 2:  # Last attempt
-                    # Switch to another model, base URL, and API key
-                    model, base_url, api_key = model_selector(self.model_rotation_pool)
-                    if not model or not base_url or not api_key:
-                        bt.logging.error("No alternative model, base URL, or API key available.")
-
-                    else:
-                        openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
-                        bt.logging.debug(f"Initiating request with model '{model}' at base URL '{base_url}'.")
-                        try:
-                            response = openai_client.chat.completions.create(
-                                model=model,
-                                messages=messages,
-                                max_tokens=1024,
-                                temperature=0.7,
-                            )
-                            response = response.choices[0].message.content
-                            bt.logging.debug(f"[SIMILARITY] Self-generated ground truth: {response}")
-                            return response
-                        except openai.error.OpenAIError as e:
-                            bt.logging.error(f"API request failed after switching: {e}")
-
+        response = self.openai_client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            max_tokens=1024,
+            temperature=0.7,
+        )
+        response = response.choices[0].message.content
+        bt.logging.debug(f"[SIMILARITY] Self-generated ground truth: {response}")
         return response
