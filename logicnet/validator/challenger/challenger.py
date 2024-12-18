@@ -2,6 +2,7 @@
 import os
 import openai
 import random
+import re
 from logicnet.protocol import LogicSynapse
 import bittensor as bt
 from .human_noise import get_condition
@@ -13,9 +14,10 @@ from datasets import load_dataset
 DATASET_WEIGHT = [40,10,10,10,10,10,10]
 
 class LogicChallenger:
-    def __init__(self, model_rotation_pool: dict, dataset_weight: list):
+    def __init__(self, model_rotation_pool: dict, dataset_weight: str):
         self.model_rotation_pool = model_rotation_pool
         self.dataset_weight = [float(weight) for weight in dataset_weight.split(',')]
+        self.retry_count = 0 
 
     def __call__(self, synapse: LogicSynapse) -> LogicSynapse:
         self.get_challenge(synapse)
@@ -30,17 +32,22 @@ class LogicChallenger:
 
         # Revise the problem
         conditions: dict = get_condition()
-        revised_logic_question: str = self.get_revised_logic_question(
-            atom_logic_question, conditions
-        )
+        revised_logic_question: str = self.get_revised_logic_question(atom_logic_question, conditions)
         
         # Set the synapse with the atom problem
         synapse.raw_logic_question = atom_logic_question
         synapse.ground_truth_answer = str(atom_logic_answer).replace("$", "").strip()
         synapse.logic_question = revised_logic_question
 
-    def get_atom_logic_problem(self) -> str:
-        resources = ['mathgenerator', 'zebralogicbench-grid', 'zebralogicbench-mc', 'ultrainteract', 'gsm8k', 'mmlustem', 'satmath']
+    def get_atom_logic_problem(self) -> tuple[str, str]:
+        """
+        Retrieve a random logic problem (question and answer) from one of several datasets.
+        Returns:
+            (atom_logic_question, atom_logic_answer) as a tuple of strings.
+        """
+        resources = ['mathgenerator', 'zebralogicbench-grid', 'zebralogicbench-mc', 
+                     'ultrainteract', 'gsm8k', 'mmlustem', 'satmath']
+
         if len(self.dataset_weight) == 7:
             selected_resource = random.choices(resources, weights=self.dataset_weight, k=1)[0]
         else:
@@ -60,9 +67,11 @@ class LogicChallenger:
                 subtopic = subtopic.replace("_", " ").capitalize()
                 topic = topic.replace("_", " ").capitalize()
                 atom_question = atom_question.replace("$", "").strip()
-                atom_question = f"Find the solution of this math problem:\n---\nTopic: {topic}, Subtopic: {subtopic}.\n{atom_question}\n---\n"
-            
-            # Select an atom question and answer from the ZebraLogicBench grid_mode
+                atom_question = (
+                    f"Find the solution of this math problem:\n---\n"
+                    f"Topic: {topic}, Subtopic: {subtopic}.\n{atom_question}\n---\n"
+                )
+
             elif selected_resource == 'zebralogicbench-grid':
                 ds_grid = load_dataset("allenai/ZebraLogicBench-private", "grid_mode", token=os.environ.get('HF_TOKEN'))
                 bt.logging.debug("Generating problem using ZebraLogicBench (grid mode).")
@@ -139,8 +148,15 @@ class LogicChallenger:
 
         except Exception as e:
             bt.logging.error(f"Error accessing dataset {selected_resource}: {e}. Attempting to load an alternative dataset.")
-            # Retry with a different dataset
-            return self.get_atom_logic_problem()  
+            self.retry_count += 1
+            if self.retry_count > 3:
+                bt.logging.error("Max retries reached. Returning a default question and answer.")
+                # A slightly more complex default question and answer:
+                return (
+                    "A triangle has interior angles A, B, and C. If A + B + C represents the sum of these angles in degrees, find the value of A + B + C.",
+                    "180"
+                )
+            return self.get_atom_logic_problem()
 
         return atom_question, atom_answer
 
@@ -205,5 +221,25 @@ class LogicChallenger:
             except openai.error.OpenAIError as e:
                 bt.logging.error(f"OpenAI API request failed (attempt {attempt + 1}): {e}")
                 if attempt == max_attempts - 1:
-                    raise RuntimeError("Failed to get a response after multiple attempts with different models.")
+                    raise RuntimeError("Failed to get a response after multiple attempts.")
                 bt.logging.info("Switching to a different model configuration.")
+
+    def get_answer_value(self, possible_answers: str, answer_id: str) -> str:
+        """
+        Extract the correct answer text from the possible answers given an answer identifier.
+        
+        This handles both formats: "A)" or "A." and so on.
+        It returns the answer including the letter and punctuation, for example:
+        "A. $100\\left(\\frac{b}{435}\\right)$"
+        """
+        pattern = r'([A-D])[\.\)]\s*(.*?)(?=\s*[A-D][\.\)]|$)'
+        
+        matches = re.findall(pattern, possible_answers)
+        answer_map = {k.strip(): v.strip() for k, v in matches}
+        answer_text = answer_map.get(answer_id, None)
+        
+        if answer_text is not None:
+            # Return with the letter and a period, for consistency
+            return f"{answer_id}. {answer_text}"
+        else:
+            return None
