@@ -1,8 +1,8 @@
-# Challenge for Synthetic Request
 import os
 import openai
 import random
 import re
+import uuid
 from logicnet.protocol import LogicSynapse
 import bittensor as bt
 from .human_noise import get_condition
@@ -10,6 +10,7 @@ from .math_generator.topics import TOPICS as topics
 from logicnet.utils.model_selector import model_selector
 import mathgenerator
 from datasets import load_dataset
+from typing import Tuple
 
 DATASET_WEIGHT = [40,10,10,10,10,10,10]
 
@@ -24,22 +25,30 @@ class LogicChallenger:
         return synapse
 
     def get_challenge(self, synapse: LogicSynapse):
-        # Get an atom logic problem
+        # Generate a unique UID for this challenge
+        unique_uid = str(uuid.uuid4())[:8]
+
         atom_logic_question, atom_logic_answer = self.get_atom_logic_problem()
         if atom_logic_question is None or atom_logic_answer is None:
-            bt.logging.error("Unable to retrieve atom logic problem. Retrying...")
+            bt.logging.error(f"[{unique_uid}] Unable to retrieve atom logic problem. Retrying...")
             atom_logic_question, atom_logic_answer = self.get_atom_logic_problem()
 
         # Revise the problem
         conditions: dict = get_condition()
         revised_logic_question: str = self.get_revised_logic_question(atom_logic_question, conditions)
         
-        # Set the synapse with the atom problem
+        # Log the raw question, revised question, and answer with UID
+        bt.logging.debug(f"[{unique_uid}] Raw question: {atom_logic_question}")
+        bt.logging.debug(f"[{unique_uid}] Revised question: {revised_logic_question}")
+        bt.logging.debug(f"[{unique_uid}] Ground truth answer: {atom_logic_answer}")
+
+        # Set the synapse attributes
         synapse.raw_logic_question = atom_logic_question
         synapse.ground_truth_answer = str(atom_logic_answer).replace("$", "").strip()
         synapse.logic_question = revised_logic_question
+        synapse.task_uid = unique_uid  # Store the unique UID
 
-    def get_atom_logic_problem(self) -> tuple[str, str]:
+    def get_atom_logic_problem(self) -> Tuple[str, str]:
         """
         Retrieve a random logic problem (question and answer) from one of several datasets.
         Returns:
