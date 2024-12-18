@@ -15,7 +15,7 @@ from logicnet.utils.wandb_manager import WandbManager
 from neurons.validator.core.serving_queue import QueryQueue
 
 
-def init_category(config=None):
+def init_category(config=None,dataset_weight=self.config.dataset_weight):
     category = {
         "Logic": {
             "synapse_type": ln.protocol.LogicSynapse,
@@ -81,7 +81,7 @@ class Validator(BaseValidatorNeuron):
         }
         bt.logging.info(f"Model rotation pool without keys: {model_rotation_pool_without_keys}")
 
-        self.categories = init_category(self.model_rotation_pool)
+        self.categories = init_category(self.model_rotation_pool, self.config.dataset_weight)
         self.miner_manager = MinerManager(self)
         self.load_state()
         self.update_scores_on_chain()
