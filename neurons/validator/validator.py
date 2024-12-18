@@ -27,29 +27,6 @@ def init_category(config=None, model_rotation_pool=None, dataset_weight=None):
     }
     return category
 
-##### private functions #####
-import json
-
-def write_json_log(entry: dict, filename: str = "monitoring_data.json"):
-    directory = os.path.dirname(filename)
-    if directory:
-        os.makedirs(directory, exist_ok=True)
-    with open(filename, "a") as f:
-        # Convert all numbers to float and other complex types to str
-        def convert_value(v):
-            if isinstance(v, (int, float)):
-                return float(v)
-            elif isinstance(v, list):
-                return [convert_value(x) for x in v]
-            elif isinstance(v, dict):
-                return {kk: convert_value(vv) for kk, vv in v.items()}
-            else:
-                return str(v)
-        entry_converted = convert_value(entry)
-        f.write(json.dumps(entry_converted) + "\n")
-
-#############################
-
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         """
@@ -269,7 +246,7 @@ class Validator(BaseValidatorNeuron):
         flat_rewards = [reward for reward_list in rewards for reward in reward_list]
         flat_reward_logs = [log for log_list in reward_logs for log in log_list]
 
-        # Create a dictionary to track the best score per UID
+        # Create a dictionary to track the all scores per UID
         uids_scores = {}
         uids_logs = {}
         for uid, reward, log in zip(flat_uids, flat_rewards, flat_reward_logs):
@@ -277,19 +254,19 @@ class Validator(BaseValidatorNeuron):
                 uids_scores[uid] = []
                 uids_logs[uid] = []
             uids_scores[uid].append(reward)
-            uids_logs[uid] = log
+            uids_logs[uid].append(log)
 
-        # Now uids_scores holds the all reward (default 10) each UID achieved this epoch
+        # Now uids_scores holds all rewards each UID achieved this epoch
         # Convert them into lists for processing
         final_uids = list(uids_scores.keys())
-        final_logs = list(uids_logs.values())
+        representative_logs = [logs[0] for logs in uids_logs.values()] 
+               
         ## compute mean value of rewards
-        final_rewards = list(uids_scores.values())
-        final_rewards = [sum(uid_rewards) / len(uid_rewards) for uid_rewards in final_rewards]
+        final_rewards = [sum(uid_rewards) / len(uid_rewards) for uid_rewards in uids_scores.values()]
 
-        # Now proceed with the incentive rewards calculation on these best attempts
+        # Now proceed with the incentive rewards calculation on these mean attempts
         original_rewards = list(enumerate(final_rewards))
-        # Sort and rank as before, but now we're only dealing with the best attempt 
+        # Sort and rank as before, but now we're dealing with mean attempts.
         
         # Sort rewards in descending order based on the score
         sorted_rewards = sorted(original_rewards, key=lambda x: x[1], reverse=True)
@@ -303,7 +280,7 @@ class Validator(BaseValidatorNeuron):
             ranks.append((reward_id, rank, score))
             previous_score = score
         
-        # Restore original order
+        # Restore the original order
         ranks.sort(key=lambda x: x[0])
 
         # Calculate incentive rewards based on the rank, applying the cubic function for positive scores
@@ -317,10 +294,9 @@ class Validator(BaseValidatorNeuron):
             (incentive_formula(rank) if score > 0 else 0) for _, rank, score in ranks
         ]
         
-        # Update scores on chain
-        self.miner_manager.update_scores(final_uids, incentive_rewards, final_logs)
+        self.miner_manager.update_scores(final_uids, incentive_rewards, representative_logs)
         
-        # Reset the miner reward logs, uids, and scores for next loop
+        # Reset logs for next epoch
         self.miner_scores = []
         self.miner_reward_logs = []
         self.miner_uids = []
