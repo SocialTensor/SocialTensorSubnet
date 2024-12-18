@@ -1,49 +1,47 @@
-# <h1><center>🧠 LogicNet - Subnet 🤖</center></h1>
+# <h1 align="center">🧠 LogicNet - Subnet 🤖</h1>
 
 ## Introduction
 
 ### Description
-Our goal is to develop an open-source AI model capable of complex mathematics and detailed data analysis, enhanced by incentivized human feedback for continuous improvement.
+LogicNet is a pioneering decentralized AI subnet focused on developing an open-source, high-performance model proficient in solving complex mathematical problems and conducting detailed data analysis. As the system evolves, it leverages incentivized feedback loops—miners are rewarded for improving model outputs—ensuring continuous quality enhancement.
 
+**Resources:**
+- 📚 [LogicNet Website](https://logicnet.ai/)
 - 📚 [Albert Frontend App](https://albert.aitprotocol.ai/)
-- 📊 [Miners/Validator Stats](https://stats.aitprotocol.ai)
-- 📈 [Grafana Dashboard](https://grafana.bactensor.io/d/miner/metagraph-miner?orgId=1)
-- 📚 [Learn more about LogicNet](https://tonylvh.notion.site/LogicNet_SN35-1b44e52d308f47e7983af25bff6df90e)
-  - More about the roadmap
-  - Info on our open-source specialized model
-  - Custom model benchmarking against other models
-  - RLHF feature video demo
+- 📈 [Grafana Dashboard](https://grafana.bactensor.io/d/miner/metagraph-miner?orgId=1) (for network metrics and performance tracking)
+
+**Neurons Documentation**
+- 📖 [Validator](docs/VALIDATOR.md): Details on how to run a Validator
+- 📖 [Miner](docs/MINER.md): Details on how to run a Miner
 
 ### Key Features
 
-- 🚀 **Advanced Computational Network**: Incentivizing miners to enhance computational resources for complex AI/ML tasks.
-- 💰 **Incentive Mechanism**:
+- 🚀 **Advanced Computational Network**:  
+  Incentivizes miners (participants who submit solutions) to refine their answers, ensuring an ever-improving logical reasoning framework.
 
-  **Updated Reward System:**
+- 💰 **Updated Incentive Mechanism**:
+  - **Initial Score Calculation**:  
+    Each response is assigned a preliminary score:
+    ``` 
+    score = (0.2 * similarity_score) 
+            + (0.8 * correctness_score) 
+            - (0.1 * time_penalty)
+    ```
+    - **Similarity Score**: Evaluated via cosine similarity between the miner's reasoning steps and the validator's ground-truth reasoning.
+    - **Correctness Score**: Determined by an LLM comparing the miner’s final answer to the expected solution.
+    - **Time Penalty**: A small deduction for longer response times relative to a set timeout.
 
-  - **Initial Score Calculation**:
-    - Each miner's response is evaluated to calculate an initial score using a weighted sum:
-      - `score = (0.2 * similarity_score) + (0.8 * correctness_score) - 0.1 * time_penalty`
-        - **Similarity Score**: Calculated based on the cosine similarity between the miner's reasoning and the self-generated ground truth answer.
-        - **Correctness Score**: Determined by an LLM that assesses whether the miner's answer is correct based on the question and ground truth.
-        - **Time Penalty**: Derived from the processing time of the response relative to the specified timeout.
+  - **Rank-Based Incentives**:  
+    After scoring all responses:
+    - Miners are ranked by their scores.
+    - Rewards follow a cubic function based on rank:
+      ``` 
+      incentive_reward = [-1.038e-7 * (rank^3)] 
+                         + [6.214e-5 * (rank^2)] 
+                         - (0.0129 * rank) 
+                         - 0.0118 + 1
+      ```
+    Higher-ranked miners earn disproportionately higher rewards, encouraging both precision and efficiency.
 
-  - **Rank-Based Incentives**:
-    - Miners are ranked in descending order based on their initial scores.
-    - Incentive rewards are assigned using a cubic function based on the rank:
-      - `incentive_reward = -1.038e-7 * rank³ + 6.214e-5 * rank² - 0.0129 * rank - 0.0118 + 1`
-      - This function scales rewards non-linearly to emphasize higher ranks, encouraging miners to provide higher-quality responses.
-    - **Reward Scaling**:
-      - The cubic function adjusts rewards so that top-ranked miners receive significantly higher rewards than lower-ranked ones.
-      - Negative initial scores result in an incentive reward of zero.
-
-  - **Purpose of the New Incentive Mechanism**:
-    - **Enhance Competition**: By differentiating rewards based on rank, miners are motivated to outperform others.
-    - **Improve Quality**: The emphasis on correctness and similarity encourages miners to provide accurate and relevant answers.
-    - **Address Flat Incentive Curve**: The non-linear reward distribution resolves issues where miners previously received similar rewards despite varying performance levels.
-
-- 🌟 **Continuous Improvement**: Expanding the math problem sets and categories to cover a broader range of topics.
-
-### Neurons Documentation
-- 📖 [Validator](docs/VALIDATOR.md)
-- 📖 [Miner](docs/MINER.md)
+- 🌟 **Continuous Improvement**:  
+  The system dynamically introduces more complex and diverse queries. Over time, model quality, dataset richness, and miner skill all steadily improve.
