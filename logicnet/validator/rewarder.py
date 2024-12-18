@@ -48,6 +48,7 @@ class LogicRewarder:
         """Calculate reward for each response using similarity, correctness, and processing time.
 
         Args:
+            task_uid (int): Unique task UID.
             uids (list[int]): List of miner UIDs.
             responses (list[LogicSynapse]): Synapse responses from miners.
             base_synapse (LogicSynapse): Base synapse containing the ground truth and raw logic question.
@@ -55,6 +56,8 @@ class LogicRewarder:
         Returns:
             list[float]: List of rewards for each response.
         """
+        # Get the unique task UID from the base_synapse
+        task_uid = base_synapse.task_uid
 
         valid_uids = [
             uid for uid, response in zip(uids, responses) if response.is_success
@@ -85,17 +88,18 @@ class LogicRewarder:
                     + CORRECTNESS_WEIGHT * correctness[i]
                     + PROCESSING_TIME_WEIGHT * min(process_times[i] / timeout, 1)
                 )
-                reward_logs.append(
-                    {
-                        "similarity": similarities[i],
-                        "correctness": correctness[i],
-                        "process_time": process_times[i],
-                    }
-                )
+                reward_info = {
+                    "task_uid": task_uid,  # Include the task_uid in the reward log
+                    "similarity": similarities[i],
+                    "correctness": correctness[i],
+                    "process_time": process_times[i],
+                }
+                reward_logs.append(reward_info)
+
                 # Scale up the reward
                 reward = reward / 2 + 0.5
                 bt.logging.debug(
-                    f"[REWARDER] similarity: {similarities[i]}, correctness: {correctness[i]}, processing time: {process_times[i]}"
+                    f"[REWARDER][{task_uid}] similarity: {similarities[i]}, correctness: {correctness[i]}, process_time: {process_times[i]}, final_reward: {reward}"
                 )
                 valid_rewards.append(reward)
 
