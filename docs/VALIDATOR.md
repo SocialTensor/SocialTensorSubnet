@@ -61,9 +61,10 @@ This setup allows you to run the Validator locally by hosting a vLLM server. Whi
 4. **Start the vLLM Server**
    ```bash
    . vllm/bin/activate
-   pm2 start "vllm serve Qwen/Qwen2-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm"
+   pm2 start "vllm serve Qwen/Qwen2.5-7B-Instruct --port 8000 --host 0.0.0.0" --name "sn35-vllm"
    ```
    *Adjust the model, port, and host as needed.*
+   eg. include this if the model fail to start `--max-model-len 16384 --gpu-memory-utilization 0.95` 
 
 ---
 
@@ -157,12 +158,12 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
      --logging.debug
    ```
    Replace the placeholders with actual values just like the example.
-   - "vllm_base_url" with http://localhost:8000/v1.
-   - "openai_base_url" with https://api.openai.com/v1.
-   - "together_base_url" with https://api.together.xyz/v1.
-   - "vllm_model" with Qwen/Qwen2-7B-Instruct.
-   - "openai_model" with gpt-4o-mini.
-   - "together_model" with meta-llama/Llama-2-7b-chat-hf.
+   - "vllm_base_url" with `http://localhost:8000/v1`.
+   - "openai_base_url" with `https://api.openai.com/v1`.
+   - "together_base_url" with `https://api.together.xyz/v1`.
+   - "vllm_model" with `Qwen/Qwen2-7B-Instruct`.
+   - "openai_model" with `gpt-4o-mini`.
+   - "together_model" with `meta-llama/Llama-2-7b-chat-hf`.
    
    *If you want to run either Together AI or Open AI, you can set the other to 'null'.*
 
