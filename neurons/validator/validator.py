@@ -15,7 +15,7 @@ from logicnet.utils.wandb_manager import WandbManager
 from neurons.validator.core.serving_queue import QueryQueue
 
 
-def init_category(config=None,dataset_weight=self.config.dataset_weight):
+def init_category(config=None,dataset_weight=None:
     category = {
         "Logic": {
             "synapse_type": ln.protocol.LogicSynapse,
