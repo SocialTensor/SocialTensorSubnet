@@ -234,26 +234,22 @@ class LogicRewarder:
             gt_value = sympy.sympify(ground_truth.strip())
             miner_value = sympy.sympify(miner_answer.strip())
 
-            # Compute absolute difference and relative error
             abs_difference = abs(gt_value - miner_value)
-            epsilon = 1e-8  # Small number to prevent division by zero
+            epsilon = 1e-8
             gt_abs = abs(gt_value) + epsilon
-
             relative_error = abs_difference / gt_abs
             # Logs for debugging
             bt.logging.debug(f"[CORRECTNESS DEBUG FOR NUMERICAL COMPARISON] Ground truth: {gt_value}, Miner answer: {miner_value}, Absolute difference: {abs_difference}, Relative error: {relative_error}")
 
-            # Map relative error to correctness score between 0 and 1
-            # Assuming that a relative error of 0 corresponds to correctness 1
-            # Larger relative errors correspond to lower correctness scores
-            max_error = 1.0  # Define the maximum acceptable relative error
-            correctness_score = max(0.0, 1.0 - (relative_error / max_error))
-
-            # Clamp the correctness_score between 0 and 1
-            correctness_score = min(max(correctness_score, 0.0), 1.0)
-
+            correctness_score = max(0.0, 1.0 - relative_error)
+            correctness_score = min(correctness_score, 1.0)
             return correctness_score
-        except (sympy.SympifyError, TypeError, ZeroDivisionError) as e:
+        except Exception as e:
+            # Log the problematic input for debugging
+            bt.logging.warning(
+                f"Failed to sympify numerical answers.\nGround truth: {ground_truth}\nMiner answer: {miner_answer}\nError: {e}"
+            )
+            # Return None so that LLM-based correctness check will be used.
             return None
 
     def _get_similarity(self, ground_truth: str, responses: list[str]):
