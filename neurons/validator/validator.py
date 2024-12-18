@@ -204,10 +204,6 @@ class Validator(BaseValidatorNeuron):
                 deserialize=False,
                 timeout=self.categories[category]["timeout"],
             )
-            # for response, uid in zip(responses, uids):
-            #     bt.logging.debug(
-            #         f"\033[1;34m🧠 Miner response for {uid}: {response.logic_answer}\033[0m"
-            #     )
             reward_responses = [
                 response
                 for response, should_reward in zip(responses, should_rewards)
@@ -250,8 +246,27 @@ class Validator(BaseValidatorNeuron):
         flat_rewards = [reward for reward_list in rewards for reward in reward_list]
         flat_reward_logs = [log for log_list in reward_logs for log in log_list]
 
-        # Enumerate rewards with their original index
-        original_rewards = list(enumerate(flat_rewards))
+        # Create a dictionary to track the all scores per UID
+        uids_scores = {}
+        uids_logs = {}
+        for uid, reward, log in zip(flat_uids, flat_rewards, flat_reward_logs):
+            if uid not in uids_scores:
+                uids_scores[uid] = []
+                uids_logs[uid] = []
+            uids_scores[uid].append(reward)
+            uids_logs[uid].append(log)
+
+        # Now uids_scores holds all rewards each UID achieved this epoch
+        # Convert them into lists for processing
+        final_uids = list(uids_scores.keys())
+        representative_logs = [logs[0] for logs in uids_logs.values()] 
+               
+        ## compute mean value of rewards
+        final_rewards = [sum(uid_rewards) / len(uid_rewards) for uid_rewards in uids_scores.values()]
+
+        # Now proceed with the incentive rewards calculation on these mean attempts
+        original_rewards = list(enumerate(final_rewards))
+        # Sort and rank as before, but now we're dealing with mean attempts.
         
         # Sort rewards in descending order based on the score
         sorted_rewards = sorted(original_rewards, key=lambda x: x[1], reverse=True)
@@ -261,11 +276,11 @@ class Validator(BaseValidatorNeuron):
         previous_score = None
         rank = 0
         for i, (reward_id, score) in enumerate(sorted_rewards):
-            rank = i + 1 if score != previous_score else rank  # Update rank only if the score changes
+            rank = i + 1 if score != previous_score else rank
             ranks.append((reward_id, rank, score))
             previous_score = score
         
-        # Restore the original order of rewards
+        # Restore the original order
         ranks.sort(key=lambda x: x[0])
 
         # Calculate incentive rewards based on the rank, applying the cubic function for positive scores
@@ -279,10 +294,9 @@ class Validator(BaseValidatorNeuron):
             (incentive_formula(rank) if score > 0 else 0) for _, rank, score in ranks
         ]
         
-        # Update scores on chain
-        self.miner_manager.update_scores(flat_uids, incentive_rewards, flat_reward_logs)
+        self.miner_manager.update_scores(final_uids, incentive_rewards, representative_logs)
         
-        # Reset the miner reward logs, uids, and scores for next loop
+        # Reset logs for next epoch
         self.miner_scores = []
         self.miner_reward_logs = []
         self.miner_uids = []
