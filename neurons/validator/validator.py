@@ -21,7 +21,7 @@ def init_category(config=None, model_rotation_pool=None, dataset_weight=None):
             "synapse_type": ln.protocol.LogicSynapse,
             "incentive_weight": 1.0,
             "challenger": LogicChallenger(model_rotation_pool, dataset_weight),
-            "rewarder": LogicRewarder(config),
+            "rewarder": LogicRewarder(model_rotation_pool),
             "timeout": 64,
         }
     }
