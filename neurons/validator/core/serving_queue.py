@@ -4,6 +4,8 @@ import math
 import bittensor as bt
 
 
+NUMBER_OF_REWARDS = 10
+
 class QueryItem:
     def __init__(self, uid: int):
         self.uid = uid
@@ -22,13 +24,13 @@ class QueryQueue:
         self.proxy_queue: dict[str, queue.Queue[QueryItem]] = {
             category: queue.Queue() for category in categories
         }
-        self.synthentic_rewarded = []
+        self.synthentic_rewarded = {}
         self.time_per_loop = time_per_loop
         self.total_uids_remaining = 0
 
     def update_queue(self, all_uids_info):
         self.total_uids_remaining = 0
-        self.synthentic_rewarded = []
+        self.synthentic_rewarded = {}
         for q in self.synthentic_queue.values():
             q.queue.clear()
         for q in self.proxy_queue.values():
@@ -81,12 +83,13 @@ class QueryQueue:
                     more_data = True
                     query_item = q.get()
                     uids_to_query.append(query_item.uid)
-                    if query_item.uid in self.synthentic_rewarded:
+                    if query_item.uid in self.synthentic_rewarded and self.synthentic_rewarded[query_item.uid] > NUMBER_OF_REWARDS:
                         should_rewards.append(False)
                     else:
                         should_rewards.append(True)
-                        self.synthentic_rewarded.append(query_item.uid)
-
+                        if query_item.uid not in self.synthentic_rewarded:
+                            self.synthentic_rewarded[query_item.uid] = 0
+                        self.synthentic_rewarded[query_item.uid] += 1
                 yield category, uids_to_query, should_rewards, time_to_sleep
 
     def get_query_for_proxy(self, category):
@@ -94,7 +97,9 @@ class QueryQueue:
         proxy_q = self.proxy_queue[category]
         while not synthentic_q.empty():
             query_item = synthentic_q.get()
-            should_reward = query_item.uid not in self.synthentic_rewarded
+            should_reward = False
+            if (query_item.uid not in self.synthentic_rewarded) or (self.synthentic_rewarded[query_item.uid] <= NUMBER_OF_REWARDS):
+                should_reward = True
             yield query_item.uid, should_reward
         while not proxy_q.empty():
             query_item = proxy_q.get()

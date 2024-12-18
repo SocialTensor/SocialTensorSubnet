@@ -142,10 +142,10 @@ class LogicRewarder:
             score = self._compare_numerical_answers(ground_truth_answer, miner_answer)
             if score is not None:
                 correctness.append(score)
-                bt.logging.debug(f"[CORRECTNESS] Used programmatic comparison for response {idx} with score {score} for answer {miner_answer} against ground truth {ground_truth_answer}")
+                bt.logging.debug(f"[CORRECTNESS] Used programmatic comparison for response {idx} with score {score}")
             else:
                 # Need LLM evaluation
-                bt.logging.debug(f"[CORRECTNESS] Unable to use programmatic comparison. Need LLM evaluation for response {idx} with answer {miner_answer} against ground truth {ground_truth_answer}")
+                bt.logging.debug(f"[CORRECTNESS] Unable to use programmatic comparison. Need LLM evaluation for response {idx}")
                 correctness.append(None)  # Placeholder
                 batch_messages.append([
                     {
