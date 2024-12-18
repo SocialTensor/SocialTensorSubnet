@@ -20,7 +20,7 @@ def init_category(config=None):
         "Logic": {
             "synapse_type": ln.protocol.LogicSynapse,
             "incentive_weight": 1.0,
-            "challenger": LogicChallenger(config),
+            "challenger": LogicChallenger(config, config.dataset_weight),
             "rewarder": LogicRewarder(config),
             "timeout": 64,
         }
