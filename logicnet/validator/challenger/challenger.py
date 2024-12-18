@@ -13,8 +13,9 @@ from datasets import load_dataset
 DATASET_WEIGHT = [40,10,10,10,10,10,10]
 
 class LogicChallenger:
-    def __init__(self, model_rotation_pool: dict):
+    def __init__(self, model_rotation_pool: dict, dataset_weight: list):
         self.model_rotation_pool = model_rotation_pool
+        self.dataset_weight = [float(weight) for weight in dataset_weight.split(',')]
 
     def __call__(self, synapse: LogicSynapse) -> LogicSynapse:
         self.get_challenge(synapse)
