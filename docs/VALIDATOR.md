@@ -109,30 +109,6 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
    echo "HF_TOKEN=your_hugging_face_token" >> .env (needed for some vLLM model)
    ```
 
-4. **Select a Model**
-   Choose from the following models:
-
-   **Together AI Models**:
-
-   | Model Name                      | Model ID                                 | Pricing (per 1M tokens) |
-   |---------------------------------|------------------------------------------|-------------------------|
-   | Qwen 2 Instruct (72B)           | `Qwen/Qwen2-Instruct-72B`                | $0.90                   |
-   | LLaMA-2 Chat (13B)              | `meta-llama/Llama-2-13b-chat-hf`         | $0.22                   |
-   | MythoMax-L2 (13B)               | `Gryphe/MythoMax-L2-13B`                 | $0.30                   |
-   | Mistral (7B) Instruct v0.3      | `mistralai/Mistral-7B-Instruct-v0.3`     | $0.20                   |
-
-   **Open AI Models**:
-
-   | Model Name                      | Model ID                                 | Pricing (per 1M tokens) |
-   |---------------------------------|------------------------------------------|-------------------------|
-   | GPT-4o                          | `gpt-4o`                                | $10.00                  |
-   | GPT-4o Mini                     | `gpt-4o-mini`                           | $1.00                   |
-   | GPT-4o Turbo                    | `gpt-4o-turbo`                          | $15.00                  |
-
-   > *Refer to [Together AI Models](https://api.together.ai/models) and [Open AI Models](https://platform.openai.com/docs/models) for more options.*
-
----
-
 ### Step 3: Run the Validator
 
 1. **Activate Virtual Environment**
@@ -146,14 +122,15 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
    ```
 
 3. **Start the Validator**
+| You must run at least 2 models in any combination of 3
    ```bash
    pm2 start python --name "sn35-validator" -- neurons/validator/validator.py \
      --netuid 35 \
      --wallet.name "your-wallet-name" \
      --wallet.hotkey "your-hotkey-name" \
      --subtensor.network finney \
-     --llm_client.base_urls "vllm_base_url,openai_base_url,together_base_url" \
-     --llm_client.models "vllm_model,openai_model,together_model" \
+     --llm_client.base_urls "http://localhost:8000/v1,https://api.openai.com/v1,https://api.together.xyz/v1" \
+     --llm_client.models "Qwen/Qwen2.5-7B-Instruct,gpt-4o-mini,meta-llama/Llama-3.3-70B-Instruct-Turbo" \
      --neuron_type validator \
      --logging.debug
    ```
@@ -161,9 +138,15 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
    - "vllm_base_url" with `http://localhost:8000/v1`.
    - "openai_base_url" with `https://api.openai.com/v1`.
    - "together_base_url" with `https://api.together.xyz/v1`.
-   - "vllm_model" with `Qwen/Qwen2-7B-Instruct`.
+   - "vllm_model" with `Qwen/Qwen2.5-7B-Instruct`.
    - "openai_model" with `gpt-4o-mini`.
-   - "together_model" with `meta-llama/Llama-2-7b-chat-hf`.
+   - "together_model" with `meta-llama/Llama-3.3-70B-Instruct-Turbo`.
+   - in the base_urls and models, if you choose to not run 1 of the following endpoint, you can add `null` to ignore that endpoint
+       | example:
+        ```
+        --llm_client.base_urls "http://localhost:8000/v1,https://api.openai.com/v1,null" \
+        --llm_client.models "Qwen/Qwen2.5-7B-Instruct,gpt-4o-mini,null"
+        ```
    
    *If you want to run either Together AI or Open AI, you can set the other to 'null'.*
 
