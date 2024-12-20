@@ -48,7 +48,8 @@ async def generate(self, synapse: bt.Synapse) -> bt.Synapse:
         )
     if response.status_code != 200:
         raise Exception(f"Error in generate: {response.json()}")
-    synapse = synapse.copy(update=response.json())
+    # synapse = synapse.copy(update=response.json())
+    synapse = synapse.model_copy(update=response.json())
     return synapse
 
 

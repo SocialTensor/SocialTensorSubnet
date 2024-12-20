@@ -10,7 +10,7 @@ git clone https://github.com/NicheTensor/NicheImage
 cd NicheImage
 python -m venv main_env
 source main_env/bin/activate
-pip install -e .
+python setup.py install
 pip uninstall uvloop -y
 ```
 

@@ -1,6 +1,7 @@
 import time
 import json
 import bittensor as bt
+from bittensor_wallet import Keypair
 import pydantic
 from generation_models.utils import base64_to_pil_image
 import typing
@@ -61,14 +62,15 @@ class ImageGenerating(bt.Synapse):
         title="Dictionary contains response",
         description="Dict contains arbitary information",
     )
-    image = pydantic.Field(
+    image: str = pydantic.Field(
         default="",
         title="Base64 Image",
         description="Base64 encoded image",
     )
 
     def miner_update(self, update: dict):
-        return self.copy(update=update)
+        # return self.copy(update=update)
+        return self.model_copy(update=update)
 
     def deserialize_input(self) -> dict:
         return self.deserialize()
@@ -101,7 +103,7 @@ class ImageGenerating(bt.Synapse):
             "response_dict": self.response_dict,
         }
 
-    def store_response(self, storage_url: str, uid, validator_uid, keypair: bt.Keypair):
+    def store_response(self, storage_url: str, uid, validator_uid, keypair: Keypair):
         if self.model_name == "GoJourney":
             storage_url = storage_url + "/upload-go-journey-item"
             data = {
@@ -199,7 +201,7 @@ class TextGenerating(bt.Synapse):
             "model_name": self.model_name,
         }
 
-    def store_response(self, storage_url: str, uid, validator_uid, keypair: bt.Keypair):
+    def store_response(self, storage_url: str, uid, validator_uid, keypair: Keypair):
         pass
 
 class MultiModalGenerating(bt.Synapse):
@@ -311,7 +313,7 @@ class MultiModalGenerating(bt.Synapse):
             "model_name": self.model_name,
         }
 
-    def store_response(self, storage_url: str, uid, validator_uid, keypair: bt.Keypair):
+    def store_response(self, storage_url: str, uid, validator_uid, keypair: Keypair):
         storage_url = storage_url + "/upload-multimodal-item"
         minimized_prompt_output: dict = copy.deepcopy(self.prompt_output)
         minimized_prompt_output['choices'][0].pop("logprobs")

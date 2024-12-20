@@ -194,7 +194,7 @@ class MultiModalRewardApp(VllmRewardApp):
         valid_args = inspect.signature(self.client.chat.completions.create).parameters
         filtered_kwargs = {k: v for k, v in request.items() if k in valid_args}
 
-        completion =self.client.chat.completions.create(**filtered_kwargs)
+        completion = self.client.chat.completions.create(**filtered_kwargs)
         return self.convert_chat_completion_response_to_completion_response(completion)
 
     def get_prompt_to_check(self, _base_data, base_prompt, miner_data, offset):
