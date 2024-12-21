@@ -6,6 +6,7 @@ from concurrent import futures
 from logicnet.protocol import LogicSynapse
 from sentence_transformers import SentenceTransformer
 from logicnet.utils.model_selector import model_selector
+from logicnet.utils.regex_helper import extract_numerical_part
 
 SIMILARITY_WEIGHT = 0.2
 CORRECTNESS_WEIGHT = 0.8
@@ -235,8 +236,16 @@ class LogicRewarder:
             for char in formatting_chars:
                 ground_truth = ground_truth.replace(char, '')
                 miner_answer = miner_answer.replace(char, '')
-            gt_value = sympy.sympify(ground_truth.strip())
-            miner_value = sympy.sympify(miner_answer.strip())
+
+            # Extract numerical values
+            gt_value_str = extract_numerical_part(ground_truth)
+            miner_value_str = extract_numerical_part(miner_answer)
+
+            if gt_value_str is None or miner_value_str is None:
+                raise ValueError("No numerical value found in one of the answers.")
+
+            gt_value = sympy.sympify(gt_value_str)
+            miner_value = sympy.sympify(miner_value_str)
 
             abs_difference = abs(gt_value - miner_value)
             epsilon = 1e-8

@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import time
 import threading
 import datetime
@@ -193,7 +195,7 @@ class Validator(BaseValidatorNeuron):
             )
             if not synapse:
                 continue
-            base_synapse = synapse.copy()
+            base_synapse = synapse.model_copy()
             synapse = synapse.miner_synapse()
             bt.logging.info(f"\033[1;34m🧠 Synapse to be sent to miners: {synapse}\033[0m")
             axons = [self.metagraph.axons[int(uid)] for uid in uids]
@@ -378,7 +380,7 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(
                 "\033[1;32m🧠 Loading validator state from: " + path + "\033[0m"
             )
-            state = torch.load(path)
+            state = torch.load(path, weights_only=True)  # Set weights_only=True
             self.step = state["step"]
             all_uids_info = state["all_uids_info"]
             for k, v in all_uids_info.items():
