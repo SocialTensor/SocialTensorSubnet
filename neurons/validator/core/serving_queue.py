@@ -4,7 +4,7 @@ import math
 import bittensor as bt
 
 
-NUMBER_OF_REWARDS = 10
+NUMBER_OF_REWARDS = 50
 
 class QueryItem:
     def __init__(self, uid: int):
