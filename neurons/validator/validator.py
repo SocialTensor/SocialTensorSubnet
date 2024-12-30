@@ -888,16 +888,6 @@ class Validator(BaseValidatorNeuron):
         self.scores: np.ndarray = weights
         bt.logging.success(f"Updated scores: {self.scores}")
 
-    # def save_state(self):
-    #     """Saves the state of the validator to a file."""
-    #     torch.save(
-    #         {
-    #             "step": self.step,
-    #             "all_uids_info": self.miner_manager.all_uids_info,
-    #         },
-    #         self.config.neuron.full_path + "/state.pt",
-    #     )
-
     def save_state(self):
         """Saves the state of the validator to a file using pickle."""
         state = {
@@ -912,20 +902,6 @@ class Validator(BaseValidatorNeuron):
         except Exception as e:
             bt.logging.error(f"Failed to save state: {e}")
 
-    # def load_state(self):
-    #     """Loads the state of the validator from a file."""
-
-    #     # Load the state of the validator from file.
-    #     try:
-    #         path = self.config.neuron.full_path + "/state.pt"
-    #         bt.logging.info("Loading validator state from: " + path)
-    #         state = torch.load(path)
-    #         self.step = state["step"]
-    #         self.miner_manager.all_uids_info = state["all_uids_info"]
-    #         bt.logging.info("Succesfully loaded state")
-    #     except Exception as e:
-    #         self.step = 0
-    #         bt.logging.info("Could not find previously saved state.", e)
 
     def load_state(self):
         """Loads the state of the validator from a file, with fallback to .pt if .pkl is not found."""
@@ -968,35 +944,7 @@ class Validator(BaseValidatorNeuron):
             self.step = 0  # Default fallback in case of an unknown error
             bt.logging.error(f"Error loading state: {e}")
 
-    # @staticmethod
-    # def rank_tensor(tensor):
-    #     # Return Zeros if tensor is zeros
-    #     if torch.sum(tensor) == 0:
-    #         return tensor
-    #     # Step 1: Sort the tensor and get the original indices
-    #     sorted_tensor, indices = torch.sort(tensor, descending=True)
 
-    #     # Step 2: Create a new tensor for rankings
-    #     ranked_tensor = torch.zeros_like(tensor)
-
-    #     # Step 3: Assign ranks based on conditions
-    #     # First element gets 1.0
-    #     ranked_tensor[indices[0]] = 1.0
-
-    #     # Check for tie between second and third elements
-    #     if sorted_tensor[1] == sorted_tensor[2]:
-    #         # If there's a tie, both get 0.5
-    #         ranked_tensor[indices[1]] = 0.5
-    #         ranked_tensor[indices[2]] = 0.5
-    #     else:
-    #         # Otherwise, assign 2/3 and 1/3
-    #         ranked_tensor[indices[1]] = 2 / 3
-    #         ranked_tensor[indices[2]] = 1 / 3
-
-    #     # All others (rank 4 and below) get 0 (already initialized)
-
-    #     return ranked_tensor
-    
     @staticmethod
     def rank_array(array: np.ndarray):
         # Return Zeros if array is zeros
