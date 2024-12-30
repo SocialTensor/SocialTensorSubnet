@@ -48,7 +48,7 @@ git submodule update --init --recursive
     - For the DallE, GoJourney model, you need to set `--num_gpus 0` and `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
 ```bash
 source main_env/bin/activate
-pip install xformers==0.0.28.dev863 # run if you selected SUPIR model.
+pip install xformers==0.0.28.post3 # run if you selected SUPIR model.
 export GOJOURNEY_API_KEY=<your-gojourney-api-key> # set if you use GoJourney model.
 export OPENAI_API_KEY=<your-openai-api-key> # set if you use DallE model.
 export RAY_SERVE_QUEUE_LENGTH_RESPONSE_DEADLINE_S=1.0
