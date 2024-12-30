@@ -245,15 +245,31 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.trace("Processed weights:", processed_weights)
         bt.logging.trace("Processed weight uids:", processed_weight_uids)
 
+         # Convert to uint16 weights and uids.
+        (
+            uint_uids,
+            uint_weights,
+        ) = bt.utils.weight_utils.convert_weights_and_uids_for_emit(
+            uids=processed_weight_uids, 
+            weights=processed_weights
+        )
+        bt.logging.debug("uint_weights", uint_weights)
+        bt.logging.debug("uint_uids", uint_uids)
+
         # Set the weights on chain via our subtensor connection.
-        self.subtensor.set_weights(
+        result, log = self.subtensor.set_weights(
             wallet=self.wallet,
             netuid=self.config.netuid,
-            uids=processed_weight_uids,
-            weights=processed_weights,
+            uids=uint_uids,
+            weights=uint_weights,
             wait_for_finalization=False,
             version_key=self.spec_version,
         )
+
+        if result:
+            bt.logging.success(f"[SET WEIGHTS]: {log}")
+        else:
+            bt.logging.error(f"[SET WEIGHTS]: {log}")
 
         bt.logging.info(f"Set weights: {processed_weights}")
 
