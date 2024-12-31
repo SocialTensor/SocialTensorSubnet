@@ -764,7 +764,7 @@ class Validator(BaseValidatorNeuron):
     ):
         if not self.config.share_response:
             return
-        
+
         for uid, response in zip(uids, responses):
             if not response.is_success:
                 continue
@@ -804,7 +804,7 @@ class Validator(BaseValidatorNeuron):
                 )
                 model_specific_weights = 0.8 + 0.2 * model_specific_weights
                 model_specific_weights = model_specific_weights * mask
-                raw_weight_sum = np.sum(np.abs(self.scores), axis=0, keepdims=True)
+                raw_weight_sum = np.sum(np.abs(model_specific_weights), axis=0, keepdims=True)
                 if not raw_weight_sum == 0:
                     model_specific_weights = model_specific_weights / raw_weight_sum
 
