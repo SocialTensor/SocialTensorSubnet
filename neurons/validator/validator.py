@@ -951,7 +951,8 @@ class Validator(BaseValidatorNeuron):
         if np.sum(array) == 0:
             return array
         # Step 1: Sort the array and get the original indices
-        sorted_array, indices = np.sort(array)[::-1]
+        sorted_array = np.sort(array)[::-1]  # Sort in descending order
+        indices = np.argsort(array)[::-1]  
 
         # Step 2: Create a new array for rankings
         ranked_array = np.zeros_like(array)
