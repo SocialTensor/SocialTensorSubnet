@@ -8,6 +8,7 @@ import random
 import traceback
 import torch
 import requests
+from copy import deepcopy
 import bittensor as bt
 import logicnet as ln
 from neurons.validator.validator_proxy import ValidatorProxy
@@ -326,12 +327,10 @@ class Validator(BaseValidatorNeuron):
         ]
         num_batch = len(batched_uids_should_rewards)
 
-        synapses = [
-            synapse_type(category=category, timeout=timeout) for _ in range(num_batch)
-        ]
-        for synapse in synapses:
-            synapse = challenger(synapse)
-
+        ## clone one synapse to number_batch synapses
+        synapse = synapse_type(category=category, timeout=timeout)
+        synapse = challenger(synapse)
+        synapses = [deepcopy(synapse) for _ in range(num_batch)]
         return synapses, batched_uids_should_rewards
 
     def update_scores_on_chain(self):

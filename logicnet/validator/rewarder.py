@@ -296,19 +296,23 @@ class LogicRewarder:
         Returns:
             list[float]: List of similarity scores for each response.
         """
-        ground_truth_embedding = self.embedder.encode(ground_truth)
-        response_embeddings = self.embedder.encode(responses)
+        try:
+            ground_truth_embedding = self.embedder.encode(ground_truth)
+            response_embeddings = self.embedder.encode(responses)
 
-        # Calculate similarity
-        similarities = []
-        for response_embedding in response_embeddings:
-            similarity = torch.nn.functional.cosine_similarity(
-                torch.tensor(ground_truth_embedding),
-                torch.tensor(response_embedding),
-                dim=0,
-            )
-            similarities.append(similarity.item())
-        return similarities
+            # Calculate similarity
+            similarities = []
+            for response_embedding in response_embeddings:
+                similarity = torch.nn.functional.cosine_similarity(
+                    torch.tensor(ground_truth_embedding),
+                    torch.tensor(response_embedding),
+                    dim=0,
+                )
+                similarities.append(similarity.item())
+            return similarities
+        except Exception as e:
+            bt.logging.warning(f"Failed to calculate similarity.\nError: {e}")
+            return [0.5] * len(responses)
 
     def _get_ground_truth(self, question: str):
         """Generate self-generated ground truth based on the question.
