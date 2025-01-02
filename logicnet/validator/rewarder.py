@@ -207,15 +207,17 @@ class LogicRewarder:
                         ),
                     },
                 ],
-                max_tokens=5,
+                max_tokens=15,
                 temperature=0,
             ).choices[0].message.content.strip().lower()
             bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
             try:
                 correctness_score = float(response_str)
                 return min(max(correctness_score, 0.0), 1.0)
-            except ValueError:
+            except Exception as e:
                 bt.logging.warning(f"Failed to parse correctness score. Assigning default score of 0.5.")
+                if "1" in response_str:
+                    return 1.0
                 return 0.5
         except openai.OpenAIError as e:
             bt.logging.error(f"API request failed: {e}")
@@ -225,30 +227,35 @@ class LogicRewarder:
                 bt.logging.error("No alternative model, base URL, or API key available.")
                 return 0.5
             else:
-                openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
-                bt.logging.debug(f"Initiating request with model '{model}' at base URL '{base_url}'.")
-                response_str = openai_client.chat.completions.create(
-                    model=model_name,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": CORRECTNESS_TEMPLATE.format(
-                                question=question,
-                                ground_truth_answer=ground_truth,
-                                response=response
-                            ),
-                        },
-                    ],
-                    max_tokens=5,
-                    temperature=0,
-                ).choices[0].message.content.strip().lower()
-                bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
                 try:
+                    openai_client = openai.OpenAI(base_url=base_url, api_key=api_key)
+                    bt.logging.debug(f"Initiating request with model '{model}' at base URL '{base_url}'.")
+                    response_str = openai_client.chat.completions.create(
+                        model=model_name,
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": CORRECTNESS_TEMPLATE.format(
+                                    question=question,
+                                    ground_truth_answer=ground_truth,
+                                    response=response
+                                ),
+                            },
+                        ],
+                        max_tokens=15,
+                        temperature=0,
+                    ).choices[0].message.content.strip().lower()
+                    bt.logging.debug(f"[CORRECTNESS] Rating: {response_str}")
                     correctness_score = float(response_str)
                     return min(max(correctness_score, 0.0), 1.0)
-                except ValueError:
-                    bt.logging.warning(f"Failed to parse correctness score. Assigning default score of 0.5.")
+                except Exception as e:
+                    bt.logging.warning(f"Failed to parse correctness score. Assigning default score of 0.5. Error {e}")
+                    if "1" in response_str:
+                        return 1.0
                     return 0.5
+        except Exception as e:
+            bt.logging.error(f"Error in compute score by llm model: {e}")
+            return 0.5
 
     def _compare_numerical_answers(self, ground_truth: str, miner_answer: str):
         try:
