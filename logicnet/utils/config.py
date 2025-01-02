@@ -179,7 +179,7 @@ def add_args(cls, parser):
             "--llm_client.models",
             type=str,
             help="The model for the LLM client",
-            default="Qwen/Qwen2-7B-Instruct,gpt-4o-mini,meta-llama/Llama-2-7b-chat-hf",
+            default="Qwen/Qwen2.5-7B-Instruct,gpt-4o-mini,meta-llama/Llama-3.3-70B-Instruct-Turbo",
         )
 
         parser.add_argument(
