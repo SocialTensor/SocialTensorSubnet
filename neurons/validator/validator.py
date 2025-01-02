@@ -195,7 +195,7 @@ class Validator(BaseValidatorNeuron):
             )
             if not synapse:
                 continue
-            base_synapse = synapse.model_copy()
+            base_synapse = synapse.copy()
             synapse = synapse.miner_synapse()
             bt.logging.info(f"\033[1;34m🧠 Synapse to be sent to miners: {synapse}\033[0m")
             axons = [self.metagraph.axons[int(uid)] for uid in uids]
