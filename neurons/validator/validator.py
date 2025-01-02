@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import time
 import threading
 import datetime
@@ -378,7 +380,7 @@ class Validator(BaseValidatorNeuron):
             bt.logging.info(
                 "\033[1;32m🧠 Loading validator state from: " + path + "\033[0m"
             )
-            state = torch.load(path)
+            state = torch.load(path, weights_only=True)  # Set weights_only=True
             self.step = state["step"]
             all_uids_info = state["all_uids_info"]
             for k, v in all_uids_info.items():

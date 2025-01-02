@@ -107,6 +107,7 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
    echo "TOGETHERAI_API_KEY=your_together_ai_api_key" > .env
    echo "OPENAI_API_KEY=your_openai_api_key" >> .env
    echo "HF_TOKEN=your_hugging_face_token" >> .env (needed for some vLLM model)
+   echo "USE_TORCH=1" >> .env
    ```
 
 ### Step 3: Run the Validator
