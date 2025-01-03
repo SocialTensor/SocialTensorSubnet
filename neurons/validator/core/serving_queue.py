@@ -4,8 +4,6 @@ import math
 import bittensor as bt
 
 
-NUMBER_OF_REWARDS = 10
-
 class QueryItem:
     def __init__(self, uid: int):
         self.uid = uid
@@ -83,14 +81,24 @@ class QueryQueue:
                     more_data = True
                     query_item = q.get()
                     uids_to_query.append(query_item.uid)
-                    if query_item.uid in self.synthentic_rewarded and self.synthentic_rewarded[query_item.uid] > NUMBER_OF_REWARDS:
-                        should_rewards.append(False)
-                    else:
-                        should_rewards.append(True)
-                        if query_item.uid not in self.synthentic_rewarded:
-                            self.synthentic_rewarded[query_item.uid] = 0
-                        self.synthentic_rewarded[query_item.uid] += 1
+                    should_rewards.append(self.random_should_reward(query_item.uid))
+
+                    if query_item.uid not in self.synthentic_rewarded:
+                        self.synthentic_rewarded[query_item.uid] = 0
+                    self.synthentic_rewarded[query_item.uid] += 1
+
                 yield category, uids_to_query, should_rewards, time_to_sleep
+
+    def random_should_reward(self, uid):
+        if uid not in self.synthentic_rewarded:
+            return True
+        if self.synthentic_rewarded[uid] <= 10:
+            return random.random() < 0.5 ## 50% chance of rewarding
+        elif self.synthentic_rewarded[uid] <= 30:
+            return random.random() < 0.3 ## 30% chance of rewarding
+        else:
+            return random.random() < 0.1 ## 10% chance of rewarding
+
 
     def get_query_for_proxy(self, category):
         synthentic_q = self.synthentic_queue[category]
@@ -98,7 +106,7 @@ class QueryQueue:
         while not synthentic_q.empty():
             query_item = synthentic_q.get()
             should_reward = False
-            if (query_item.uid not in self.synthentic_rewarded) or (self.synthentic_rewarded[query_item.uid] <= NUMBER_OF_REWARDS):
+            if (query_item.uid not in self.synthentic_rewarded) or (self.synthentic_rewarded[query_item.uid] <= 20):
                 should_reward = True
             yield query_item.uid, should_reward
         while not proxy_q.empty():
