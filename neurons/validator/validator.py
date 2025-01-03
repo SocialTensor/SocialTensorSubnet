@@ -30,6 +30,15 @@ def init_category(config=None, model_rotation_pool=None, dataset_weight=None):
     }
     return category
 
+
+## low quality models
+model_blacklist = [
+    "meta-llama/Llama-2-7b-chat-hf",
+    "meta-llama/Llama-2-13b-chat-hf",
+    "mistralai/Mistral-7B-Instruct-v0.2",
+    "mistralai/Mistral-7B-Instruct"
+]
+
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         """
@@ -59,6 +68,10 @@ class Validator(BaseValidatorNeuron):
             "openai": [base_urls[1].strip(), openai_key, models[1]],
             "togetherai": [base_urls[2].strip(), togetherai_key, models[2]],
         }
+        for key, value in self.model_rotation_pool.items():
+            if value[2] in model_blacklist:
+                bt.logging.warning(f"Model {value[2]} is blacklisted. Please use another model.")
+                self.model_rotation_pool[key] = "no use"
         
         # Check if 'null' is at the same index in both cli lsts
         for i in range(3):
