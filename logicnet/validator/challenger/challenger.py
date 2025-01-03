@@ -231,7 +231,7 @@ class LogicChallenger:
                 bt.logging.debug(f"Generated revised math question: {revised_question}")
                 return revised_question
             
-            except openai.error.OpenAIError as e:
+            except openai.OpenAIError as e:
                 bt.logging.error(f"OpenAI API request failed (attempt {attempt + 1}): {e}")
                 if attempt == max_attempts - 1:
                     raise RuntimeError("Failed to get a response after multiple attempts.")
