@@ -508,7 +508,7 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("Updating available models & uids")
         async_batch_size = self.config.async_batch_size
-        loop_base_time = self.config.loop_base_time  # default is 600 seconds
+        loop_base_time = self.config.loop_base_time
         self.open_category_reward_synapses = self.init_reward_open_category_synapses()
         threads = []
         loop_start = time.time()
@@ -717,7 +717,8 @@ class Validator(BaseValidatorNeuron):
                 if info["model_name"] == model_name
             ]
         )
-        batch_size = min(4, 1 + model_miner_count // 4)
+        # batch_size = min(4, 1 + model_miner_count // 4)
+        batch_size = 1
 
         random.shuffle(uids_should_rewards)
         batched_uids_should_rewards = [
