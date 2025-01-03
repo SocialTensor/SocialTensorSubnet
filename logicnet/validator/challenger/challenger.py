@@ -64,7 +64,6 @@ class LogicChallenger:
             selected_resource = random.choices(resources, weights=DATASET_WEIGHT, k=1)[0]
 
         bt.logging.debug(f"Selected resource: {selected_resource}")
-        print(f"Selected resource: {selected_resource}")
         try:
             # Select an atom question and answer from the Mathgenerator
             if selected_resource == 'mathgenerator':
