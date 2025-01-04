@@ -24,7 +24,7 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 ## Guide Fixed Category
 1. Git clone and install requirements
 ```bash
-apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+sudo apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 git clone https://github.com/NicheTensor/NicheImage
 cd NicheImage
 python -m venv main_env
