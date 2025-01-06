@@ -15,7 +15,8 @@ pip uninstall uvloop -y
 echo "Installing mathgenerator..."
 pip install git+https://github.com/lukew3/mathgenerator.git
 
-# add use torch to env echo "USE_TORCH=1" >> .env
+# add use torch to env echo "USE_TORCH=1" >> .env need to go down 1 line or else it will be at the end of the file
+sed -i '$ d' .env
 echo "USE_TORCH=1" >> .env
 
 # check if use_torch is set
