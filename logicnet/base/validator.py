@@ -27,7 +27,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Set up initial scoring weights for validation
         bt.logging.info("\033[1;32m⚖️ Building validation weights.\033[0m")
-        self.scores = torch.zeros_like(self.metagraph.S, dtype=torch.float32)
+        self.scores = torch.zeros_like(self.metagraph.S.clone().detach(), dtype=torch.float32)
 
         # Init sync with the network. Updates the metagraph.
         self.resync_metagraph()
@@ -205,12 +205,15 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.trace("top10 values", raw_weights.sort()[0])
         bt.logging.trace("top10 uids", raw_weights.sort()[1])
 
+        # Convert uids to a PyTorch tensor before processing
+        uids_tensor = self.metagraph.uids.clone().detach()
+
         # Process the raw weights to final_weights via subtensor limitations.
         (
             processed_weight_uids,
             processed_weights,
         ) = bt.utils.weight_utils.process_weights_for_netuid(
-            uids=self.metagraph.uids.to("cpu"),
+            uids=uids_tensor.to("cpu"),
             weights=raw_weights.to("cpu"),
             netuid=self.config.netuid,
             subtensor=self.subtensor,

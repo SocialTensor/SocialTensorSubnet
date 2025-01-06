@@ -177,3 +177,4 @@ main/*
 example_env.env
 bittensor/
 query_log.csv
+*.json

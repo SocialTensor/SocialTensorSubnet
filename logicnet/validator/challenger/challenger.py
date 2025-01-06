@@ -63,6 +63,7 @@ class LogicChallenger:
             bt.logging.warning("Invalid dataset weight configuration provided. Using default weights.")
             selected_resource = random.choices(resources, weights=DATASET_WEIGHT, k=1)[0]
 
+        bt.logging.debug(f"Selected resource: {selected_resource}")
         try:
             # Select an atom question and answer from the Mathgenerator
             if selected_resource == 'mathgenerator':
@@ -102,7 +103,7 @@ class LogicChallenger:
                 puzzle = data_set_mc['puzzle'][random_index]
                 question = data_set_mc['question'][random_index]
                 answer = data_set_mc['answer'][random_index]
-                atom_question = f"Find the solution of this problem:\n---\n{puzzle}\n---\n{question}\n---\n"
+                atom_question = f"Find the solution of this puzzle problem:\n---\npuzzle: {puzzle}\n---\nquestion: {question}\n---\n"
                 atom_answer = answer
 
             # Select an atom question and answer from the UltraInteract
@@ -114,7 +115,8 @@ class LogicChallenger:
                 random_index = random.randint(0, len(data_set['instruction']) - 1)
                 instruction = data_set['instruction'][random_index]
                 response = data_set['response'][random_index]
-                atom_question = f"Find the solution of this instruction:\n---\n{instruction}\n---\n"
+                # atom_question = f"Find the solution of this instruction:\n---\n{instruction}\n---\n"
+                atom_question = f"This is an gen-code problem (Python), please give step by step solution and python code for the following instruction:\n---\n{instruction}\n---\n"
                 atom_answer = response
             
             # Select an atom question and answer from the GSM8K
@@ -134,6 +136,7 @@ class LogicChallenger:
                 ds = load_dataset("TIGER-Lab/MMLU-STEM")
                 bt.logging.debug("Generating problem using MMLU-STEM dataset.")
                 data_set = ds['test']
+                data_set = data_set.filter(lambda x: "Statement" not in x['question'])
                 bt.logging.info(f"Loaded MMLU-STEM dataset with {len(data_set['question'])} entries")
                 random_index = random.randint(0, len(data_set['question']) - 1)
                 question = data_set['question'][random_index]
@@ -175,7 +178,7 @@ class LogicChallenger:
         # )
         
         prompt = (
-            "As a {profile} who is feeling {mood}, please rephrase the following math problem "
+            "As a {profile} who is feeling {mood}, please rephrase the following problem "
             "in a {tone} tone. Write it as you would naturally ask the question. "
             "Do not include the solution or add unnecessary context."
         ).format(**conditions)
@@ -197,8 +200,8 @@ class LogicChallenger:
             {
                 "role": "system",
                 "content": (
-                    "You are simulating various human personas asking math problems. "
-                    "Rephrase the following math problem as the specified persona, "
+                    "You are simulating various human personas asking problems. "
+                    "Rephrase the following problem as the specified persona, "
                     "ensuring the question sounds natural and appropriate for that individual."
                 ),
             },
@@ -227,7 +230,7 @@ class LogicChallenger:
                 bt.logging.debug(f"Generated revised math question: {revised_question}")
                 return revised_question
             
-            except openai.error.OpenAIError as e:
+            except openai.OpenAIError as e:
                 bt.logging.error(f"OpenAI API request failed (attempt {attempt + 1}): {e}")
                 if attempt == max_attempts - 1:
                     raise RuntimeError("Failed to get a response after multiple attempts.")
