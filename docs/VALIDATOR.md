@@ -104,9 +104,9 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
 
 3. **Set Up the `.env` File**
    ```bash
-   echo "TOGETHERAI_API_KEY=your_together_ai_api_key" > .env
    echo "OPENAI_API_KEY=your_openai_api_key" >> .env
-   echo "HF_TOKEN=your_hugging_face_token" >> .env (needed for some vLLM model)
+   echo "HF_TOKEN=your_hugging_face_token" >> .env (needed for some some datasets)
+   echo "WANDB_API_KEY=your_wandb_api_key" >> .env
    echo "USE_TORCH=1" >> .env
    ```
 
@@ -130,8 +130,6 @@ Using Together AI and Open AI simplifies setup and reduces local resource requir
      --wallet.name "your-wallet-name" \
      --wallet.hotkey "your-hotkey-name" \
      --subtensor.network finney \
-     --llm_client.base_urls "http://localhost:8000/v1,https://api.openai.com/v1,https://api.together.xyz/v1" \
-     --llm_client.models "Qwen/Qwen2.5-7B-Instruct,gpt-4o-mini,meta-llama/Llama-3.3-70B-Instruct-Turbo" \
      --neuron_type validator \
      --logging.debug
    ```
