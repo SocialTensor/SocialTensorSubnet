@@ -73,9 +73,8 @@ class Validator(BaseValidatorNeuron):
         
         self.model_rotation_pool = {
             # "vllm": [base_urls[0].strip(), "xyz", models[0]],
-            # "openai": [base_urls[1].strip(), openai_key, models[1]],
+            "openai": [base_urls[1].strip(), openai_key, models[1]],
             # "togetherai": [base_urls[2].strip(), togetherai_key, models[2]],
-            "openai": [base_urls[1].strip(), openai_key, 'gpt-4o'],
         }
         # for key, value in self.model_rotation_pool.items():
         #     if value[2] in model_blacklist:
@@ -83,7 +82,7 @@ class Validator(BaseValidatorNeuron):
         #         self.model_rotation_pool[key] = "no use"
         
         # Immediately blacklist if it's not "gpt-4o" and force it to be "gpt-4o"
-        if self.model_rotation_pool["openai"][2] != "gpt-4o":
+        if "gpt-4o" not in self.model_rotation_pool["openai"][2]:
             bt.logging.warning(
                 f"Model must be gpt-4o. Found {self.model_rotation_pool['openai'][2]} instead."
             )
