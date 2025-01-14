@@ -35,7 +35,7 @@ class MinerManager:
             query_axons,
             synapse,
             deserialize=False,
-            timeout=10,
+            timeout=60,
         )
         responses = {
             uid: response.response_dict for uid, response in zip(uids, responses)
