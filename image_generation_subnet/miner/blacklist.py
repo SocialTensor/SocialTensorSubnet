@@ -14,6 +14,7 @@ def check_limit(
     if uid == 96:
         return False
     else: 
+        bt.logging.info(f"Blacklisting {uid} for testing")
         return True
 
     if uid not in self.validator_logs:
