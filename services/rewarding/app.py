@@ -174,7 +174,7 @@ class FixedCategoryRewardApp(BaseRewardApp):
         print(rewards, flush=True)
         return {"rewards": rewards}
     
-    async def verify_miner_images(self, miner_images, rewards, base_data):
+    def verify_miner_images(self, miner_images, rewards, base_data):
         for i, miner_image in enumerate(miner_images):
             if rewards[i] < self.reward_threshold_for_check_cache:
                 another_seed_of_this_prompt = self.prompt_cache.get(base_data.prompt)

@@ -66,6 +66,8 @@ class QueryQueue:
             synthetic_rate_limit, proxy_rate_limit = self.get_rate_limit_by_type(
                 info["rate_limit"]
             )
+            # DEBUG
+            synthetic_rate_limit = 10
             for _ in range(int(synthetic_rate_limit)):
                 if uid in self.synthentic_rewarded:
                     synthentic_model_queue.put(QueryItem(uid=uid, should_reward=False))
