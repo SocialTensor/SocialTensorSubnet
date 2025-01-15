@@ -31,9 +31,9 @@ MODEL_CONFIGS = yaml.load(
 
 
 class QueryItem:
-    def __init__(self, uid: int):
+    def __init__(self, uid: int, should_reward: bool = False):
         self.uid = uid
-
+        self.should_reward = should_reward # currently only used for synthetic query
 
 class QueryQueue:
     def __init__(self, model_names: list[str], time_per_loop: int = 600):
@@ -66,13 +66,29 @@ class QueryQueue:
             synthetic_rate_limit, proxy_rate_limit = self.get_rate_limit_by_type(
                 info["rate_limit"]
             )
+            synthetic_rate_limit = 10 # DEBUG
+            bt.logging.info(f"Synthetic rate limit: {synthetic_rate_limit}") # DEBUG
             for _ in range(int(synthetic_rate_limit)):
-                synthentic_model_queue.put(QueryItem(uid=uid))
+                if uid in self.synthentic_rewarded:
+                    synthentic_model_queue.put(QueryItem(uid=uid, should_reward=False))
+                else:
+                    synthentic_model_queue.put(QueryItem(uid=uid, should_reward=True))
+                    self.synthentic_rewarded.append(uid)
+            bt.logging.info(f"Synthetic rewarded: {self.synthentic_rewarded}") # DEBUG
+            bt.logging.info(f"Synthetic queue: {[item.uid for item in synthentic_model_queue.queue]}") # DEBUG
             for _ in range(int(proxy_rate_limit)):
                 proxy_model_queue.put(QueryItem(uid=uid))
         # Shuffle the queue
         for model_name, q in self.synthentic_queue.items():
+            # DEBUG
+            bt.logging.info(f"Model name: {model_name}")
+            bt.logging.info(f"Before shuffling queue: {[item.uid for item in q.queue]}")
+
             random.shuffle(q.queue)
+
+            # DEBUG
+            bt.logging.info(f"After shuffling queue: {[item.uid for item in q.queue]}")
+
             self.total_uids_remaining += len(q.queue)
             bt.logging.info(
                 f"- Model {model_name} has {len(q.queue)} uids remaining for synthentic"
@@ -102,11 +118,7 @@ class QueryQueue:
                     more_data = True
                     query_item = q.get()
                     uids_to_query.append(query_item.uid)
-                    if query_item.uid in self.synthentic_rewarded:
-                        should_rewards.append(False)
-                    else:
-                        should_rewards.append(True)
-                        self.synthentic_rewarded.append(query_item.uid)
+                    should_rewards.append(query_item.should_reward)
 
                 yield model_name, uids_to_query, should_rewards, time_to_sleep
 
@@ -508,12 +520,14 @@ class Validator(BaseValidatorNeuron):
 
         bt.logging.info("Updating available models & uids")
         async_batch_size = self.config.async_batch_size
-        loop_base_time = self.config.loop_base_time  # default is 600 seconds
+        loop_base_time = self.config.loop_base_time
         self.open_category_reward_synapses = self.init_reward_open_category_synapses()
         threads = []
         loop_start = time.time()
         self.miner_manager.update_miners_identity()
         self.query_queue.update_queue(self.miner_manager.all_uids_info)
+        self.rewarded_synapses = {model_name: [] for model_name in self.nicheimage_catalogue.keys()}
+        self.not_rewarded_synapses = {model_name: [] for model_name in self.nicheimage_catalogue.keys()}
 
         for (
             model_name,
@@ -615,6 +629,11 @@ class Validator(BaseValidatorNeuron):
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
             uids, should_rewards = zip(*uids_should_rewards)
             bt.logging.info(f"Quering {uids}, Should reward: {should_rewards}")
+            # DEBUG
+            if 95 not in uids and 105 not in uids:
+                bt.logging.info(f"Skipping {uids}")
+                continue
+
             if not synapse:
                 continue
             # base_synapse = synapse.copy()
@@ -633,6 +652,7 @@ class Validator(BaseValidatorNeuron):
                     axons.append(self.miner_manager.layer_one_axons[uid])
                 else:
                     axons.append(self.metagraph.axons[uid])
+
             responses = dendrite.query(
                 axons=axons,
                 synapse=synapse,
@@ -717,7 +737,8 @@ class Validator(BaseValidatorNeuron):
                 if info["model_name"] == model_name
             ]
         )
-        batch_size = min(4, 1 + model_miner_count // 4)
+        # batch_size = min(4, 1 + model_miner_count // 4)
+        batch_size = 1
 
         random.shuffle(uids_should_rewards)
         batched_uids_should_rewards = [
@@ -748,6 +769,26 @@ class Validator(BaseValidatorNeuron):
                 synapses = ig_subnet.validator.get_challenge(
                     challenge_url, synapses, backup_func
                 )
+
+        for i, batch in enumerate(batched_uids_should_rewards):
+            if any([should_reward for _, should_reward in batch]):
+                # select old rewarded synapse with probability
+                if random.random() < 0.8 and len(self.rewarded_synapses[model_name]) > 0:
+                # if len(self.rewarded_synapses[model_name]) > 0: # DEBUG
+                    synapses[i] = random.choice(self.rewarded_synapses[model_name])
+                    # bt.logging.info("Using old rewarded synapse")
+                else:
+                    self.rewarded_synapses[model_name].append(synapses[i])
+                    # bt.logging.info("Using new rewarded synapse")
+            else:
+                # select old not rewarded synapse with probability
+                if random.random() < 0.5 and len(self.not_rewarded_synapses[model_name]) > 0:
+                    synapses[i] = random.choice(self.not_rewarded_synapses[model_name])
+                    bt.logging.info("Using old not rewarded synapse")
+                else:
+                    self.not_rewarded_synapses[model_name].append(synapses[i])
+                    bt.logging.info("Using new not rewarded synapse")
+
         if self.nicheimage_catalogue[model_name]["reward_type"] == "open_category":
             # Reward same test for uids in same open category
             for i, batch in enumerate(batched_uids_should_rewards):
