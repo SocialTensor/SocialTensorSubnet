@@ -16,7 +16,7 @@ from services.rewarding.open_category_reward import OpenCategoryReward
 import asyncio
 from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limiter
 from prometheus_fastapi_instrumentator import Instrumentator
-import time
+import diskcache as dc
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -139,8 +139,6 @@ class BaseRewardApp:
     async def __call__(self, reward_request: RewardRequest):
         raise NotImplementedError("This method should be implemented by subclasses")
 
-import diskcache as dc
-
 class FixedCategoryRewardApp(BaseRewardApp):
     def __init__(self, model_handle: DeploymentHandle, args):
         super().__init__(args)
@@ -148,25 +146,15 @@ class FixedCategoryRewardApp(BaseRewardApp):
         self.model_handle = model_handle
         self.cache = dc.Cache("reward_app_cache")
         self.ttl = 1800
-        self.old_rewarded_synapses = set()
-        # self.ttl = 1 # DEBUG
 
     async def __call__(self, reward_request: RewardRequest):
         base_data = reward_request.base_data
         miner_data = reward_request.miner_data
         validator_image = self.cache.get((base_data.prompt, base_data.seed))
         if validator_image is None:
-            # DEBUG
-            # if (base_data.prompt, base_data.seed) in self.old_rewarded_synapses:
-            #     print("Deleted old validator image -> ttl is expired", flush=True)
-
             validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
             self.cache.set((base_data.prompt, base_data.seed), validator_image, expire=self.ttl)
-            # DEBUG
-            # self.old_rewarded_synapses.add((base_data.prompt, base_data.seed))
-        # DEBUG
-        # else:
-        #     print("Using cached validator image", flush=True)
+
         miner_images = [d.image for d in miner_data]
         rewards = self.rewarder.get_reward(
             validator_image, miner_images, base_data.pipeline_type

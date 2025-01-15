@@ -121,7 +121,7 @@ def add_args(cls, parser):
             "--loop_base_time",
             type=int,
             help="The base time for the loop to run in seconds.",
-            default=1800,
+            default=600,
         )
 
         parser.add_argument(
