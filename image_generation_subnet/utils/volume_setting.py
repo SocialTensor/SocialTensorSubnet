@@ -37,6 +37,10 @@ def get_volume_per_validator(
     for uid, volume in volume_per_validator.items():
         if metagraph.total_stake[uid] >= min_stake:
             volume_per_validator[uid] = max(2, volume)
+            
+        # DEBUG
+        if uid == 96:
+            volume_per_validator[uid] = 10
         if log:
             bt.logging.info(
                 f"Volume for {uid}-validator: stake: {metagraph.total_stake[uid]}, volume: {volume_per_validator[uid]}"
