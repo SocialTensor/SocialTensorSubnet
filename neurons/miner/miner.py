@@ -30,6 +30,8 @@ class Miner(BaseMinerNeuron):
         self.num_processing_requests = 0
         self.total_request_in_interval = 0
         bt.logging.info(f"Miner info: {self.miner_info}")
+        # DEBUG
+        self.old_synapse = None
 
     async def forward_image(self, synapse: ImageGenerating) -> ImageGenerating:
         if "get_miner_info" in synapse.request_dict:
@@ -42,6 +44,12 @@ class Miner(BaseMinerNeuron):
             )
             synapse.limit_params()
             synapse = await image_generation_subnet.miner.generate(self, synapse)
+            # DEBUG
+            if self.old_synapse.prompt == synapse.prompt:
+                bt.logging.info(f"Skipping {synapse.prompt} because it is the same as the previous one")
+                return self.old_synapse
+            self.old_synapse = synapse
+
             self.num_processing_requests -= 1
         except Exception as e:
             bt.logging.warning(f"Error in forward_image: {e}")
