@@ -68,8 +68,14 @@ class QueryQueue:
             )
             # DEBUG
             synthetic_rate_limit = 10
+
             for _ in range(int(synthetic_rate_limit)):
                 if uid in self.synthentic_rewarded:
+                    # DEBUG
+                    if uid == 95:
+                        synthentic_model_queue.put(QueryItem(uid=uid, should_reward=True))
+                        continue
+                    
                     synthentic_model_queue.put(QueryItem(uid=uid, should_reward=False))
                 else:
                     synthentic_model_queue.put(QueryItem(uid=uid, should_reward=True))
