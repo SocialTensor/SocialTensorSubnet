@@ -186,7 +186,7 @@ class FixedCategoryRewardApp(BaseRewardApp):
                     for seed in another_seed_of_this_prompt
                     if seed != base_data.seed
                 ]
-                cosine_similarity_scores = self.rewarder.get_cosine_similarity(validator_images_for_this_prompt, miner_image)
+                cosine_similarity_scores = self.rewarder.get_cosine_similarity(miner_image, validator_images_for_this_prompt)
                 if cosine_similarity_scores[i] > self.cosine_similarity_threshold_for_check_cache:
                     rewards[i] = -1.0
                     
