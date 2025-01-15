@@ -146,6 +146,9 @@ class FixedCategoryRewardApp(BaseRewardApp):
         self.model_handle = model_handle
         self.cache = dc.Cache("reward_app_cache")
         self.ttl = 600
+        self.prompt_cache = dc.Cache("prompt_cache")
+        self.reward_threshold_for_check_cache = 0.5
+        self.cosine_similarity_threshold_for_check_cache = 0.5
 
     async def __call__(self, reward_request: RewardRequest):
         base_data = reward_request.base_data
@@ -155,14 +158,39 @@ class FixedCategoryRewardApp(BaseRewardApp):
             validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
             self.cache.set((base_data.prompt, base_data.seed), validator_image, expire=self.ttl)
 
+            another_seed_of_this_prompt = self.prompt_cache.get(base_data.prompt)
+            if another_seed_of_this_prompt is None:
+                self.prompt_cache.set((base_data.prompt), [base_data.seed], expire=self.ttl)
+            else:
+                self.prompt_cache.set((base_data.prompt), another_seed_of_this_prompt + [base_data.seed], expire=self.ttl)
+
         miner_images = [d.image for d in miner_data]
         rewards = self.rewarder.get_reward(
             validator_image, miner_images, base_data.pipeline_type
         )
         rewards = [float(reward) for reward in rewards]
+
+        rewards = self.verify_miner_images(miner_images, rewards, base_data)
         print(rewards, flush=True)
         return {"rewards": rewards}
+    
+    def verify_miner_images(self, miner_images, rewards, base_data):
+        for i, miner_image in enumerate(miner_images):
+            if rewards[i] < self.reward_threshold_for_check_cache:
+                another_seed_of_this_prompt = self.prompt_cache.get(base_data.prompt)
+                if another_seed_of_this_prompt is None:
+                    continue
 
+                validator_images_for_this_prompt = [
+                    self.cache.get((base_data.prompt, seed))
+                    for seed in another_seed_of_this_prompt
+                    if seed != base_data.seed
+                ]
+                cosine_similarity_scores = self.rewarder.get_cosine_similarity(miner_image, validator_images_for_this_prompt)
+                if cosine_similarity_scores[i] > self.cosine_similarity_threshold_for_check_cache:
+                    rewards[i] = -1.0
+                    
+        return rewards
 
 class OpenCategoryRewardApp(BaseRewardApp):
     def __init__(self, args):

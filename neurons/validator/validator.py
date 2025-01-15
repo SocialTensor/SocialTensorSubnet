@@ -66,6 +66,7 @@ class QueryQueue:
             synthetic_rate_limit, proxy_rate_limit = self.get_rate_limit_by_type(
                 info["rate_limit"]
             )
+
             for _ in range(int(synthetic_rate_limit)):
                 if uid in self.synthentic_rewarded:
                     synthentic_model_queue.put(QueryItem(uid=uid, should_reward=False))
@@ -614,11 +615,10 @@ class Validator(BaseValidatorNeuron):
         synapses, batched_uids_should_rewards = self.prepare_challenge(
             uids_should_rewards, model_name, pipeline_type
         )
-        for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
+        for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):            
             uids, should_rewards = zip(*uids_should_rewards)
             if not synapse:
                 continue
-            # base_synapse = synapse.copy()
             base_synapse = synapse.model_copy()
             if (
                 self.offline_reward
@@ -755,14 +755,20 @@ class Validator(BaseValidatorNeuron):
         for i, batch in enumerate(batched_uids_should_rewards):
             if any([should_reward for _, should_reward in batch]):
                 # select old rewarded synapse with probability
-                if random.random() < 0.8 and len(self.rewarded_synapses[model_name]) > 0:
-                    synapses[i] = random.choice(self.rewarded_synapses[model_name])
-                else:
-                    self.rewarded_synapses[model_name].append(synapses[i])
+                if len(self.rewarded_synapses[model_name]) > 0:
+                    rand_val = random.random()
+                    if rand_val < 0.8:  # 80% chance to use existing synapse
+                        synapses[i] = random.choice(self.rewarded_synapses[model_name]).model_copy()
+                    elif rand_val < 0.9:  # 10% chance to use existing synapse with new seed
+                        synapse = random.choice(self.rewarded_synapses[model_name]).model_copy()
+                        synapse.seed = random.randint(0, 1e9)
+                        synapses[i] = synapse
+                    # else: 10% chance to use new synapse (already created)
+                self.rewarded_synapses[model_name].append(synapses[i])
             else:
                 # select old not rewarded synapse with probability
                 if random.random() < 0.3 and len(self.not_rewarded_synapses[model_name]) > 0:
-                    synapses[i] = random.choice(self.not_rewarded_synapses[model_name])
+                    synapses[i] = random.choice(self.not_rewarded_synapses[model_name]).model_copy()
                 else:
                     self.not_rewarded_synapses[model_name].append(synapses[i])
 

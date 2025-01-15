@@ -123,7 +123,11 @@ class MinerManager:
 
     def update_scores(self, uids, rewards):
         for uid, reward in zip(uids, rewards):
-            self.all_uids_info[uid]["scores"].append(reward)
+            if reward == -1.0:
+                bt.logging.info(f"Punishing {uid}")
+                self.all_uids_info[uid]["scores"] += [0.0] * 3 # 3 is the number of times to be punished
+            else:
+                self.all_uids_info[uid]["scores"].append(reward)
             self.all_uids_info[uid]["scores"] = self.all_uids_info[uid]["scores"][-10:]
 
     def update_metadata(self, uids, process_times):
