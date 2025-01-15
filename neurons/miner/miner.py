@@ -43,12 +43,15 @@ class Miner(BaseMinerNeuron):
                 f"Processing {self.num_processing_requests} requests, synapse prompt: {synapse.prompt}"
             )
             synapse.limit_params()
-            synapse = await image_generation_subnet.miner.generate(self, synapse)
-            # DEBUG
-            if self.old_synapse.prompt == synapse.prompt:
+            # synapse = await image_generation_subnet.miner.generate(self, synapse)
+
+            # DEBUG only cache seed
+            if self.old_synapse and self.old_synapse.prompt == synapse.prompt:
                 bt.logging.info(f"Skipping {synapse.prompt} because it is the same as the previous one")
                 return self.old_synapse
-            self.old_synapse = synapse
+            else:
+                synapse = await image_generation_subnet.miner.generate(self, synapse)
+                self.old_synapse = synapse
 
             self.num_processing_requests -= 1
         except Exception as e:
