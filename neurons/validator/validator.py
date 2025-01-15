@@ -775,11 +775,12 @@ class Validator(BaseValidatorNeuron):
         for i, batch in enumerate(batched_uids_should_rewards):
             if any([should_reward for _, should_reward in batch]):
                 # select old rewarded synapse with probability
-                if len(self.rewarded_synapses[model_name]) > 0:
-                    rand_val = random.random()
-                    if rand_val < 0.8:  # 80% chance to use existing synapse
-                        synapses[i] = random.choice(self.rewarded_synapses[model_name]).model_copy()
-                    elif rand_val < 0.9:  # 10% chance to use existing synapse with new seed
+                if len(self.rewarded_synapses[model_name]) > 0:\
+                    # DEBUG
+                    # rand_val = random.random()
+                    # if rand_val < 0.8:  # 80% chance to use existing synapse
+                    #     synapses[i] = random.choice(self.rewarded_synapses[model_name]).model_copy()
+                    # elif rand_val < 0.9:  # 10% chance to use existing synapse with new seed
                         synapse = random.choice(self.rewarded_synapses[model_name]).model_copy()
                         synapse.seed = random.randint(0, 1e9)
                         synapses[i] = synapse
