@@ -10,12 +10,6 @@ def check_limit(
     self, uid: str, stake: int, volume_per_validator: dict, interval: int = 600
 ):
     bt.logging.info(self.validator_logs)
-    # DEBUG
-    if uid == 96:
-        return False
-    else: 
-        bt.logging.info(f"Blacklisting {uid} for testing")
-        return True
 
     if uid not in self.validator_logs:
         self.validator_logs[uid] = {

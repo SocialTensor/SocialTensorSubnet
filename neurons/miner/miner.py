@@ -125,6 +125,15 @@ class Miner(BaseMinerNeuron):
 
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
+        # DEBUG
+        if self.metagraph.hotkeys.index(synapse.dendrite.hotkey) == 96:
+            bt.logging.info(f"Skip blacklist for 96")
+            return False, "All passed!"
+        else:
+            bt.logging.info(f"Blacklist for {self.metagraph.hotkeys.index(synapse.dendrite.hotkey)}")
+            return True, "All passed!"
+
+
         try:
             if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
                 # Ignore requests from unrecognized entities.
