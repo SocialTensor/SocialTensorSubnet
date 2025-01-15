@@ -30,7 +30,7 @@ class MinerManager:
             uids = [int(uid) for uid in self.validator.metagraph.uids]
             # DEBUG
             uids = [95]
-            
+
             query_axons = [self.validator.metagraph.axons[uid] for uid in uids]
         synapse = Information()
         bt.logging.info("Requesting miner info using synapse Information")
@@ -127,6 +127,7 @@ class MinerManager:
     def update_scores(self, uids, rewards):
         for uid, reward in zip(uids, rewards):
             if reward == -1.0:
+                bt.logging.info(f"Punishing {uid}")
                 self.all_uids_info[uid]["scores"] += [0.0] * 3 # 3 is the number of times to be punished
             else:
                 self.all_uids_info[uid]["scores"].append(reward)
