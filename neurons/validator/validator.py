@@ -625,6 +625,11 @@ class Validator(BaseValidatorNeuron):
             uids_should_rewards, model_name, pipeline_type
         )
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
+            # DEBUG
+            if 95 not in uids:
+                bt.logging.info(f"Skipping {model_name} because 95 is not in uids")
+                continue
+            
             uids, should_rewards = zip(*uids_should_rewards)
             if not synapse:
                 continue
