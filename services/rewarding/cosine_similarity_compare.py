@@ -93,6 +93,22 @@ class CosineSimilarityReward(nn.Module):
 
             rewards.append(reward)
         return rewards
+    
+    def get_cosine_similarity(
+            self, 
+            miner_image: str | Image.Image, 
+            old_validator_image: List[str | Image.Image]
+        ):
+        if not isinstance(miner_image, Image.Image):
+            miner_image = base64_to_pil_image(miner_image)
+        
+        cosine_similarity_scores = []
+        for validator_image in old_validator_image:
+            if not isinstance(validator_image, Image.Image):
+                validator_image = base64_to_pil_image(validator_image)
+            cosine_similarity = self.forward(validator_image, miner_image, binary=False)
+            cosine_similarity_scores.append(cosine_similarity)
+        return cosine_similarity_scores
 
     def get_black_hash(self, H, W) -> str:
         image = Image.new("RGB", (W, H), color="black")
