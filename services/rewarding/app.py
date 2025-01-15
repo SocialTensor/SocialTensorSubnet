@@ -148,7 +148,7 @@ class FixedCategoryRewardApp(BaseRewardApp):
         self.ttl = 600
         self.prompt_cache = dc.Cache("prompt_cache")
         self.reward_threshold_for_check_cache = 0.5
-        self.cosine_similarity_threshold_for_check_cache = 0.5
+        self.cosine_similarity_threshold_for_check_cache = 0.9
 
     async def __call__(self, reward_request: RewardRequest):
         base_data = reward_request.base_data
@@ -184,13 +184,14 @@ class FixedCategoryRewardApp(BaseRewardApp):
                 validator_images_for_this_prompt = [
                     self.cache.get((base_data.prompt, seed))
                     for seed in another_seed_of_this_prompt
-                    if seed != base_data.seed 
-                        and self.cache.get((base_data.prompt, seed)) is not None
+                    if seed != base_data.seed and self.cache.get((base_data.prompt, seed)) is not None
                 ]
                 cosine_similarity_scores = self.rewarder.get_cosine_similarity(miner_image, validator_images_for_this_prompt)
-                if cosine_similarity_scores[i] > self.cosine_similarity_threshold_for_check_cache:
-                    rewards[i] = -1.0
-                    
+                for j, score in enumerate(cosine_similarity_scores):
+                    if score > self.cosine_similarity_threshold_for_check_cache:
+                        rewards[i] = -1.0
+                        break
+                        
         return rewards
 
 class OpenCategoryRewardApp(BaseRewardApp):
