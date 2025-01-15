@@ -617,6 +617,7 @@ class Validator(BaseValidatorNeuron):
         )
         for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):            
             uids, should_rewards = zip(*uids_should_rewards)
+            bt.logging.info(f"Quering {uids}, Should reward: {should_rewards}")
             if not synapse:
                 continue
             base_synapse = synapse.model_copy()
