@@ -189,6 +189,7 @@ class FixedCategoryRewardApp(BaseRewardApp):
                 cosine_similarity_scores = self.rewarder.get_cosine_similarity(validator_images_for_this_prompt, miner_image)
                 if cosine_similarity_scores[i] > self.cosine_similarity_threshold_for_check_cache:
                     rewards[i] = -1.0
+                    
         return rewards
 
 class OpenCategoryRewardApp(BaseRewardApp):
