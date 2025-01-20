@@ -102,34 +102,44 @@ class CosineSimilarityReward(nn.Module):
             miner_image: str|Image.Image, 
             old_validator_image: List[str|Image.Image]
         ):
-        if not isinstance(miner_image, Image.Image):
-            miner_image = base64_to_pil_image(miner_image)
+        if len(old_validator_image) == 0:
+            return []
         
-        # Convert miner image to tensor once
-        miner_tensor = self.transforms(miner_image).unsqueeze(0).to(self.device)
-        
-        # Process all validator images in a single batch
-        validator_tensors = []
-        for validator_image in old_validator_image:
-            if not isinstance(validator_image, Image.Image):
-                validator_image = base64_to_pil_image(validator_image)
-            validator_tensor = self.transforms(validator_image).unsqueeze(0)
-            validator_tensors.append(validator_tensor)
-        
-        # Stack all validator tensors into a single batch
-        validator_batch = torch.cat(validator_tensors, dim=0).to(self.device)
-        
-        # Get embeddings for all images at once
-        validator_vecs = self.model(validator_batch)
-        miner_vec = self.model(miner_tensor)
-        
-        # Compute cosine similarity for all pairs at once
-        cosine_similarities = F.cosine_similarity(
-            validator_vecs,
-            miner_vec
-        )
-        
-        return cosine_similarities.tolist()
+        try:
+
+            if not isinstance(miner_image, Image.Image):
+                miner_image = base64_to_pil_image(miner_image)
+            
+            # Convert miner image to tensor once
+            miner_tensor = self.transforms(miner_image).unsqueeze(0).to(self.device)
+            
+            # Process all validator images in a single batch
+            validator_tensors = []
+            for validator_image in old_validator_image:
+                if not isinstance(validator_image, Image.Image):
+                    validator_image = base64_to_pil_image(validator_image)
+                validator_tensor = self.transforms(validator_image).unsqueeze(0)
+                validator_tensors.append(validator_tensor)
+            
+            # Stack all validator tensors into a single batch
+            validator_batch = torch.cat(validator_tensors, dim=0).to(self.device)
+            
+            # Get embeddings for all images at once
+            validator_vecs = self.model(validator_batch)
+            miner_vec = self.model(miner_tensor)
+            
+            # Compute cosine similarity for all pairs at once
+            cosine_similarities = F.cosine_similarity(
+                validator_vecs,
+                miner_vec
+            )
+            
+            return cosine_similarities.tolist()
+        except Exception as e:
+            print(f"Error in get_cosine_similarity: {e}")
+            import traceback
+            traceback.print_exc()
+            return []
 
     def get_black_hash(self, H, W) -> str:
         image = Image.new("RGB", (W, H), color="black")
