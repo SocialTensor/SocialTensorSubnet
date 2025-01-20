@@ -47,24 +47,28 @@ def skip(**kwargs):
 def get_challenge(
     url: str, synapses: List[ImageGenerating], backup_func: callable
 ) -> List[ImageGenerating]:
+    challenge = None
     for i, synapse in tqdm(enumerate(synapses), total=len(synapses)):
-        if not synapse:
-            continue
-        try:
-            data = synapse.deserialize()
-            with httpx.Client(timeout=httpx.Timeout(60)) as client:
-                response = client.post(url, json=data)
-            if response.status_code != 200:
-                challenge = backup_func()
-            else:
-                challenge = response.json()
-        except Exception as e:
-            bt.logging.warning(f"Error in get_challenge: {e}")
-            challenge = backup_func()
         if challenge:
             synapses[i] = synapse.copy(update=challenge)
         else:
-            synapses[i] = None
+            if not synapse:
+                continue
+            try:
+                data = synapse.deserialize()
+                with httpx.Client(timeout=httpx.Timeout(60)) as client:
+                    response = client.post(url, json=data)
+                if response.status_code != 200:
+                    challenge = backup_func()
+                else:
+                    challenge = response.json()
+            except Exception as e:
+                bt.logging.warning(f"Error in get_challenge: {e}")
+                challenge = backup_func()
+            if challenge:
+                synapses[i] = synapse.copy(update=challenge)
+            else:
+                synapses[i] = None
     return synapses
 
 def get_reward_offline(

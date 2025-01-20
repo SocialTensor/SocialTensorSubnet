@@ -42,6 +42,7 @@ class Miner(BaseMinerNeuron):
             )
             synapse.limit_params()
             synapse = await image_generation_subnet.miner.generate(self, synapse)
+
             self.num_processing_requests -= 1
         except Exception as e:
             bt.logging.warning(f"Error in forward_image: {e}")
@@ -114,6 +115,7 @@ class Miner(BaseMinerNeuron):
 
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
         bt.logging.info(f"synapse in blacklist {synapse}")
+
         try:
             if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
                 # Ignore requests from unrecognized entities.

@@ -16,6 +16,7 @@ from services.rewarding.open_category_reward import OpenCategoryReward
 import asyncio
 from services.owner_api_core import define_allowed_ips, filter_allowed_ips, limiter
 from prometheus_fastapi_instrumentator import Instrumentator
+import diskcache as dc
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -138,25 +139,60 @@ class BaseRewardApp:
     async def __call__(self, reward_request: RewardRequest):
         raise NotImplementedError("This method should be implemented by subclasses")
 
-
 class FixedCategoryRewardApp(BaseRewardApp):
     def __init__(self, model_handle: DeploymentHandle, args):
         super().__init__(args)
         self.rewarder = CosineSimilarityReward()
         self.model_handle = model_handle
+        self.cache = dc.Cache("reward_app_cache")
+        self.ttl = 600
+        self.prompt_cache = dc.Cache("prompt_cache")
+        self.reward_threshold_for_check_cache = 0.5
+        self.cosine_similarity_threshold_for_check_cache = 0.9
 
     async def __call__(self, reward_request: RewardRequest):
         base_data = reward_request.base_data
         miner_data = reward_request.miner_data
-        validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
+        validator_image = self.cache.get((base_data.prompt, base_data.seed))
+        if validator_image is None:
+            validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
+            self.cache.set((base_data.prompt, base_data.seed), validator_image, expire=self.ttl)
+
+            another_seed_of_this_prompt = self.prompt_cache.get(base_data.prompt)
+            if another_seed_of_this_prompt is None:
+                self.prompt_cache.set((base_data.prompt), [base_data.seed], expire=self.ttl)
+            else:
+                self.prompt_cache.set((base_data.prompt), another_seed_of_this_prompt + [base_data.seed], expire=self.ttl)
+
         miner_images = [d.image for d in miner_data]
         rewards = self.rewarder.get_reward(
             validator_image, miner_images, base_data.pipeline_type
         )
         rewards = [float(reward) for reward in rewards]
+
+        rewards = self.verify_miner_images(miner_images, rewards, base_data)
         print(rewards, flush=True)
         return {"rewards": rewards}
+    
+    def verify_miner_images(self, miner_images, rewards, base_data):
+        for i, miner_image in enumerate(miner_images):
+            if rewards[i] < self.reward_threshold_for_check_cache:
+                another_seed_of_this_prompt = self.prompt_cache.get(base_data.prompt)
+                if another_seed_of_this_prompt is None:
+                    continue
 
+                validator_images_for_this_prompt = [
+                    self.cache.get((base_data.prompt, seed))
+                    for seed in another_seed_of_this_prompt
+                    if seed != base_data.seed and self.cache.get((base_data.prompt, seed)) is not None
+                ]
+                cosine_similarity_scores = self.rewarder.get_cosine_similarity(miner_image, validator_images_for_this_prompt)
+                for j, score in enumerate(cosine_similarity_scores):
+                    if score > self.cosine_similarity_threshold_for_check_cache:
+                        rewards[i] = -1.0
+                        break
+                        
+        return rewards
 
 class OpenCategoryRewardApp(BaseRewardApp):
     def __init__(self, args):

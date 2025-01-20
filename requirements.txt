@@ -37,6 +37,7 @@ redis==5.2.0
 ctranslate2==4.5.0
 mediapipe==0.10.14
 timm==0.9.2
+diskcache==5.6.3
 
 # openai for pixtral multimodal
 openai @ git+https://github.com/vietbeu/openai-python.git
