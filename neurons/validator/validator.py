@@ -761,19 +761,21 @@ class Validator(BaseValidatorNeuron):
                     if len(self.rewarded_synapses[model_name]) > 0:
                         rand_val = random.random()
                         if rand_val < 0.8:  # 80% chance to use existing synapse
-                            synapses[i] = random.choice(self.rewarded_synapses[model_name]).model_copy()
+                            synapses[i] = random.choice(self.rewarded_synapses[model_name]).model_copy(deep=True)
                         elif rand_val < 0.9:  # 10% chance to use existing synapse with new seed
-                            synapse = random.choice(self.rewarded_synapses[model_name]).model_copy()
+                            synapse = random.choice(self.rewarded_synapses[model_name]).model_copy(deep=True)
                             synapse.seed = random.randint(0, 1e9)
                             synapses[i] = synapse
                         # else: 10% chance to use new synapse (already created)
-                    self.rewarded_synapses[model_name].append(synapses[i])
+                    self.rewarded_synapses[model_name].append(synapses[i].model_copy(deep=True))
                 else:
                     # select old not rewarded synapse with probability
-                    if random.random() < 0.3 and len(self.not_rewarded_synapses[model_name]) > 0:
-                        synapses[i] = random.choice(self.not_rewarded_synapses[model_name]).model_copy()
+                    if random.random() < 0.1 and len(self.not_rewarded_synapses[model_name]) > 0:
+                        synapses[i] = random.choice(self.not_rewarded_synapses[model_name]).model_copy(deep=True)
                     else:
-                        self.not_rewarded_synapses[model_name].append(synapses[i])
+                        # limit the number of not rewarded synapses to be less or equal the number of rewarded synapses
+                        if len(self.not_rewarded_synapses[model_name]) < len(self.rewarded_synapses[model_name]):
+                            self.not_rewarded_synapses[model_name].append(synapses[i].model_copy(deep=True))
 
         if self.nicheimage_catalogue[model_name]["reward_type"] == "open_category":
             # Reward same test for uids in same open category
