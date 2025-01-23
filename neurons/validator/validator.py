@@ -73,6 +73,7 @@ class QueryQueue:
                 else:
                     synthentic_model_queue.put(QueryItem(uid=uid, should_reward=True))
                     self.synthentic_rewarded.append(uid)
+
             for _ in range(int(proxy_rate_limit)):
                 proxy_model_queue.put(QueryItem(uid=uid))
         # Shuffle the queue
