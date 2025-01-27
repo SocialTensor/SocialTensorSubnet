@@ -77,7 +77,7 @@ def get_reward_GoJourney(
                 task_input["prompt"].split("--")[0].strip() != prompt.split("--")[0].strip()
             ):
                 bt.logging.info(
-                    f"Prompt mismatch: {task_input["prompt"]} != {prompt}"
+                    f"Prompt mismatch: {task_input['prompt']} != {prompt}"
                 )
                 reward = 0
             else:
