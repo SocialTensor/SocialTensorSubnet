@@ -62,9 +62,9 @@ def get_reward_GoJourney(
         try:
             synapse_response: dict = synapse.response_dict
             bt.logging.info(synapse_response)
-            task_id = synapse_response["data"]["task_id"]
+            task_id = synapse_response["task_id"]
             task_response = fetch_GoJourney(task_id)
-            task_input = task_response["data"]["input"]
+            task_input = task_response["meta"]["task_request"]
             task_status = task_response["status"]
             bt.logging.info(f"Synapse base: {base_synapse}")
             bt.logging.info(f"Task status: {task_status}")
