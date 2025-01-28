@@ -864,21 +864,18 @@ class Validator(BaseValidatorNeuron):
                 temp_incentive_weight = {
                     "RealitiesEdgeXL": 0.09,
                     "AnimeV3": 0.09,
-                    "JuggernautXL": 0.07,
                 }
             elif datetime.utcnow() < datetime(2025, 2, 3, 16, 0, 0):
                 # After first reduction - 50% weights
                 temp_incentive_weight = {
                     "RealitiesEdgeXL": 0.045,
                     "AnimeV3": 0.045,
-                    "JuggernautXL": 0.035,
                 }
             else:
                 # After second reduction - 0% weights
                 temp_incentive_weight = {
                     "RealitiesEdgeXL": 0.0,
                     "AnimeV3": 0.0,
-                    "JuggernautXL": 0.0,
                 }
             # TODO: after we updated weights, we need to update the model_incentive_weight in the miner_manager
             if model_name in temp_incentive_weight:
