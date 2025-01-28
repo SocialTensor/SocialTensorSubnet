@@ -1,7 +1,7 @@
 import timm
 import torch.nn.functional as F
 import torch.nn as nn
-from PIL import Image
+from PIL import Image, ImageChops
 import torch
 from typing import List
 from generation_models.utils import base64_to_pil_image
@@ -104,6 +104,67 @@ class CosineSimilarityReward(nn.Module):
         cosine_similarity_score = self.forward(validator_image, miner_image)
         print("Cosine Similarity Score:", cosine_similarity_score, flush=True)
         return cosine_similarity_score
+
+    def matching_image_2(
+        self, miner_image: Image.Image, validator_image: Image.Image
+    ) -> bool:
+        """Crop image regions with high similarity to calculate cosine similarity"""
+        W, H = validator_image.size
+        assert validator_image.size == miner_image.size, "Validator and miner image size must be the same"
+        nums_crop = 10
+        random_crop_size = 192
+        
+        # Get similarity map
+        normalized_diff = self.calculate_diff(miner_image, validator_image)
+        
+        # Convert to numpy array and find regions with highest similarity
+        similarity_map = np.array(normalized_diff)
+        score_list = []
+        
+        # Use sliding window to find regions with highest average similarity
+        best_regions = []
+        for y in range(0, H - random_crop_size, random_crop_size // 2):
+            for x in range(0, W - random_crop_size, random_crop_size // 2):
+                region_similarity = np.mean(similarity_map[y:y+random_crop_size, x:x+random_crop_size])
+                best_regions.append((x, y, region_similarity))
+        
+        # Sort regions by similarity and take top N
+        best_regions.sort(key=lambda x: x[2], reverse=True)
+        best_regions = best_regions[:nums_crop]
+        
+        # Calculate cosine similarity for best regions
+        for x, y, _ in best_regions:
+            _validator_image = validator_image.crop((x, y, x + random_crop_size, y + random_crop_size))
+            _miner_image = miner_image.crop((x, y, x + random_crop_size, y + random_crop_size))
+            cosine_similarity_score = self.forward(_validator_image, _miner_image, binary=False)
+            score_list.append(cosine_similarity_score)
+
+        return sum(score_list) / nums_crop
+    
+    def calculate_diff(img1, img2):
+        """
+        Compare two PIL images, return their similarity regions.
+
+        Parameters:
+            img1 (PIL.Image): The first image.
+            img2 (PIL.Image): The second image.
+        """
+        # Ensure the images are the same size
+        if img1.size != img2.size:
+            raise ValueError("Images must be the same size for comparison.")
+
+        # Convert images to grayscale
+        img1_gray = img1.convert("L")
+        img2_gray = img2.convert("L")
+
+        # Compute the absolute difference
+        diff = ImageChops.difference(img1_gray, img2_gray)
+
+        # Normalize the difference for visualization
+        diff_array = np.array(diff, dtype=np.float32)
+        normalized_diff = (255 - (diff_array / diff_array.max()) * 255).astype(np.uint8)
+
+        return normalized_diff
 
     def nsfw_filter(
         self, validator_image: Image.Image, miner_image: Image.Image
