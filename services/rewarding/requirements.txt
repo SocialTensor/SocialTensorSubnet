@@ -12,3 +12,4 @@ transformers
 omegaconf
 gunicorn
 prometheus-fastapi-instrumentator==6.0.0
+diskcache==5.6.3

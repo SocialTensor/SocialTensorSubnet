@@ -39,10 +39,9 @@ moderation_model = None
 
 
 def fetch_GoJourney(task_id):
-    endpoint = "https://api.midjourneyapi.xyz/mj/v2/fetch"
-    data = {"task_id": task_id}
-    response = requests.post(endpoint, json=data)
-    return response.json()
+    fetch_endpoint = "https://api.goapi.ai/api/v1/task/{task_id}"
+    fetch_response = requests.get(fetch_endpoint.format(task_id=task_id))
+    return fetch_response.json()
 
 
 def get_reward_GoJourney(
@@ -65,25 +64,24 @@ def get_reward_GoJourney(
             bt.logging.info(synapse_response)
             task_id = synapse_response["task_id"]
             task_response = fetch_GoJourney(task_id)
-            task_request = task_response["meta"]["task_request"]
+            task_input = task_response["meta"]["task_request"]
             task_status = task_response["status"]
             bt.logging.info(f"Synapse base: {base_synapse}")
             bt.logging.info(f"Task status: {task_status}")
-            bt.logging.info(f"Task request: {task_request}")
+            bt.logging.info(f"Task input: {task_input}")
             bt.logging.info(f"Task response: {task_response}")
             if task_status == "failed":
                 bt.logging.info("Task failed")
                 reward = 0
             elif (
-                task_request["prompt"].split("--")[0].strip()
-                != prompt.split("--")[0].strip()
+                task_input["prompt"].split("--")[0].strip() != prompt.split("--")[0].strip()
             ):
                 bt.logging.info(
-                    f"Prompt mismatch: {task_request['prompt']} != {prompt}"
+                    f"Prompt mismatch: {task_input['prompt']} != {prompt}"
                 )
                 reward = 0
             else:
-                process_mode = task_response["meta"]["task_request"]["process_mode"]
+                process_mode = task_input["process_mode"]
                 reward = reward_distribution[process_mode]
                 bt.logging.info(f"Process_mode: {process_mode}")
             rewards.append(reward)

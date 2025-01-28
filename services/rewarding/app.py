@@ -138,17 +138,24 @@ class BaseRewardApp:
     async def __call__(self, reward_request: RewardRequest):
         raise NotImplementedError("This method should be implemented by subclasses")
 
+import diskcache as dc
 
 class FixedCategoryRewardApp(BaseRewardApp):
     def __init__(self, model_handle: DeploymentHandle, args):
         super().__init__(args)
         self.rewarder = CosineSimilarityReward()
         self.model_handle = model_handle
+        self.cache = dc.Cache("fixed_category_cache", size_limit=5*1024*1024*1024) # 5GB
+        self.ttl = 600
 
     async def __call__(self, reward_request: RewardRequest):
         base_data = reward_request.base_data
         miner_data = reward_request.miner_data
-        validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
+        validator_image = self.cache.get(base_data)
+        if not validator_image:
+            validator_image = await self.model_handle.generate.remote(prompt_data=base_data)
+            self.cache.set(base_data, validator_image, expire=self.ttl)
+
         miner_images = [d.image for d in miner_data]
         rewards = self.rewarder.get_reward(
             validator_image, miner_images, base_data.pipeline_type
