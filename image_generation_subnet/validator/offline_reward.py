@@ -39,9 +39,10 @@ moderation_model = None
 
 
 def fetch_GoJourney(task_id):
-    fetch_endpoint = "https://api.goapi.ai/api/v1/task/{task_id}"
-    fetch_response = requests.get(fetch_endpoint.format(task_id=task_id))
-    return fetch_response.json()
+    endpoint = "https://api.midjourneyapi.xyz/mj/v2/fetch"
+    data = {"task_id": task_id}
+    response = requests.post(endpoint, json=data)
+    return response.json()
 
 
 def get_reward_GoJourney(
