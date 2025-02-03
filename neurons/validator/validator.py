@@ -1,29 +1,29 @@
-import time, asyncio
-import bittensor as bt
-import random
-import torch
-import pickle
-import numpy as np
-from image_generation_subnet.base.validator import BaseValidatorNeuron
-from neurons.validator.validator_proxy import ValidatorProxy
-from image_generation_subnet.validator import MinerManager
-import image_generation_subnet as ig_subnet
-import traceback
-import yaml
-import threading
-import math
-import queue
+import asyncio
 import json
-from image_generation_subnet.validator.offline_challenge import (
-    get_backup_image,
-    get_backup_prompt,
-    get_backup_llm_prompt,
-    get_backup_challenge_vqa,
-)
+import math
+import pickle
+import queue
+import random
+import threading
+import time
+import traceback
 from datetime import datetime
+
+import bittensor as bt
+import numpy as np
+import torch
+import yaml
+
+import image_generation_subnet as ig_subnet
+from generation_models.utils import random_image_size
+from image_generation_subnet.base.validator import BaseValidatorNeuron
+from image_generation_subnet.validator import MinerManager
+from image_generation_subnet.validator.offline_challenge import (
+    get_backup_challenge_vqa, get_backup_image, get_backup_llm_prompt,
+    get_backup_prompt)
+from neurons.validator.validator_proxy import ValidatorProxy
 from services.offline_rewarding.redis_client import RedisClient
 from services.offline_rewarding.reward_app import RewardApp
-from generation_models.utils import random_image_size
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -616,12 +616,51 @@ class Validator(BaseValidatorNeuron):
         synapses, batched_uids_should_rewards = self.prepare_challenge(
             uids_should_rewards, model_name, pipeline_type
         )
-        for synapse, uids_should_rewards in zip(synapses, batched_uids_should_rewards):
+
+        def query_axons(axons, synapses):
+            """
+            Query asynchronously multiple axons with multiple synapses
+            """
+            responses = [None] * len(axons)
+            try:
+                loop = asyncio.get_event_loop()
+                responses = loop.run_until_complete(asyncio.gather(
+                    *(dendrite.call(
+                        axons, 
+                        synapse, 
+                        deserialize=False, 
+                        timeout=self.nicheimage_catalogue[model_name]["timeout"]
+                    ) for (axons, synapse) in zip(axons, synapses))
+                ))
+            except Exception:
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                responses = new_loop.run_until_complete(asyncio.gather(
+                    *(dendrite.call(
+                        axons, 
+                        synapse, 
+                        deserialize=False, 
+                        timeout=self.nicheimage_catalogue[model_name]["timeout"]
+                    ) for (axons, synapse) in zip(axons, synapses))
+                ))
+                new_loop.close()
+            finally:
+                dendrite.close_session()
+                return responses
+            
+        axons = []
+        for uid in uids:
+            if uid in self.miner_manager.layer_one_axons:
+                axons.append(self.miner_manager.layer_one_axons[uid])
+            else:
+                axons.append(self.metagraph.axons[uid])
+        _responses = query_axons(axons, synapses)
+
+        for synapse, uids_should_rewards, response in zip(synapses, batched_uids_should_rewards, _responses):
             uids, should_rewards = zip(*uids_should_rewards)
             bt.logging.info(f"Quering {uids}, Should reward: {should_rewards}")
             if not synapse:
                 continue
-            # base_synapse = synapse.copy()
             base_synapse = synapse.model_copy()
             if (
                 self.offline_reward
@@ -638,12 +677,7 @@ class Validator(BaseValidatorNeuron):
                 else:
                     axons.append(self.metagraph.axons[uid])
 
-            responses = dendrite.query(
-                axons=axons,
-                synapse=synapse,
-                deserialize=False,
-                timeout=self.nicheimage_catalogue[model_name]["timeout"],
-            )
+            responses = [response]
             reward_responses = [
                 response
                 for response, should_reward in zip(responses, should_rewards)
@@ -696,7 +730,7 @@ class Validator(BaseValidatorNeuron):
                             self.miner_manager,
                         )
 
-                        # Scale Reward based on Miner Volume
+                    # Scale Reward based on Miner Volume
                     for i, uid in enumerate(reward_uids):
                         if rewards[i] > 0:
                             rewards[i] = rewards[i] * (

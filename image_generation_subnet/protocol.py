@@ -1,15 +1,17 @@
-import time
-import json
-import bittensor as bt
-from bittensor_wallet import Keypair
-import pydantic
-from generation_models.utils import base64_to_pil_image
-import typing
-import yaml
-import requests
-import traceback
+import asyncio
 import copy
+import json
+import time
+import traceback
+import typing
 
+import bittensor as bt
+import pydantic
+import requests
+import yaml
+from bittensor_wallet import Keypair
+
+from generation_models.utils import base64_to_pil_image
 
 MODEL_CONFIG = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
