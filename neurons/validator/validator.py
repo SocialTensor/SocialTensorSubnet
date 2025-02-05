@@ -654,7 +654,11 @@ class Validator(BaseValidatorNeuron):
                 axons.append(self.miner_manager.layer_one_axons[uid])
             else:
                 axons.append(self.metagraph.axons[uid])
-        _responses = query_axons(axons, synapses)
+
+        batch_size = min(4, 1 + len(axons) // 4)
+        _responses = []
+        for i in range(0, len(synapses), batch_size):
+            _responses.extend(query_axons(axons[i:i+batch_size], synapses[i:i+batch_size]))
 
         for synapse, uids_should_rewards, response in zip(synapses, batched_uids_should_rewards, _responses):
             uids, should_rewards = zip(*uids_should_rewards)
