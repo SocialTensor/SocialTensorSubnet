@@ -268,6 +268,7 @@ def initialize_nicheimage_catalogue(config):
             "reward_type": "image",
             "inference_params": {"is_upscale": False},
         },
+        # TODO: Delete this model if not used
         "Llama3_70b": {
             "supporting_pipelines": MODEL_CONFIGS["Llama3_70b"]["params"][
                 "supporting_pipelines"
@@ -287,6 +288,17 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 128,
             "synapse_type": ig_subnet.protocol.TextGenerating,
             "reward_url": config.reward_url.Llama3_3_70b,
+            "reward_type": "text",
+            "inference_params": {},
+        },
+        "DeepSeek_R1_Distill_Llama_70B": {
+            "supporting_pipelines": MODEL_CONFIGS["DeepSeek_R1_Distill_Llama_70B"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.00, # TODO: Add this model
+            "timeout": 128,
+            "synapse_type": ig_subnet.protocol.TextGenerating,
+            "reward_url": config.reward_url.DeepSeek_R1_Distill_Llama_70B,
             "reward_type": "text",
             "inference_params": {},
         },

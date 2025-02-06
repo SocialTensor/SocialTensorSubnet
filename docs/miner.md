@@ -11,6 +11,7 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | GoJourney       | 4%                     | 12 |
 | Llama3_70b         | 0%                     | 128 |
 | Llama3_3_70b         | 7%                     | 128 |
+| DeepSeek_R1_Distill_Llama_70B | # TODO: Add this model% | 128 |
 | Gemma7b         | 3%                     | 64 |
 | StickerMaker    | 3%                     | 64 |
 | SUPIR     | 8%                     | 180 |
@@ -38,7 +39,7 @@ git submodule update --init --recursive
 2. Select miner based on incentive distribution and subnet state at https://nicheimage.streamlit.app/
 3. Setup prequisites if needed
 - For StickerMaker & FaceToMany, find the guide [here](comfyui_category.md)
-- For Gemma7b, Llama3_70b, Llama3_3_70b, Pixtral_12B, find the guide [here](vllm_category.md)
+- For Gemma7b, Llama3_70b, Llama3_3_70b, DeepSeek_R1_Distill_Llama_70B, Pixtral_12B, find the guide [here](vllm_category.md)
 - For GoJourney, register [here](https://www.goapi.ai/midjourney-api) and get the `GOJOURNEY_API_KEY`
 
 4. Start the endpoint

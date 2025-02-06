@@ -27,6 +27,7 @@ Gemma7b:
     supporting_pipelines:
       - "text_generation"
 
+# TODO: Delete this model if not used
 Llama3_70b:
   target: ""
   repo_id: "casperhansen/llama-3-70b-instruct-awq"
@@ -37,6 +38,13 @@ Llama3_70b:
 Llama3_3_70b:
   target: ""
   repo_id: "casperhansen/llama-3.3-70b-instruct-awq"
+  params:
+    supporting_pipelines:
+      - "text_generation"
+
+DeepSeek_R1_Distill_Llama_70B:
+  target: ""
+  repo_id: "Valdemardi/DeepSeek-R1-Distill-Llama-70B-AWQ"
   params:
     supporting_pipelines:
       - "text_generation"

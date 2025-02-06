@@ -200,6 +200,13 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
+            "--reward_url.DeepSeek_R1_Distill_Llama_70B",
+            type=str,
+            help="The endpoint to get the reward for DeepSeek_R1_Distill_Llama_70B.",
+            default="https://nicheimage-api.nichetensor.com/reward/DeepSeek_R1_Distill_Llama_70B",
+        )
+
+        parser.add_argument(
             "--reward_url.JuggernautXL",
             type=str,
             help="",
