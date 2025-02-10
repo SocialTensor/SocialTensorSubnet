@@ -16,21 +16,17 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 
 | Category        | Incentive Distribution | Description                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
-| 🧭 GoJourney       | 4%                     | Fixed Image Category                                                                                        |
-| 🌀 AnimeV3         | 9%                    | Fixed Image Category                                                                                  |
-| ⚔️ JuggernautXL | 7%                    | Fixed Image Category                                                            |
-| 🏞️ RealitiesEdgeXL  | 9%                    | Fixed Image Category                                                      |
-| 💎 Gemma7b         | 3%                     | Fixed Text Category                                                     |
-| 🦙 Llama3_3_70b      | 7%                     | Fixed Text Category|
-| 🏷️ StickerMaker    | 3%                     | Fixed Image Category |
-| 🌟 SUPIR    | 8%                     | Fixed Image Category |
+| 🧭 GoJourney       | 5%                     | Fixed Image Category                                                                                        |
+| 🌟 SUPIR    | 7%                     | Fixed Image Category |
+| 🌟 FluxSchnell | 20% | Fixed Image Category |
 | 🌟 Kolors | 10% | Fixed Image Category |
-| 🌟🌟 FluxSchnell | 12% | Fixed Image Category |
-| **Pixtral_12b** | 4% | Fixed Multimodal Category |
-| **OpenGeneral** | 8% | [Open category](/docs/open_category_reward_mechanism.md) |
-| **OpenDigitalArt** | 8% | [Open category](/docs/open_category_reward_mechanism.md) |
-| **OpenTraditionalArt** | 8% | [Open category](/docs/open_category_reward_mechanism.md) |
-  
+| **OpenGeneral** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
+| **OpenDigitalArt** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
+| **OpenDigitalArtMinimalist** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
+| **OpenTraditionalArtSketch** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
+| **Pixtral_12b** | 5% | Fixed Multimodal Category |
+| 🐋 DeepSeek_R1_Distill_Llama_70B | 10% | Fixed Text Category |
+| None | 3% | Distributed equally amongst uids |
 
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.

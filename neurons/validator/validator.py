@@ -187,7 +187,7 @@ def initialize_challenge_urls(config):
 def initialize_nicheimage_catalogue(config):
     nicheimage_catalogue = {
         "GoJourney": {
-            "model_incentive_weight": 0.04,
+            "model_incentive_weight": 0.05,
             "supporting_pipelines": MODEL_CONFIGS["GoJourney"]["params"][
                 "supporting_pipelines"
             ],
@@ -196,99 +196,6 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 12,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "JuggernautXL": {
-            "supporting_pipelines": MODEL_CONFIGS["JuggernautXL"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.07,
-            "reward_url": config.reward_url.JuggernautXL,
-            "reward_type": "image",
-            "inference_params": {
-                "num_inference_steps": 30,
-                "width": 1024,
-                "height": 1024,
-                "guidance_scale": 6,
-            },
-            "timeout": 12,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "RealitiesEdgeXL": {
-            "supporting_pipelines": MODEL_CONFIGS["RealitiesEdgeXL"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.09,
-            "reward_url": config.reward_url.RealitiesEdgeXL,
-            "reward_type": "image",
-            "inference_params": {
-                "num_inference_steps": 7,
-                "width": 1024,
-                "height": 1024,
-                "guidance_scale": 5.5,
-            },
-            "timeout": 12,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "AnimeV3": {
-            "supporting_pipelines": MODEL_CONFIGS["AnimeV3"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.09,
-            "reward_url": config.reward_url.AnimeV3,
-            "reward_type": "image",
-            "inference_params": {
-                "num_inference_steps": 25,
-                "width": 1024,
-                "height": 1024,
-                "guidance_scale": 7.0,
-                "negative_prompt": "out of frame, nude, duplicate, watermark, signature, mutated, text, blurry, worst quality, low quality, artificial, texture artifacts, jpeg artifacts",
-            },
-            "timeout": 12,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "Gemma7b": {
-            "supporting_pipelines": MODEL_CONFIGS["Gemma7b"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.03,
-            "timeout": 64,
-            "synapse_type": ig_subnet.protocol.TextGenerating,
-            "reward_url": config.reward_url.Gemma7b,
-            "reward_type": "text",
-            "inference_params": {},
-        },
-        "StickerMaker": {
-            "supporting_pipelines": MODEL_CONFIGS["StickerMaker"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.03,
-            "timeout": 64,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "reward_url": config.reward_url.StickerMaker,
-            "reward_type": "image",
-            "inference_params": {"is_upscale": False},
-        },
-        "Llama3_70b": {
-            "supporting_pipelines": MODEL_CONFIGS["Llama3_70b"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.00,
-            "timeout": 128,
-            "synapse_type": ig_subnet.protocol.TextGenerating,
-            "reward_url": config.reward_url.Llama3_70b,
-            "reward_type": "text",
-            "inference_params": {},
-        },
-        "Llama3_3_70b": {
-            "supporting_pipelines": MODEL_CONFIGS["Llama3_3_70b"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.07,
-            "timeout": 128,
-            "synapse_type": ig_subnet.protocol.TextGenerating,
-            "reward_url": config.reward_url.Llama3_3_70b,
-            "reward_type": "text",
-            "inference_params": {},
         },
         "SUPIR": {
             "supporting_pipelines": MODEL_CONFIGS["SUPIR"]["params"][
@@ -299,13 +206,13 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 180,
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "model_incentive_weight": 0.08,
+            "model_incentive_weight": 0.07,
         },
         "FluxSchnell": {
             "supporting_pipelines": MODEL_CONFIGS["FluxSchnell"]["params"][
                 "supporting_pipelines"
             ],
-            "model_incentive_weight": 0.12,
+            "model_incentive_weight": 0.20,
             "reward_url": config.reward_url.FluxSchnell,
             "reward_type": "image",
             "inference_params": {
@@ -335,7 +242,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenGeneral": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.08,
+            "model_incentive_weight": 0.10,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -344,16 +251,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenDigitalArt": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.02,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenDigitalArtAnime": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.02,
+            "model_incentive_weight": 0.10,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -362,34 +260,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenDigitalArtMinimalist": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.02,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenDigitalArtPixelArt": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.02,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenTraditionalArt": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.02,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenTraditionalArtPainting": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.02,
+            "model_incentive_weight": 0.10,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -398,16 +269,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "OpenTraditionalArtSketch": {
             "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.02,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenTraditionalArtComic": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.02,
+            "model_incentive_weight": 0.10,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -416,7 +278,7 @@ def initialize_nicheimage_catalogue(config):
         },
         "Pixtral_12b": {
             "supporting_pipelines": ["visual_question_answering"],
-            "model_incentive_weight": 0.04,
+            "model_incentive_weight": 0.05,
             "reward_url": config.reward_url.Pixtral_12b,
             "reward_type": "text",
             "inference_params": {
@@ -428,13 +290,118 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 64,
             "synapse_type": ig_subnet.protocol.MultiModalGenerating,
         },
+        "DeepSeek_R1_Distill_Llama_70B": {
+            "supporting_pipelines": MODEL_CONFIGS["DeepSeek_R1_Distill_Llama_70B"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.10,
+            "timeout": 128,
+            "synapse_type": ig_subnet.protocol.TextGenerating,
+            "reward_url": config.reward_url.DeepSeek_R1_Distill_Llama_70B,
+            "reward_type": "text",
+            "inference_params": {},
+        },
+        # Old models, remove after next update
+        "JuggernautXL": {
+            "supporting_pipelines": MODEL_CONFIGS["JuggernautXL"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.00,
+            "reward_url": config.reward_url.JuggernautXL,
+            "reward_type": "image",
+            "inference_params": {
+                "num_inference_steps": 30,
+                "width": 1024,
+                "height": 1024,
+                "guidance_scale": 6,
+            },
+            "timeout": 12,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "Gemma7b": {
+            "supporting_pipelines": MODEL_CONFIGS["Gemma7b"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.00,
+            "timeout": 64,
+            "synapse_type": ig_subnet.protocol.TextGenerating,
+            "reward_url": config.reward_url.Gemma7b,
+            "reward_type": "text",
+            "inference_params": {},
+        },
+        "StickerMaker": {
+            "supporting_pipelines": MODEL_CONFIGS["StickerMaker"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.00,
+            "timeout": 64,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+            "reward_url": config.reward_url.StickerMaker,
+            "reward_type": "image",
+            "inference_params": {"is_upscale": False},
+        },
+        "Llama3_3_70b": {
+            "supporting_pipelines": MODEL_CONFIGS["Llama3_3_70b"]["params"][
+                "supporting_pipelines"
+            ],
+            "model_incentive_weight": 0.00,
+            "timeout": 128,
+            "synapse_type": ig_subnet.protocol.TextGenerating,
+            "reward_url": config.reward_url.Llama3_3_70b,
+            "reward_type": "text",
+            "inference_params": {},
+        },
+        "OpenDigitalArtAnime": {
+            "supporting_pipelines": ["open_txt2img"],
+            "model_incentive_weight": 0.00,
+            "reward_url": config.reward_url.OpenCategory,
+            "reward_type": "open_category",
+            "inference_params": {},
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "OpenDigitalArtPixelArt": {
+            "supporting_pipelines": ["open_txt2img"],
+            "model_incentive_weight": 0.00,
+            "reward_url": config.reward_url.OpenCategory,
+            "reward_type": "open_category",
+            "inference_params": {},
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "OpenTraditionalArt": {
+            "supporting_pipelines": ["open_txt2img"],
+            "model_incentive_weight": 0.00,
+            "reward_url": config.reward_url.OpenCategory,
+            "reward_type": "open_category",
+            "inference_params": {},
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "OpenTraditionalArtPainting": {
+            "supporting_pipelines": ["open_txt2img"],
+            "model_incentive_weight": 0.00,
+            "reward_url": config.reward_url.OpenCategory,
+            "reward_type": "open_category",
+            "inference_params": {},
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
+        "OpenTraditionalArtComic": {
+            "supporting_pipelines": ["open_txt2img"],
+            "model_incentive_weight": 0.00,
+            "reward_url": config.reward_url.OpenCategory,
+            "reward_type": "open_category",
+            "inference_params": {},
+            "timeout": 32,
+            "synapse_type": ig_subnet.protocol.ImageGenerating,
+        },
     }
 
     sum_incentive = 0
     for k, v in nicheimage_catalogue.items():
         sum_incentive += v["model_incentive_weight"]
     bt.logging.info(f"Sum incentive in code: {sum_incentive}")
-    assert abs(sum_incentive - 1) < 1e-4
 
     return nicheimage_catalogue
 
@@ -821,6 +788,7 @@ class Validator(BaseValidatorNeuron):
         - Apply rank weight for open category model.
         """
         weights = np.zeros(len(self.miner_manager.all_uids))
+        assigned_emission = 0
 
         for model_name in self.nicheimage_catalogue.keys():
             model_specific_weights = self.miner_manager.get_model_specific_weights(model_name)
@@ -842,72 +810,30 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.debug(f"Normalized {model_name} weights\n{model_specific_weights}")
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2024, 12, 12, 14, 0, 0):
+            if datetime.utcnow() < datetime(2025, 2, 11, 16, 0, 0):
                 temp_incentive_weight = {
-                    "RealitiesEdgeXL": 0.13,
-                    "AnimeV3": 0.12,
-                    "JuggernautXL": 0.10,
-                    "Llama3_3_70b": 0.00,
-                    "Llama3_70b": 0.05,
-                    "OpenDigitalArt": 0.08,
-                    "OpenDigitalArtAnime": 0.00,
-                    "OpenDigitalArtMinimalist": 0.00,
-                    "OpenDigitalArtPixelArt": 0.00,
-                    "OpenTraditionalArt": 0.00,
-                    "OpenTraditionalArtPainting": 0.00,
-                    "OpenTraditionalArtSketch": 0.00,
-                    "OpenTraditionalArtComic": 0.00,
+                    "GoJourney": 0.04,
+                    "JuggernautXL": 0.07,
+                    "Gemma7b": 0.03,
+                    "StickerMaker": 0.03,
+                    "Llama3_3_70b": 0.07,
+                    "SUPIR": 0.08,
+                    "FluxSchnell": 0.12,
+                    "Kolors": 0.10,
+                    "OpenGeneral": 0.08,
+                    "OpenDigitalArt": 0.02,
+                    "OpenDigitalArtAnime": 0.02,
+                    "OpenDigitalArtMinimalist": 0.02,
+                    "OpenDigitalArtPixelArt": 0.02,
+                    "OpenTraditionalArt": 0.02,
+                    "OpenTraditionalArtPainting": 0.02,
+                    "OpenTraditionalArtSketch": 0.02,
+                    "OpenTraditionalArtComic": 0.02,
+                    "Pixtral_12b": 0.04,
+                    # New models
+                    "DeepSeek_R1_Distill_Llama_70B": 0.05,
                 }
-            elif datetime.utcnow() < datetime(2024, 12, 19, 14, 0, 0):
-                temp_incentive_weight = {
-                    "RealitiesEdgeXL": 0.115,
-                    "AnimeV3": 0.11,
-                    "JuggernautXL": 0.095,
-                    "Llama3_3_70b": 0.025,
-                    "Llama3_70b": 0.025,
-                    "OpenDigitalArt": 0.05,
-                    "OpenDigitalArtAnime": 0.01,
-                    "OpenDigitalArtMinimalist": 0.01,
-                    "OpenDigitalArtPixelArt": 0.01,
-                    "OpenTraditionalArt": 0.0075,
-                    "OpenTraditionalArtPainting": 0.0075,
-                    "OpenTraditionalArtSketch": 0.0075,
-                    "OpenTraditionalArtComic": 0.0075,
-                }
-            elif datetime.utcnow() < datetime(2024, 12, 26, 14, 0, 0):
-                temp_incentive_weight = {
-                    "RealitiesEdgeXL": 0.10,
-                    "AnimeV3": 0.10,
-                    "JuggernautXL": 0.09,
-                    "Llama3_3_70b": 0.03,
-                    "Llama3_70b": 0.02,
-                    "OpenDigitalArt": 0.035,
-                    "OpenDigitalArtAnime": 0.015,
-                    "OpenDigitalArtMinimalist": 0.015,
-                    "OpenDigitalArtPixelArt": 0.015,
-                    "OpenTraditionalArt": 0.015,
-                    "OpenTraditionalArtPainting": 0.015,
-                    "OpenTraditionalArtSketch": 0.015,
-                    "OpenTraditionalArtComic": 0.015,
-                }
-            elif datetime.utcnow() < datetime(2025, 1, 30, 16, 0, 0):
-                # Before first reduction - original weights
-                temp_incentive_weight = {
-                    "RealitiesEdgeXL": 0.09,
-                    "AnimeV3": 0.09,
-                }
-            elif datetime.utcnow() < datetime(2025, 2, 3, 16, 0, 0):
-                # After first reduction - 50% weights
-                temp_incentive_weight = {
-                    "RealitiesEdgeXL": 0.045,
-                    "AnimeV3": 0.045,
-                }
-            else:
-                # After second reduction - 0% weights
-                temp_incentive_weight = {
-                    "RealitiesEdgeXL": 0.0,
-                    "AnimeV3": 0.0,
-                }
+
             # TODO: after we updated weights, we need to update the model_incentive_weight in the miner_manager
             if model_name in temp_incentive_weight:
                 bt.logging.info(
@@ -916,16 +842,24 @@ class Validator(BaseValidatorNeuron):
                 model_specific_weights = (
                     model_specific_weights * temp_incentive_weight[model_name]
                 )
+                assigned_emission += temp_incentive_weight[model_name]
             else:
                 model_specific_weights = (
                     model_specific_weights
                     * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
                 )
+                assigned_emission += self.nicheimage_catalogue[model_name]["model_incentive_weight"]
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )
 
             weights = weights + model_specific_weights
+
+        # Unassigned emission is distributed equally amongst uids
+        if assigned_emission < 1:
+            unassigned_emission = 1 - assigned_emission
+            weights = weights + unassigned_emission
+            bt.logging.info(f"Unassigned emission: {unassigned_emission}")
 
         # Check if rewards contains NaN values.
         if np.isnan(weights).any():
