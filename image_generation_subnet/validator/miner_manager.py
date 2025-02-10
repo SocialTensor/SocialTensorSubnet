@@ -77,7 +77,10 @@ class MinerManager:
                 {"scores": [], "model_name": "", "process_time": []},
             )
             model_name = info.get("model_name", "")
-            miner_state["total_volume"] = info.get("total_volume", 40)
+            raw_volume = info.get("total_volume", 40)  # Default to 40 if not specified
+            min_allowed_volume = 40
+            max_allowed_volume = 256
+            miner_state["total_volume"] = min(max(raw_volume, min_allowed_volume), max_allowed_volume)
             miner_state["min_stake"] = info.get("min_stake", 10000)
             miner_state["reward_scale"] = max(
                 min(miner_state["total_volume"] ** 0.5 / 256**0.5, 1), 0
