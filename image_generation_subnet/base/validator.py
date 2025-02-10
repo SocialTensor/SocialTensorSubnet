@@ -221,35 +221,35 @@ class BaseValidatorNeuron(BaseNeuron):
             np.ndarray: Array of bonus scores matching the shape of self.scores
         """
         # Initialize bonus scores array
-        mean_scores = np.mean(self.scores)
         bonus_scores = np.zeros_like(self.scores)
-        
-        # Define bonus percentages for each day since registration
-        bonus_percent_dict = {
-            day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
-            for day in range(0, 10)
-        }
-
-        # Calculate timestamp for 10 days ago
-        days_to_check = 10
-        timestamp_start = int((datetime.now(timezone.utc) - timedelta(days=days_to_check)).timestamp())
-        
-        # Construct API URL
-        url = (
-            "https://api.taostats.io/api/subnet/neuron/registration/v1"
-            f"?netuid={self.config.netuid}"
-            f"&timestamp_start={timestamp_start}"
-            f"&limit=1000"  # Maximum UIDs to check
-            f"&order=timestamp_desc"
-        )
-
-        # Set up request headers
-        headers = {
-            "accept": "application/json",
-            "Authorization": f"{self.config.tao_api_key}"
-        }
-
         try:
+            mean_scores = np.mean(self.scores)
+            
+            # Define bonus percentages for each day since registration
+            bonus_percent_dict = {
+                day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
+                for day in range(0, 10)
+            }
+
+            # Calculate timestamp for 10 days ago
+            days_to_check = 10
+            timestamp_start = int((datetime.now(timezone.utc) - timedelta(days=days_to_check)).timestamp())
+            
+            # Construct API URL
+            url = (
+                "https://api.taostats.io/api/subnet/neuron/registration/v1"
+                f"?netuid={self.config.netuid}"
+                f"&timestamp_start={timestamp_start}"
+                f"&limit=1000"  # Maximum UIDs to check
+                f"&order=timestamp_desc"
+            )
+
+            # Set up request headers
+            headers = {
+                "accept": "application/json",
+                "Authorization": f"{self.config.tao_api_key}"
+            }
+
             # Fetch registration data
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
@@ -272,8 +272,8 @@ class BaseValidatorNeuron(BaseNeuron):
                         
         except Exception as e:
             bt.logging.error(f"Error getting bonus scores: {e}")
-            
-        return bonus_scores
+        finally:
+            return bonus_scores
 
     def set_weights(self):
         """
