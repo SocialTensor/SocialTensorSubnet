@@ -788,7 +788,6 @@ class Validator(BaseValidatorNeuron):
         - Apply rank weight for open category model.
         """
         weights = np.zeros(len(self.miner_manager.all_uids))
-        assigned_emission = 0
 
         for model_name in self.nicheimage_catalogue.keys():
             model_specific_weights = self.miner_manager.get_model_specific_weights(model_name)
@@ -869,24 +868,16 @@ class Validator(BaseValidatorNeuron):
                 model_specific_weights = (
                     model_specific_weights * temp_incentive_weight[model_name]
                 )
-                assigned_emission += temp_incentive_weight[model_name]
             else:
                 model_specific_weights = (
                     model_specific_weights
                     * self.nicheimage_catalogue[model_name]["model_incentive_weight"]
                 )
-                assigned_emission += self.nicheimage_catalogue[model_name]["model_incentive_weight"]
             bt.logging.info(
                 f"model_specific_weights for {model_name}\n{model_specific_weights}"
             )
 
             weights = weights + model_specific_weights
-
-        # Unassigned emission is distributed equally amongst uids
-        if assigned_emission < 1:
-            unassigned_emission = 1 - assigned_emission
-            weights = weights + unassigned_emission
-            bt.logging.info(f"Unassigned emission: {unassigned_emission}")
 
         # Check if rewards contains NaN values.
         if np.isnan(weights).any():
@@ -902,6 +893,7 @@ class Validator(BaseValidatorNeuron):
         state = {
             "step": self.step,
             "all_uids_info": self.miner_manager.all_uids_info,
+            "registration_log": self.miner_manager.registration_log,
         }
         try:
             # Open the file in write-binary mode
@@ -928,6 +920,7 @@ class Validator(BaseValidatorNeuron):
                 # Restore state from pickle file
                 self.step = state["step"]
                 self.miner_manager.all_uids_info = state["all_uids_info"]
+                self.miner_manager.registration_log = state["registration_log"]
                 bt.logging.info("Successfully loaded state from .pkl file")
                 return  # Exit after successful load from .pkl
 
@@ -942,6 +935,7 @@ class Validator(BaseValidatorNeuron):
                 # Restore state from .pt file
                 self.step = state["step"]
                 self.miner_manager.all_uids_info = state["all_uids_info"]
+                self.miner_manager.registration_log = state["registration_log"]
                 bt.logging.info("Successfully loaded state from .pt file")
 
             except Exception as e:

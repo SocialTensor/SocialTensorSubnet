@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import time
 import bittensor as bt
@@ -17,6 +18,22 @@ class MinerManager:
             uid: {"scores": [], "model_name": "", "process_time": []}
             for uid in self.all_uids
         }
+        self.registration_log ={
+            uid: {
+                "hotkey_ss58": self.validator.metagraph.hotkeys[uid],
+                "timestamp": datetime.utcnow().isoformat(),
+            }
+            for uid in self.all_uids
+        }
+        # We will host the API for several days. After that, validators will need 
+        # to copy state.pkl file to new device if they change devices.
+        if datetime.utcnow() < datetime(2025, 2, 20, 0, 0, 0):
+            registration_log_url = "https://nicheimage-api.nichetensor.com/registration_log"
+            try:
+                self.registration_log = requests.get(registration_log_url).json()
+            except Exception as e:
+                bt.logging.error(f"Failed to get registration log: {e}")
+            
         self.layer_one_axons = {}
 
     def get_miner_info(self, only_layer_one=False):

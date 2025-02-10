@@ -23,8 +23,7 @@ pm2 start python --name "validator_nicheimage" \
 --axon.port <your_public_port> \
 --proxy.port <other_public_port> # Optional, pass if you want allow queries through your validator and get paid
 --share_response # Optional, sharing miner's response and get paid, require a good bandwidth
---subtensor.network <network> \
---tao_api_key <your_tao_api_key> # Required for validator operation, get it from https://dash.taostats.io/, free tier is enough
+--subtensor.network <network>
 ```
 If you want to run validation APIs locally, check out [Setup validator endpoint](validator_endpoint.md)
 

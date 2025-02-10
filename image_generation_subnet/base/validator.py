@@ -4,14 +4,14 @@
 # Copyright © 2023 <your name>
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
+# documentation files (the "Software"), to deal in the Software without restriction, including without limitation
 # the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
 # and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 # The above copyright notice and this permission notice shall be included in all copies or substantial portions of
 # the Software.
 
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
 # THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
@@ -222,54 +222,38 @@ class BaseValidatorNeuron(BaseNeuron):
         """
         # Initialize bonus scores array
         bonus_scores = np.zeros_like(self.scores)
-        try:
-            mean_scores = np.mean(self.scores)
-            
+        try:            
             # Define bonus percentages for each day since registration
             bonus_percent_dict = {
                 day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
                 for day in range(0, 10)
             }
-
-            # Calculate timestamp for 10 days ago
-            days_to_check = 10
-            timestamp_start = int((datetime.now(timezone.utc) - timedelta(days=days_to_check)).timestamp())
+            days_since_registration_list = np.zeros_like(self.scores)
+            for uid in self.miner_manager.registration_log:
+                current_hotkey = self.metagraph.hotkeys[uid]
+                if current_hotkey != self.miner_manager.registration_log[uid]["hotkey_ss58"]:
+                    self.miner_manager.registration_log[uid]["hotkey_ss58"] = current_hotkey
+                    self.miner_manager.registration_log[uid]["timestamp"] = datetime.utcnow().isoformat()
+                days_since_registration = (
+                    datetime.now(timezone.utc) - 
+                    datetime.fromisoformat(
+                        self.miner_manager.registration_log[uid]["timestamp"]
+                    ).replace(tzinfo=timezone.utc)
+                ).days
+                days_since_registration_list[uid] = days_since_registration
+                if 0 <= days_since_registration < 10:
+                    bonus_scores[uid] = bonus_percent_dict[days_since_registration] * self.scores[uid]
             
-            # Construct API URL
-            url = (
-                "https://api.taostats.io/api/subnet/neuron/registration/v1"
-                f"?netuid={self.config.netuid}"
-                f"&timestamp_start={timestamp_start}"
-                f"&limit=1000"  # Maximum UIDs to check
-                f"&order=timestamp_desc"
-            )
-
-            # Set up request headers
-            headers = {
-                "accept": "application/json",
-                "Authorization": f"{self.config.tao_api_key}"
-            }
-
-            # Fetch registration data
-            response = requests.get(url, headers=headers, timeout=10)
-            if response.status_code == 200:
-                response = response.json()
-                bonused_uids = set() # ensure we don't apply bonus scores to the same uid more than once
-                for item in response['data']:
-                    uid = item['uid']
-                    if uid in bonused_uids:
-                        continue
-                    registration_time = datetime.fromisoformat(item['timestamp'].replace('Z', '+00:00'))
-                    current_time = datetime.now(timezone.utc)  # Make current time timezone-aware
-                    days_since_registration = (
-                        current_time - registration_time
-                    ).days
-                    
-                    # Apply bonus if registration is within the bonus period
-                    if 0 <= days_since_registration < days_to_check:
-                        bonus_scores[uid] = bonus_percent_dict[days_since_registration] * mean_scores
-                        bonused_uids.add(uid)
-                        
+            if len(self.miner_manager.registration_log) < len(self.scores):
+                bt.logging.info(f"Adding {len(self.scores) - len(self.miner_manager.registration_log)} new uids to registration log")
+                for uid in range(len(self.miner_manager.registration_log), len(self.scores)):
+                    self.miner_manager.registration_log[uid] = {
+                        "hotkey_ss58": self.metagraph.hotkeys[uid],
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
+                    days_since_registration_list[uid] = 0
+                    bonus_scores[uid] = bonus_percent_dict[0] * self.scores[uid]
+            bt.logging.info(f"Days since registration list: {days_since_registration_list}")
         except Exception as e:
             bt.logging.error(f"Error getting bonus scores: {e}")
         finally:
@@ -279,7 +263,6 @@ class BaseValidatorNeuron(BaseNeuron):
         """
         Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
         """
-
         # Add bonus scores to new registered uids
         bonus_scores = self.get_bonus_scores()
         bt.logging.info(f"Bonus scores: {bonus_scores}")

@@ -108,16 +108,6 @@ def add_args(cls, parser):
         )
 
         parser.add_argument(
-            "--tao_api_key",
-            type=str,
-            help=(
-                "The API key for the Tao API. Required for validator operation. "
-                "Get it from https://dash.taostats.io/"
-            ),
-            required=True,
-        )
-
-        parser.add_argument(
             "--neuron.axon_off",
             "--axon_off",
             action="store_true",
