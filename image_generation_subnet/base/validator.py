@@ -240,6 +240,7 @@ class BaseValidatorNeuron(BaseNeuron):
             f"?netuid={self.config.netuid}"
             f"&timestamp_start={timestamp_start}"
             f"&limit=1000"  # Maximum UIDs to check
+            f"&order=timestamp_desc"
         )
 
         # Set up request headers
@@ -253,8 +254,11 @@ class BaseValidatorNeuron(BaseNeuron):
             response = requests.get(url, headers=headers, timeout=10)
             if response.status_code == 200:
                 response = response.json()
+                bonused_uids = set() # ensure we don't apply bonus scores to the same uid more than once
                 for item in response['data']:
                     uid = item['uid']
+                    if uid in bonused_uids:
+                        continue
                     registration_time = datetime.fromisoformat(item['timestamp'].replace('Z', '+00:00'))
                     current_time = datetime.now(timezone.utc)  # Make current time timezone-aware
                     days_since_registration = (
@@ -264,6 +268,7 @@ class BaseValidatorNeuron(BaseNeuron):
                     # Apply bonus if registration is within the bonus period
                     if 0 <= days_since_registration < days_to_check:
                         bonus_scores[uid] = bonus_percent_dict[days_since_registration] * mean_scores
+                        bonused_uids.add(uid)
                         
         except Exception as e:
             bt.logging.error(f"Error getting bonus scores: {e}")
