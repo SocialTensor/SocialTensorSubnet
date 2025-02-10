@@ -38,7 +38,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
     - `matching_result` is 0 or 1 based on the similarity matching result with the reproduction of the validator.
     - `t2i_score` is the score from combination of image quality assessment score and prompt adherence score.
   - `time_penalty = 0.4 * (processing_time / timeout)**3`
-  - `volume_scale = max(min(total_volume**0.5 / 1000**0.5, 1), 0)`
+  - `volume_scale = max(min(total_volume**0.5 / 256**0.5, 1), 0)`
 - 🌟 **Continuous Improvement**: Introducing new models and features based on usage demand.
 - 💵 **Earn as a Validator**: Validators can earn money by sharing their request capacity with miners.
 

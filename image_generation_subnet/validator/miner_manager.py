@@ -80,7 +80,7 @@ class MinerManager:
             miner_state["total_volume"] = info.get("total_volume", 40)
             miner_state["min_stake"] = info.get("min_stake", 10000)
             miner_state["reward_scale"] = max(
-                min(miner_state["total_volume"] ** 0.5 / 1000**0.5, 1), 0
+                min(miner_state["total_volume"] ** 0.5 / 256**0.5, 1), 0
             )
             miner_state["device_info"] = info.get("device_info", {})
 
