@@ -810,12 +810,15 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.debug(f"Normalized {model_name} weights\n{model_specific_weights}")
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2025, 2, 11, 16, 0, 0):
+            if datetime.utcnow() < datetime(2025, 2, 13, 16, 0, 0):
                 temp_incentive_weight = {
                     "GoJourney": 0.04,
                     "JuggernautXL": 0.07,
+                    "RealitiesEdgeXL": 0.00,
+                    "AnimeV3": 0.00,
                     "Gemma7b": 0.03,
                     "StickerMaker": 0.03,
+                    "Llama3_70b": 0.00,
                     "Llama3_3_70b": 0.07,
                     "SUPIR": 0.08,
                     "FluxSchnell": 0.12,
@@ -830,8 +833,32 @@ class Validator(BaseValidatorNeuron):
                     "OpenTraditionalArtSketch": 0.02,
                     "OpenTraditionalArtComic": 0.02,
                     "Pixtral_12b": 0.04,
-                    # New models
-                    "DeepSeek_R1_Distill_Llama_70B": 0.05,
+                    "DeepSeek_R1_Distill_Llama_70B": 0.00,
+                }
+            else:
+                temp_incentive_weight = {
+                    "GoJourney": 0.05,
+                    "JuggernautXL": 0.00,
+                    "RealitiesEdgeXL": 0.00,
+                    "AnimeV3": 0.00,
+                    "Gemma7b": 0.00,
+                    "StickerMaker": 0.00,
+                    "Llama3_70b": 0.00,
+                    "Llama3_3_70b": 0.00,
+                    "SUPIR": 0.07,
+                    "FluxSchnell": 0.20,
+                    "Kolors": 0.10,
+                    "OpenGeneral": 0.10,
+                    "OpenDigitalArt": 0.10,
+                    "OpenDigitalArtAnime": 0.00,
+                    "OpenDigitalArtMinimalist": 0.10,
+                    "OpenDigitalArtPixelArt": 0.00,
+                    "OpenTraditionalArt": 0.00,
+                    "OpenTraditionalArtPainting": 0.00,
+                    "OpenTraditionalArtSketch": 0.10,
+                    "OpenTraditionalArtComic": 0.00,
+                    "Pixtral_12b": 0.05,
+                    "DeepSeek_R1_Distill_Llama_70B": 0.10,
                 }
 
             # TODO: after we updated weights, we need to update the model_incentive_weight in the miner_manager
