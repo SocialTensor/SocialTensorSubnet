@@ -6,6 +6,7 @@ AnimeV3:
     scheduler: "dpm++2m_karras"
     supporting_pipelines:
       - "txt2img"
+
 RealitiesEdgeXL:
   target: generation_models.NicheStableDiffusionXL
   params:
@@ -15,11 +16,13 @@ RealitiesEdgeXL:
     supporting_pipelines:
       - "txt2img"
       - "controlnet"
+
 GoJourney:
   target: generation_models.NicheGoJourney
   params:
     supporting_pipelines: 
       - "gojourney"
+
 Gemma7b:
   target: ""
   repo_id: "google/gemma-7b-it"
@@ -37,6 +40,13 @@ Llama3_70b:
 Llama3_3_70b:
   target: ""
   repo_id: "casperhansen/llama-3.3-70b-instruct-awq"
+  params:
+    supporting_pipelines:
+      - "text_generation"
+
+DeepSeek_R1_Distill_Llama_70B:
+  target: ""
+  repo_id: "Valdemardi/DeepSeek-R1-Distill-Llama-70B-AWQ"
   params:
     supporting_pipelines:
       - "text_generation"
@@ -65,6 +75,7 @@ FaceToMany:
     workflow_json_file: "generation_models/comfyui_helper/configs/face_to_many/workflow.json"
     update_wf_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.update_workflow"
     init_setup_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.setup"
+
 DreamShaperXL:
   target: generation_models.NicheStableDiffusionXL
   params:
@@ -75,6 +86,7 @@ DreamShaperXL:
       - "txt2img"
       - "img2img"
       - "instantid"
+
 JuggernautXL:
   target: generation_models.NicheStableDiffusionXL
   params:
@@ -83,6 +95,7 @@ JuggernautXL:
     scheduler: "dpm++2m_karras"
     supporting_pipelines:
       - "txt2img"
+
 DallE:
   target: generation_models.NicheDallE
   params:
@@ -95,11 +108,13 @@ SUPIR:
     checkpoint_file: "checkpoints/SUPIR"
     supporting_pipelines:
       - "upscale"
+
 FluxSchnell:
   target: generation_models.FluxSchnell
   params:
     supporting_pipelines:
       - "txt2img"
+      
 Kolors:
   target: generation_models.Kolors
   params:

@@ -4,32 +4,34 @@
 # Copyright © 2023 <your name>
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-# documentation files (the “Software”), to deal in the Software without restriction, including without limitation
+# documentation files (the "Software"), to deal in the Software without restriction, including without limitation
 # the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software,
 # and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 # The above copyright notice and this permission notice shall be included in all copies or substantial portions of
 # the Software.
 
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
 # THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
 # THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
 
-import copy
 # import torch
 import asyncio
+import copy
+from queue import Full
 import threading
+from datetime import datetime, timedelta, timezone
+from traceback import print_exception
+from typing import List
+
 import bittensor as bt
 import numpy as np
-
-from typing import List
-from traceback import print_exception
+import requests
 
 from image_generation_subnet.base.neuron import BaseNeuron
-from datetime import datetime
 
 
 class BaseValidatorNeuron(BaseNeuron):
@@ -209,10 +211,80 @@ class BaseValidatorNeuron(BaseNeuron):
             self.is_running = False
             bt.logging.debug("Stopped")
 
+    def get_bonus_scores(self):
+        """
+        Returns bonus scores for newly registered UIDs based on their registration date.
+        Newer registrations get higher bonus percentages, scaling from 10% for 0-day-old
+        registrations down to 1% for 9-day-old registrations.
+        
+        Returns:
+            np.ndarray: Array of bonus scores matching the shape of self.scores
+        """
+        bonus_scores = np.zeros_like(self.scores)
+        self.miner_manager.update_registration_log_from_api()
+        try:
+            days_since_registration_list = self._calculate_registration_days()
+            bonus_scores = self._apply_bonus_multipliers(days_since_registration_list)
+            bt.logging.info(f"Days since registration list: {days_since_registration_list}")
+            
+        except Exception as e:
+            bt.logging.error(f"Error getting bonus scores: {e}")
+            
+        return bonus_scores
+
+    def _calculate_registration_days(self):
+        """
+        Calculate days since registration for each UID.
+        
+        Returns:
+            np.ndarray: Array containing days since registration for each UID
+        """
+        days_since_registration_list = np.zeros_like(self.scores)
+        for uid in [int(uid) for uid in self.metagraph.uids]:
+            try:
+                registration_timestamp = self.miner_manager.registration_log[uid]
+                days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
+                days_since_registration_list[uid] = days_since_registration
+
+            except Exception as e:
+                bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
+                if uid < len(days_since_registration_list):
+                    days_since_registration_list[uid] = 1000  # Ensures no bonus for this uid
+                else:
+                    bt.logging.error(f"Days since registration list is not large enough for uid {uid}")
+                
+        return days_since_registration_list
+
+    def _apply_bonus_multipliers(self, days_since_registration_list: np.ndarray) -> np.ndarray:
+        """
+        Apply bonus multipliers based on days since registration.
+        
+        Args:
+            days_since_registration_list: Array of days since registration for each UID
+            
+        Returns:
+            np.ndarray: Array of bonus scores
+        """
+        bonus_scores = np.zeros_like(self.scores)
+        bonus_percent_dict = {
+            day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
+            for day in range(10)
+        }
+        
+        for uid, days in enumerate(days_since_registration_list):
+            if 0 <= days < 10:
+                bonus_scores[uid] = bonus_percent_dict[int(days)] * self.scores[uid]
+                
+        return bonus_scores
+
     def set_weights(self):
         """
         Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
         """
+        # Add bonus scores to new registered uids
+        bonus_scores = self.get_bonus_scores()
+        bt.logging.info(f"Bonus scores: {bonus_scores}")
+        self.scores = self.scores + bonus_scores
 
         # Check if self.scores contains any NaN values and log a warning if it does.
         if np.isnan(self.scores).any():

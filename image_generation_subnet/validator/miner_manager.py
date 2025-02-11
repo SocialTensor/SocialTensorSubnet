@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import time
 import bittensor as bt
@@ -17,7 +18,23 @@ class MinerManager:
             uid: {"scores": [], "model_name": "", "process_time": []}
             for uid in self.all_uids
         }
+        self.registration_log = {
+            uid: datetime.utcnow().isoformat()
+            for uid in [int(uid.item()) for uid in self.validator.metagraph.uids]
+        }
+        self.update_registration_log_from_api()
         self.layer_one_axons = {}
+    
+    def update_registration_log_from_api(self):
+        try:
+            registration_log_url = "https://nicheimage-api.nichetensor.com/registration_log"
+            registration_log = requests.get(registration_log_url, timeout=10).json()
+            # convert keys to int
+            registration_log = {int(k): v for k, v in registration_log.items()}
+            # update registration_log
+            self.registration_log = registration_log
+        except Exception as e:
+            bt.logging.error(f"Failed to get registration log: {e}")
 
     def get_miner_info(self, only_layer_one=False):
         """
@@ -77,10 +94,13 @@ class MinerManager:
                 {"scores": [], "model_name": "", "process_time": []},
             )
             model_name = info.get("model_name", "")
-            miner_state["total_volume"] = info.get("total_volume", 40)
+            raw_volume = info.get("total_volume", 40)  # Default to 40 if not specified
+            min_allowed_volume = 40
+            max_allowed_volume = 256
+            miner_state["total_volume"] = min(max(raw_volume, min_allowed_volume), max_allowed_volume)
             miner_state["min_stake"] = info.get("min_stake", 10000)
             miner_state["reward_scale"] = max(
-                min(miner_state["total_volume"] ** 0.5 / 1000**0.5, 1), 0
+                min(miner_state["total_volume"] ** 0.5 / 256**0.5, 1), 0
             )
             miner_state["device_info"] = info.get("device_info", {})
 
