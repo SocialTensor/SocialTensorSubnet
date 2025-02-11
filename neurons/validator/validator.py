@@ -416,6 +416,7 @@ class Validator(BaseValidatorNeuron):
         self.open_category_reward_synapses = self.init_reward_open_category_synapses()
         self.miner_manager = MinerManager(self)
         self.load_state()
+        self.miner_manager.update_registration_log_from_api()
         self.update_scores_on_chain()
         self.sync()
         self.miner_manager.update_miners_identity()

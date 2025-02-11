@@ -24,7 +24,10 @@ class MinerManager:
                 "timestamp": datetime.utcnow().isoformat(),
             }
             for uid in self.all_uids
-        }
+        }            
+        self.layer_one_axons = {}
+    
+    def update_registration_log_from_api(self):
         # We will host the API for several days. After that, validators will need 
         # to copy state.pkl file to new device if they change devices.
         if datetime.utcnow() < datetime(2025, 2, 20, 0, 0, 0):
@@ -37,8 +40,6 @@ class MinerManager:
                 self.registration_log = dict(sorted(self.registration_log.items(), key=lambda item: item[1]['timestamp']))
             except Exception as e:
                 bt.logging.error(f"Failed to get registration log: {e}")
-            
-        self.layer_one_axons = {}
 
     def get_miner_info(self, only_layer_one=False):
         """
