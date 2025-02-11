@@ -28,7 +28,7 @@ class MinerManager:
     def update_registration_log_from_api(self):
         try:
             registration_log_url = "https://nicheimage-api.nichetensor.com/registration_log"
-            registration_log = requests.get(registration_log_url, timeout=60).json()
+            registration_log = requests.get(registration_log_url, timeout=10).json()
             # convert keys to int
             registration_log = {int(k): v for k, v in registration_log.items()}
             # update registration_log
