@@ -26,7 +26,6 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | **OpenTraditionalArtSketch** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
 | **Pixtral_12b** | 5% | Fixed Multimodal Category |
 | 🐋 DeepSeek_R1_Distill_Llama_70B | 10% | Fixed Text Category |
-| None | 3% | Distributed equally amongst uids |
 
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.

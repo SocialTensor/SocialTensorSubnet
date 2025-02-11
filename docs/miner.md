@@ -15,7 +15,6 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | **OpenTraditionalArtSketch** | 10%        | 32 |
 | **Pixtral_12b** | 5%                      | 64 |
 | **DeepSeek_R1_Distill_Llama_70B** | 10%   | 128|
-| None (Distributed equally amongst uids) | 3% | |
 
 ## Guide Fixed Category
 1. Git clone and install requirements
