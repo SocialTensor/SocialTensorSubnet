@@ -220,44 +220,86 @@ class BaseValidatorNeuron(BaseNeuron):
         Returns:
             np.ndarray: Array of bonus scores matching the shape of self.scores
         """
-        # Initialize bonus scores array
         bonus_scores = np.zeros_like(self.scores)
-        try:            
-            # Define bonus percentages for each day since registration
-            bonus_percent_dict = {
-                day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
-                for day in range(0, 10)
-            }
-            days_since_registration_list = np.zeros_like(self.scores)
-            for uid in self.miner_manager.registration_log:
-                current_hotkey = self.metagraph.hotkeys[uid]
-                if current_hotkey != self.miner_manager.registration_log[uid]["hotkey_ss58"]:
-                    self.miner_manager.registration_log[uid]["hotkey_ss58"] = current_hotkey
-                    self.miner_manager.registration_log[uid]["timestamp"] = datetime.utcnow().isoformat()
-                days_since_registration = (
-                    datetime.now(timezone.utc) - 
-                    datetime.fromisoformat(
-                        self.miner_manager.registration_log[uid]["timestamp"]
-                    ).replace(tzinfo=timezone.utc)
-                ).days
-                days_since_registration_list[uid] = days_since_registration
-                if 0 <= days_since_registration < 10:
-                    bonus_scores[uid] = bonus_percent_dict[days_since_registration] * self.scores[uid]
-            
-            if len(self.miner_manager.registration_log) < len(self.scores):
-                bt.logging.info(f"Adding {len(self.scores) - len(self.miner_manager.registration_log)} new uids to registration log")
-                for uid in range(len(self.miner_manager.registration_log), len(self.scores)):
-                    self.miner_manager.registration_log[uid] = {
-                        "hotkey_ss58": self.metagraph.hotkeys[uid],
-                        "timestamp": datetime.utcnow().isoformat()
-                    }
-                    days_since_registration_list[uid] = 0
-                    bonus_scores[uid] = bonus_percent_dict[0] * self.scores[uid]
+        try:
+            days_since_registration_list = self._calculate_registration_days()
+            bonus_scores = self._apply_bonus_multipliers(days_since_registration_list)
             bt.logging.info(f"Days since registration list: {days_since_registration_list}")
+            
         except Exception as e:
             bt.logging.error(f"Error getting bonus scores: {e}")
-        finally:
-            return bonus_scores
+            
+        return bonus_scores
+
+    def _calculate_registration_days(self):
+        """
+        Calculate days since registration for each UID.
+        
+        Returns:
+            np.ndarray: Array containing days since registration for each UID
+        """
+        days_since_registration_list = np.zeros_like(self.scores)
+        for uid in [int(uid) for uid in self.metagraph.uids]:
+            try:
+                current_hotkey = self.metagraph.hotkeys[uid]
+                self._update_registration_log(uid, current_hotkey)
+                
+                registration_time = datetime.fromisoformat(
+                    self.miner_manager.registration_log[uid]["timestamp"]
+                ).replace(tzinfo=timezone.utc)
+                
+                days = (datetime.now(timezone.utc) - registration_time).days
+                days_since_registration_list[uid] = days
+                
+            except Exception as e:
+                bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
+                if uid < len(days_since_registration_list):
+                    days_since_registration_list[uid] = float('inf')  # Ensures no bonus for this uid
+                else:
+                    bt.logging.error(f"Days since registration list is not large enough for uid {uid}")
+                
+        return days_since_registration_list
+
+    def _update_registration_log(self, uid: int, current_hotkey: str):
+        """
+        Update the registration log for a given UID if needed.
+        
+        Args:
+            uid: The UID to update
+            current_hotkey: Current hotkey for the UID
+        """
+        # Add new registration
+        if uid not in self.miner_manager.registration_log:
+            self.miner_manager.registration_log[uid] = {
+                "hotkey_ss58": current_hotkey,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        # Update if hotkey changed
+        elif current_hotkey != self.miner_manager.registration_log[uid]["hotkey_ss58"]:
+            self.miner_manager.registration_log[uid]["hotkey_ss58"] = current_hotkey
+            self.miner_manager.registration_log[uid]["timestamp"] = datetime.utcnow().isoformat()
+
+    def _apply_bonus_multipliers(self, days_since_registration_list: np.ndarray) -> np.ndarray:
+        """
+        Apply bonus multipliers based on days since registration.
+        
+        Args:
+            days_since_registration_list: Array of days since registration for each UID
+            
+        Returns:
+            np.ndarray: Array of bonus scores
+        """
+        bonus_scores = np.zeros_like(self.scores)
+        bonus_percent_dict = {
+            day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
+            for day in range(10)
+        }
+        
+        for uid, days in enumerate(days_since_registration_list):
+            if 0 <= days < 10:
+                bonus_scores[uid] = bonus_percent_dict[int(days)] * self.scores[uid]
+                
+        return bonus_scores
 
     def set_weights(self):
         """
