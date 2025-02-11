@@ -222,6 +222,7 @@ class BaseValidatorNeuron(BaseNeuron):
         """
         bonus_scores = np.zeros_like(self.scores)
         self.miner_manager.update_registration_log_from_api()
+        bt.logging.info(f"Registration log: {self.miner_manager.registration_log}")
         try:
             days_since_registration_list = self._calculate_registration_days()
             bonus_scores = self._apply_bonus_multipliers(days_since_registration_list)
@@ -242,7 +243,7 @@ class BaseValidatorNeuron(BaseNeuron):
         days_since_registration_list = np.zeros_like(self.scores)
         for uid in [int(uid) for uid in self.metagraph.uids]:
             try:
-                registration_timestamp = self.miner_manager.registration_log[uid]['timestamp']
+                registration_timestamp = self.miner_manager.registration_log[uid]
                 days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
                 days_since_registration_list[uid] = days_since_registration
 

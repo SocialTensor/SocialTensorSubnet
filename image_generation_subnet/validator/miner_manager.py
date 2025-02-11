@@ -18,20 +18,17 @@ class MinerManager:
             uid: {"scores": [], "model_name": "", "process_time": []}
             for uid in self.all_uids
         }
+        self.registration_log = {
+            uid: datetime.utcnow().isoformat()
+            for uid in [int(uid.item()) for uid in self.validator.metagraph.uids]
+        }
         self.update_registration_log_from_api()
         self.layer_one_axons = {}
     
     def update_registration_log_from_api(self):
         try:
-            registration_log = {
-                uid: {
-                    "hotkey_ss58": self.validator.metagraph.hotkeys[uid],
-                    "timestamp": datetime.utcnow().isoformat(),
-                }
-                for uid in [int(uid.item()) for uid in self.validator.metagraph.uids]
-            }          
             registration_log_url = "https://nicheimage-api.nichetensor.com/registration_log"
-            registration_log = requests.get(registration_log_url).json()
+            registration_log = requests.get(registration_log_url, timeout=60).json()
             # convert keys to int
             registration_log = {int(k): v for k, v in registration_log.items()}
             # update registration_log
