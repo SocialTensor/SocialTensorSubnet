@@ -18,28 +18,26 @@ class MinerManager:
             uid: {"scores": [], "model_name": "", "process_time": []}
             for uid in self.all_uids
         }
-        self.registration_log ={
+        self.update_registration_log_from_api()
+        self.layer_one_axons = {}
+    
+    def update_registration_log_from_api(self):
+        registration_log ={
             uid: {
                 "hotkey_ss58": self.validator.metagraph.hotkeys[uid],
                 "timestamp": datetime.utcnow().isoformat(),
             }
             for uid in self.all_uids
-        }            
-        self.layer_one_axons = {}
-    
-    def update_registration_log_from_api(self):
-        # We will host the API for several days. After that, validators will need 
-        # to copy state.pkl file to new device if they change devices.
-        if datetime.utcnow() < datetime(2025, 2, 20, 0, 0, 0):
+        }          
+        try:
             registration_log_url = "https://nicheimage-api.nichetensor.com/registration_log"
-            try:
-                self.registration_log = requests.get(registration_log_url).json()
-                # convert keys to int
-                self.registration_log = {int(k): v for k, v in self.registration_log.items()}
-                # sort by value
-                self.registration_log = dict(sorted(self.registration_log.items(), key=lambda item: item[1]['timestamp']))
-            except Exception as e:
-                bt.logging.error(f"Failed to get registration log: {e}")
+            registration_log = requests.get(registration_log_url).json()
+            # convert keys to int
+            registration_log = {int(k): v for k, v in registration_log.items()}
+        except Exception as e:
+            bt.logging.error(f"Failed to get registration log: {e}")
+        # update registration_log
+        self.registration_log = registration_log
 
     def get_miner_info(self, only_layer_one=False):
         """

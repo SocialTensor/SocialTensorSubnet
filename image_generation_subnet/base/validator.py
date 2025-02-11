@@ -221,6 +221,7 @@ class BaseValidatorNeuron(BaseNeuron):
             np.ndarray: Array of bonus scores matching the shape of self.scores
         """
         bonus_scores = np.zeros_like(self.scores)
+        self.miner_manager.update_registration_log_from_api()
         try:
             days_since_registration_list = self._calculate_registration_days()
             bonus_scores = self._apply_bonus_multipliers(days_since_registration_list)
@@ -241,16 +242,10 @@ class BaseValidatorNeuron(BaseNeuron):
         days_since_registration_list = np.zeros_like(self.scores)
         for uid in [int(uid) for uid in self.metagraph.uids]:
             try:
-                current_hotkey = self.metagraph.hotkeys[uid]
-                self._update_registration_log(uid, current_hotkey)
-                
-                registration_time = datetime.fromisoformat(
-                    self.miner_manager.registration_log[uid]["timestamp"]
-                ).replace(tzinfo=timezone.utc)
-                
-                days = (datetime.now(timezone.utc) - registration_time).days
-                days_since_registration_list[uid] = days
-                
+                registration_timestamp = self.miner_manager.registration_log[uid]['timestamp']
+                days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
+                days_since_registration_list[uid] = days_since_registration
+
             except Exception as e:
                 bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
                 if uid < len(days_since_registration_list):
@@ -259,25 +254,6 @@ class BaseValidatorNeuron(BaseNeuron):
                     bt.logging.error(f"Days since registration list is not large enough for uid {uid}")
                 
         return days_since_registration_list
-
-    def _update_registration_log(self, uid: int, current_hotkey: str):
-        """
-        Update the registration log for a given UID if needed.
-        
-        Args:
-            uid: The UID to update
-            current_hotkey: Current hotkey for the UID
-        """
-        # Add new registration
-        if uid not in self.miner_manager.registration_log:
-            self.miner_manager.registration_log[uid] = {
-                "hotkey_ss58": current_hotkey,
-                "timestamp": datetime.utcnow().isoformat()
-            }
-        # Update if hotkey changed
-        elif current_hotkey != self.miner_manager.registration_log[uid]["hotkey_ss58"]:
-            self.miner_manager.registration_log[uid]["hotkey_ss58"] = current_hotkey
-            self.miner_manager.registration_log[uid]["timestamp"] = datetime.utcnow().isoformat()
 
     def _apply_bonus_multipliers(self, days_since_registration_list: np.ndarray) -> np.ndarray:
         """

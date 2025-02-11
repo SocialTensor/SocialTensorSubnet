@@ -416,7 +416,6 @@ class Validator(BaseValidatorNeuron):
         self.open_category_reward_synapses = self.init_reward_open_category_synapses()
         self.miner_manager = MinerManager(self)
         self.load_state()
-        self.miner_manager.update_registration_log_from_api()
         self.update_scores_on_chain()
         self.sync()
         self.miner_manager.update_miners_identity()
@@ -894,7 +893,6 @@ class Validator(BaseValidatorNeuron):
         state = {
             "step": self.step,
             "all_uids_info": self.miner_manager.all_uids_info,
-            "registration_log": self.miner_manager.registration_log,
         }
         try:
             # Open the file in write-binary mode
@@ -921,7 +919,6 @@ class Validator(BaseValidatorNeuron):
                 # Restore state from pickle file
                 self.step = state["step"]
                 self.miner_manager.all_uids_info = state["all_uids_info"]
-                self.miner_manager.registration_log = state["registration_log"]
                 bt.logging.info("Successfully loaded state from .pkl file")
                 return  # Exit after successful load from .pkl
 
@@ -936,7 +933,6 @@ class Validator(BaseValidatorNeuron):
                 # Restore state from .pt file
                 self.step = state["step"]
                 self.miner_manager.all_uids_info = state["all_uids_info"]
-                self.miner_manager.registration_log = state["registration_log"]
                 bt.logging.info("Successfully loaded state from .pt file")
 
             except Exception as e:
