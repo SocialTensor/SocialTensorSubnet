@@ -31,6 +31,10 @@ class MinerManager:
             registration_log_url = "https://nicheimage-api.nichetensor.com/registration_log"
             try:
                 self.registration_log = requests.get(registration_log_url).json()
+                # convert keys to int
+                self.registration_log = {int(k): v for k, v in self.registration_log.items()}
+                # sort by value
+                self.registration_log = dict(sorted(self.registration_log.items(), key=lambda item: item[1]['timestamp']))
             except Exception as e:
                 bt.logging.error(f"Failed to get registration log: {e}")
             
