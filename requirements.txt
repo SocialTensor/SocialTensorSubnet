@@ -8,7 +8,7 @@ torchvision==0.20.1
 onnxruntime==1.20.1
 diffusers==0.31.0
 transformers==4.46.3
-optimum-quanto==0.2.6
+optimum-quanto @ git+https://github.com/SocialTensor/optimum-quanto.git
 litserve==0.2.5
 insightface==0.7.3
 sentencepiece==0.2.0
@@ -39,7 +39,7 @@ mediapipe==0.10.14
 timm==0.9.2
 
 # openai for pixtral multimodal
-openai @ git+https://github.com/vietbeu/openai-python.git
+openai @ git+https://github.com/SocialTensor/openai-python.git
 httpx==0.26.0
 
 # pyiqa
