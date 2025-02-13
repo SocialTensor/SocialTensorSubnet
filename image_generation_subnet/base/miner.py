@@ -130,7 +130,7 @@ class BaseMinerNeuron(BaseNeuron):
                     self.config.miner.min_stake,
                     log=False,
                 )
-                
+
                 self.step += 1
 
         # If someone intentionally stops the miner, it'll safely terminate operations.
@@ -213,5 +213,9 @@ class BaseMinerNeuron(BaseNeuron):
         Wrapper for synchronizing the state of the network for the given miner.
         """
         # Ensure miner or validator hotkey is still registered on the network.
+        start_time = time.time()
         self.check_registered()
+        bt.logging.info(f"Checked registered in {time.time() - start_time} seconds")
+        start_time = time.time()
         self.resync_metagraph()
+        bt.logging.info(f"Resynced metagraph in {time.time() - start_time} seconds")
