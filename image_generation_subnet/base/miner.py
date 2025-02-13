@@ -117,7 +117,7 @@ class BaseMinerNeuron(BaseNeuron):
                 if self.should_exit:
                     break
                 # Wait before checking again.
-                time.sleep(60)
+                time.sleep(300)
 
                 # Sync metagraph and potentially set weights.
                 bt.logging.info("Syncing metagraph")
@@ -213,9 +213,5 @@ class BaseMinerNeuron(BaseNeuron):
         Wrapper for synchronizing the state of the network for the given miner.
         """
         # Ensure miner or validator hotkey is still registered on the network.
-        start_time = time.time()
         self.check_registered()
-        bt.logging.info(f"Checked registered in {time.time() - start_time} seconds")
-        start_time = time.time()
         self.resync_metagraph()
-        bt.logging.info(f"Resynced metagraph in {time.time() - start_time} seconds")
