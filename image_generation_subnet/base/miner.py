@@ -19,9 +19,11 @@ import time
 import asyncio
 import threading
 import traceback
+from typing import override
 
 import bittensor as bt
 
+import image_generation_subnet
 from image_generation_subnet.base.neuron import BaseNeuron
 
 
@@ -93,7 +95,7 @@ class BaseMinerNeuron(BaseNeuron):
         """
 
         # Check that miner is registered on the network.
-        self.check_registered()
+        self.sync()
 
         if not self.config.miner.disable_serve_axon:
             # Serve passes the axon information to the network + netuid we are hosting on.
@@ -111,19 +113,24 @@ class BaseMinerNeuron(BaseNeuron):
         # This loop maintains the miner's operations until intentionally stopped.
         try:
             while not self.should_exit:
-                while (
-                    self.block - self.metagraph.last_update[self.uid]
-                    < self.config.neuron.epoch_length
-                ):
-                    # Wait before checking again.
-                    time.sleep(1)
-
-                    # Check if we should exit.
-                    if self.should_exit:
-                        break
+                # Check if we should exit.
+                if self.should_exit:
+                    break
+                # Wait before checking again.
+                time.sleep(60)
 
                 # Sync metagraph and potentially set weights.
-                self.check_registered()
+                bt.logging.info("Syncing metagraph")
+                self.sync()
+                bt.logging.info("Synced metagraph")
+                self.volume_per_validator = image_generation_subnet.utils.volume_setting.get_volume_per_validator(
+                    self.metagraph,
+                    self.config.miner.total_volume,
+                    self.config.miner.size_preference_factor,
+                    self.config.miner.min_stake,
+                    log=False,
+                )
+                
                 self.step += 1
 
         # If someone intentionally stops the miner, it'll safely terminate operations.
@@ -199,3 +206,12 @@ class BaseMinerNeuron(BaseNeuron):
 
         # Sync the metagraph.
         self.metagraph.sync(subtensor=self.subtensor)
+
+    @override
+    def sync(self):
+        """
+        Wrapper for synchronizing the state of the network for the given miner.
+        """
+        # Ensure miner or validator hotkey is still registered on the network.
+        self.check_registered()
+        self.resync_metagraph()
