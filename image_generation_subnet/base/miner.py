@@ -210,7 +210,7 @@ class BaseMinerNeuron(BaseNeuron):
         """
         Wrapper for synchronizing the state of the network for the given miner.
         """
-        # Ensure miner or validator hotkey is still registered on the network.
+        # Ensure miner hotkey is still registered on the network.
         self.check_registered()
         bt.logging.info("Syncing metagraph")
         self.resync_metagraph()
