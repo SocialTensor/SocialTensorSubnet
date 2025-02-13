@@ -120,9 +120,7 @@ class BaseMinerNeuron(BaseNeuron):
                 time.sleep(300)
 
                 # Sync metagraph and potentially set weights.
-                bt.logging.info("Syncing metagraph")
                 self.sync()
-                bt.logging.info("Synced metagraph")
                 self.volume_per_validator = image_generation_subnet.utils.volume_setting.get_volume_per_validator(
                     self.metagraph,
                     self.config.miner.total_volume,
@@ -214,4 +212,6 @@ class BaseMinerNeuron(BaseNeuron):
         """
         # Ensure miner or validator hotkey is still registered on the network.
         self.check_registered()
+        bt.logging.info("Syncing metagraph")
         self.resync_metagraph()
+        bt.logging.info("Synced metagraph")
