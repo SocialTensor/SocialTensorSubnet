@@ -117,7 +117,7 @@ class BaseMinerNeuron(BaseNeuron):
                 if self.should_exit:
                     break
                 # Wait before checking again.
-                time.sleep(300)
+                time.sleep(60)
 
                 # Sync metagraph and potentially set weights.
                 self.sync()
