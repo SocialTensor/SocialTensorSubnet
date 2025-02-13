@@ -21,7 +21,9 @@ import threading
 import traceback
 
 import bittensor as bt
+from typing_extensions import override
 
+import image_generation_subnet
 from image_generation_subnet.base.neuron import BaseNeuron
 
 
@@ -111,19 +113,22 @@ class BaseMinerNeuron(BaseNeuron):
         # This loop maintains the miner's operations until intentionally stopped.
         try:
             while not self.should_exit:
-                while (
-                    self.block - self.metagraph.last_update[self.uid]
-                    < self.config.neuron.epoch_length
-                ):
-                    # Wait before checking again.
-                    time.sleep(1)
-
-                    # Check if we should exit.
-                    if self.should_exit:
-                        break
+                # Check if we should exit.
+                if self.should_exit:
+                    break
+                # Wait before checking again.
+                time.sleep(300)
 
                 # Sync metagraph and potentially set weights.
                 self.sync()
+                self.volume_per_validator = image_generation_subnet.utils.volume_setting.get_volume_per_validator(
+                    self.metagraph,
+                    self.config.miner.total_volume,
+                    self.config.miner.size_preference_factor,
+                    self.config.miner.min_stake,
+                    log=False,
+                )
+
                 self.step += 1
 
         # If someone intentionally stops the miner, it'll safely terminate operations.
@@ -199,3 +204,14 @@ class BaseMinerNeuron(BaseNeuron):
 
         # Sync the metagraph.
         self.metagraph.sync(subtensor=self.subtensor)
+
+    @override
+    def sync(self):
+        """
+        Wrapper for synchronizing the state of the network for the given miner.
+        """
+        # Ensure miner hotkey is still registered on the network.
+        self.check_registered()
+        bt.logging.info("Syncing metagraph")
+        self.resync_metagraph()
+        bt.logging.info("Synced metagraph")
