@@ -207,5 +207,6 @@ if __name__ == "__main__":
                     log=False,
                 )
             except Exception as e:
-                print(e)
+                bt.logging.error(f"Error in syncing metagraph: {e}")
+                traceback.print_exc()
             time.sleep(60)

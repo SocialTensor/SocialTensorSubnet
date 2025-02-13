@@ -93,7 +93,7 @@ class BaseMinerNeuron(BaseNeuron):
         """
 
         # Check that miner is registered on the network.
-        self.sync()
+        self.check_registered()
 
         if not self.config.miner.disable_serve_axon:
             # Serve passes the axon information to the network + netuid we are hosting on.
@@ -123,7 +123,7 @@ class BaseMinerNeuron(BaseNeuron):
                         break
 
                 # Sync metagraph and potentially set weights.
-                self.sync()
+                self.check_registered()
                 self.step += 1
 
         # If someone intentionally stops the miner, it'll safely terminate operations.
