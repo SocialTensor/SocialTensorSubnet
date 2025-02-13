@@ -19,9 +19,9 @@ import time
 import asyncio
 import threading
 import traceback
-from typing import override
 
 import bittensor as bt
+from typing_extensions import override
 
 import image_generation_subnet
 from image_generation_subnet.base.neuron import BaseNeuron
