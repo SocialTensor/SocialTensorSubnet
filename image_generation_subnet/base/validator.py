@@ -32,6 +32,7 @@ import numpy as np
 import requests
 
 from image_generation_subnet.base.neuron import BaseNeuron
+from config.weight_transition_config import WeightCalculationService
 
 
 class BaseValidatorNeuron(BaseNeuron):
@@ -41,6 +42,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def __init__(self, config=None):
         super().__init__(config=config)
+        self.weight_service = WeightCalculationService()
 
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
@@ -294,12 +296,25 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
-        raw_weights = np.nan_to_num(self.scores, nan=0)
-        raw_weight_sum = np.sum(np.abs(raw_weights), axis=0, keepdims=True)
-        if not raw_weight_sum == 0:
-            raw_weights = raw_weights / raw_weight_sum
+        miner_raw_weights = np.nan_to_num(self.scores, nan=0)
+        miner_raw_weight_sum = np.sum(np.abs(miner_raw_weights), axis=0, keepdims=True)
+        if not miner_raw_weight_sum == 0:
+            miner_raw_weights = miner_raw_weights / miner_raw_weight_sum
+        bt.logging.info(f"Miner raw weights: {miner_raw_weights}")
 
-        bt.logging.trace("Raw weights:", raw_weights)
+        # Calculate weights base on alpha stake
+        alpha_raw_weights = np.nan_to_num(self.metagraph.alpha_stake, nan=0)
+        alpha_raw_weight_sum = np.sum(np.abs(alpha_raw_weights), axis=0, keepdims=True)
+        if not alpha_raw_weight_sum == 0:
+            alpha_raw_weights = alpha_raw_weights / alpha_raw_weight_sum
+        bt.logging.info(f"Alpha raw weights: {alpha_raw_weights}")  
+
+        # Calculate raw weights using the service
+        raw_weights = self.weight_service.calculate_transition_weights(
+            miner_raw_weights,
+            alpha_raw_weights
+        )
+        bt.logging.info(f"Raw weights: {raw_weights}")
         bt.logging.trace("Top 10 values:", np.sort(raw_weights))
         bt.logging.trace("Top 10 uids:", np.argsort(raw_weights))
 

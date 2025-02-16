@@ -359,7 +359,7 @@ def add_args(cls, parser):
             "--miner.min_stake",
             type=int,
             help="The minimum stake for a validator to be considered",
-            default=10000,
+            default=1000,
         )
         parser.add_argument(
             "--miner.limit_interval",
