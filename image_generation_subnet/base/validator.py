@@ -32,7 +32,7 @@ import numpy as np
 import requests
 
 from image_generation_subnet.base.neuron import BaseNeuron
-from config.weight_transition_config import WeightCalculationService
+from image_generation_subnet.utils.weight_calculation import WeightCalculationService
 
 
 class BaseValidatorNeuron(BaseNeuron):

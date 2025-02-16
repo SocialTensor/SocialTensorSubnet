@@ -3,7 +3,7 @@ sys.path.append("..")
 import pytest
 from datetime import datetime, timezone
 import numpy as np
-from config.weight_transition_config import WeightCalculationService
+from image_generation_subnet.utils.weight_calculation import WeightCalculationService
 
 class TestWeightCalculationService:
     def test_weight_calculation_before_first_transition(self):
