@@ -278,6 +278,47 @@ class BaseValidatorNeuron(BaseNeuron):
                 bonus_scores[uid] = bonus_percent_dict[int(days)] * self.scores[uid]
                 
         return bonus_scores
+    
+    def get_recycle_weights(self):
+        """
+        Calculates decay-based scores for recycler miners based on their registration date.
+        
+        The score starts at 1.0 and decays by 10% each day (0.9^days) for up to 100 days.
+        After 100 days, the score effectively becomes zero.
+        
+        Returns:
+            np.ndarray: Array of recycle scores matching the shape of self.scores, where
+                       each recycler miner's score is determined by their registration age.
+        """
+        # Update registration data from API
+        self.miner_manager.update_registration_log_from_api()
+        
+        # Initialize scores array
+        recycle_weights = np.zeros_like(self.scores)
+        
+        # Get list of UIDs that are running recycler models
+        recycler_uids = self.miner_manager.get_miner_uids(model_name='Recycle')
+        if not recycler_uids:
+            return recycle_weights
+            
+        # Calculate decay factors for each day (0.9^day)
+        DAILY_DECAY_RATE = 0.9
+        MAX_DAYS = 100
+        decay_factors = {
+            day: DAILY_DECAY_RATE ** day 
+            for day in range(MAX_DAYS)
+        }
+        
+        # Get registration age for all miners
+        days_since_registration = self._calculate_registration_days()
+        
+        # Apply decay factors based on registration age
+        for uid in recycler_uids:
+            days = int(days_since_registration[uid])
+            if days < MAX_DAYS:
+                recycle_weights[uid] = decay_factors[days]
+                
+        return recycle_weights
 
     def set_weights(self):
         """
@@ -301,6 +342,16 @@ class BaseValidatorNeuron(BaseNeuron):
         if not miner_raw_weight_sum == 0:
             miner_raw_weights = miner_raw_weights / miner_raw_weight_sum
         bt.logging.info(f"Miner raw weights: {miner_raw_weights}")
+
+        # Add recycle scores to new registered uids
+        recycle_weights = self.get_recycle_weights()
+        recycle_weight_sum = np.sum(np.abs(recycle_weights), axis=0, keepdims=True)
+        if not recycle_weight_sum == 0:
+            recycle_weights = recycle_weights / recycle_weight_sum
+        bt.logging.info(f"Recycle weights: {recycle_weights}")
+
+        # Calculate miner weights with recycle weights
+        miner_raw_weights = 0.52 * miner_raw_weights + 0.48 * recycle_weights
 
         # Calculate weights base on alpha stake
         alpha_raw_weights = np.nan_to_num(self.metagraph.alpha_stake, nan=0)
@@ -393,27 +444,3 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Update the hotkeys.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
-
-    # def update_scores(self, rewards: torch.FloatTensor, uids: List[int]):
-    #     """Performs exponential moving average on the scores based on the rewards received from the miners."""
-
-    #     # Check if rewards contains NaN values.
-    #     if torch.isnan(rewards).any():
-    #         bt.logging.warning(f"NaN values detected in rewards: {rewards}")
-    #         # Replace any NaN values in rewards with 0.
-    #         rewards = torch.nan_to_num(rewards, 0)
-
-    #     # Compute forward pass rewards, assumes uids are mutually exclusive.
-    #     # shape: [ metagraph.n ]
-    #     scattered_rewards: torch.FloatTensor = self.scores.scatter(
-    #         0, torch.tensor(uids).to(self.device), rewards
-    #     ).to(self.device)
-    #     bt.logging.debug(f"Scattered rewards: {rewards}")
-
-    #     # Update scores with rewards produced by this step.
-    #     # shape: [ metagraph.n ]
-    #     alpha: float = self.config.neuron.moving_average_alpha
-    #     self.scores: torch.FloatTensor = alpha * scattered_rewards + (
-    #         1 - alpha
-    #     ) * self.scores.to(self.device)
-    #     bt.logging.info(f"Updated moving avg scores: {self.scores}")

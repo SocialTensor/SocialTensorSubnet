@@ -1,107 +1,9 @@
-AnimeV3:
-  target: generation_models.NicheStableDiffusionXL
-  params:
-    checkpoint_file: "checkpoints/AnimeV3.safetensors"
-    download_url: "https://civitai.com/api/download/models/173961"
-    scheduler: "dpm++2m_karras"
-    supporting_pipelines:
-      - "txt2img"
-
-RealitiesEdgeXL:
-  target: generation_models.NicheStableDiffusionXL
-  params:
-    checkpoint_file: "checkpoints/RealitiesEdgeXL.safetensors"
-    download_url: "https://civitai.com/api/download/models/294995"
-    scheduler: "dpm++2m_karras"
-    supporting_pipelines:
-      - "txt2img"
-      - "controlnet"
-
 GoJourney:
   target: generation_models.NicheGoJourney
   params:
     supporting_pipelines: 
       - "gojourney"
 
-Gemma7b:
-  target: ""
-  repo_id: "google/gemma-7b-it"
-  params:
-    supporting_pipelines:
-      - "text_generation"
-
-Llama3_70b:
-  target: ""
-  repo_id: "casperhansen/llama-3-70b-instruct-awq"
-  params:
-    supporting_pipelines:
-      - "text_generation"
-
-Llama3_3_70b:
-  target: ""
-  repo_id: "casperhansen/llama-3.3-70b-instruct-awq"
-  params:
-    supporting_pipelines:
-      - "text_generation"
-
-DeepSeek_R1_Distill_Llama_70B:
-  target: ""
-  repo_id: "Valdemardi/DeepSeek-R1-Distill-Llama-70B-AWQ"
-  params:
-    supporting_pipelines:
-      - "text_generation"
-
-Pixtral_12b:
-  target: ""
-  repo_id: "mistralai/Pixtral-12B-2409"
-  params:
-    supporting_pipelines:
-      - "visual_question_answering"
-
-StickerMaker:
-  target: "generation_models.NicheComfyUI"
-  params:
-    supporting_pipelines:
-      - "txt2img"
-    workflow_json_file: "generation_models/comfyui_helper/configs/sticker_maker/workflow.json"
-    update_wf_function: "generation_models.comfyui_helper.helpers.wf_sticker_maker.update_workflow"
-    init_setup_function: "generation_models.comfyui_helper.helpers.wf_sticker_maker.setup"
-
-FaceToMany:
-  target: "generation_models.NicheComfyUI"
-  params:
-    supporting_pipelines:
-      - "img2img"
-    workflow_json_file: "generation_models/comfyui_helper/configs/face_to_many/workflow.json"
-    update_wf_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.update_workflow"
-    init_setup_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.setup"
-
-DreamShaperXL:
-  target: generation_models.NicheStableDiffusionXL
-  params:
-    checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
-    download_url: "https://civitai.com/api/download/models/351306"
-    scheduler: "dpm++sde_karras"
-    supporting_pipelines:
-      - "txt2img"
-      - "img2img"
-      - "instantid"
-
-JuggernautXL:
-  target: generation_models.NicheStableDiffusionXL
-  params:
-    checkpoint_file: "checkpoints/JuggernautXL.safetensors"
-    download_url: "https://civitai.com/api/download/models/456194"
-    scheduler: "dpm++2m_karras"
-    supporting_pipelines:
-      - "txt2img"
-
-DallE:
-  target: generation_models.NicheDallE
-  params:
-    supporting_pipelines:
-      - "txt2img"
-  
 SUPIR:
   target: generation_models.NicheSUPIR
   params:
@@ -122,3 +24,102 @@ Kolors:
       - "txt2img"
       - "controlnet"
       - "ip_adapter"
+
+
+Pixtral_12b:
+  target: ""
+  repo_id: "mistralai/Pixtral-12B-2409"
+  params:
+    supporting_pipelines:
+      - "visual_question_answering"
+
+DeepSeek_R1_Distill_Llama_70B:
+  target: ""
+  repo_id: "Valdemardi/DeepSeek-R1-Distill-Llama-70B-AWQ"
+  params:
+    supporting_pipelines:
+      - "text_generation"
+
+# AnimeV3:
+#   target: generation_models.NicheStableDiffusionXL
+#   params:
+#     checkpoint_file: "checkpoints/AnimeV3.safetensors"
+#     download_url: "https://civitai.com/api/download/models/173961"
+#     scheduler: "dpm++2m_karras"
+#     supporting_pipelines:
+#       - "txt2img"
+
+# RealitiesEdgeXL:
+#   target: generation_models.NicheStableDiffusionXL
+#   params:
+#     checkpoint_file: "checkpoints/RealitiesEdgeXL.safetensors"
+#     download_url: "https://civitai.com/api/download/models/294995"
+#     scheduler: "dpm++2m_karras"
+#     supporting_pipelines:
+#       - "txt2img"
+#       - "controlnet"
+
+# Gemma7b:
+#   target: ""
+#   repo_id: "google/gemma-7b-it"
+#   params:
+#     supporting_pipelines:
+#       - "text_generation"
+
+# Llama3_70b:
+#   target: ""
+#   repo_id: "casperhansen/llama-3-70b-instruct-awq"
+#   params:
+#     supporting_pipelines:
+#       - "text_generation"
+
+# Llama3_3_70b:
+#   target: ""
+#   repo_id: "casperhansen/llama-3.3-70b-instruct-awq"
+#   params:
+#     supporting_pipelines:
+#       - "text_generation"
+
+# StickerMaker:
+#   target: "generation_models.NicheComfyUI"
+#   params:
+#     supporting_pipelines:
+#       - "txt2img"
+#     workflow_json_file: "generation_models/comfyui_helper/configs/sticker_maker/workflow.json"
+#     update_wf_function: "generation_models.comfyui_helper.helpers.wf_sticker_maker.update_workflow"
+#     init_setup_function: "generation_models.comfyui_helper.helpers.wf_sticker_maker.setup"
+
+# FaceToMany:
+#   target: "generation_models.NicheComfyUI"
+#   params:
+#     supporting_pipelines:
+#       - "img2img"
+#     workflow_json_file: "generation_models/comfyui_helper/configs/face_to_many/workflow.json"
+#     update_wf_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.update_workflow"
+#     init_setup_function: "generation_models.comfyui_helper.helpers.wf_face_to_many.setup"
+
+# DreamShaperXL:
+#   target: generation_models.NicheStableDiffusionXL
+#   params:
+#     checkpoint_file: "checkpoints/DreamShaperXL.safetensors"
+#     download_url: "https://civitai.com/api/download/models/351306"
+#     scheduler: "dpm++sde_karras"
+#     supporting_pipelines:
+#       - "txt2img"
+#       - "img2img"
+#       - "instantid"
+
+# JuggernautXL:
+#   target: generation_models.NicheStableDiffusionXL
+#   params:
+#     checkpoint_file: "checkpoints/JuggernautXL.safetensors"
+#     download_url: "https://civitai.com/api/download/models/456194"
+#     scheduler: "dpm++2m_karras"
+#     supporting_pipelines:
+#       - "txt2img"
+
+# DallE:
+#   target: generation_models.NicheDallE
+#   params:
+#     supporting_pipelines:
+#       - "txt2img"
