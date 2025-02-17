@@ -13,7 +13,8 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 - 📊 [Subnet Statistics & Playground Showcase](https://studio.nichetensor.com/)
 
 ### Incentive Distribution
-
+#### Miner scores Weights: 70%
+##### Specific Model Category (52%)
 | Category        | Incentive Distribution | Description                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | 🧭 GoJourney       | 5%                     | Fixed Image Category                                                                                        |
@@ -26,6 +27,11 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | **OpenTraditionalArtSketch** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
 | **Pixtral_12b** | 5% | Fixed Multimodal Category |
 | 🐋 DeepSeek_R1_Distill_Llama_70B | 10% | Fixed Text Category |
+
+##### Recycle Model Category (48%)
+ - Recycle Category: When new miner register, the score starts at 1.0 and decays by 10% each day (0.9^days) for up to 100 days. After 100 days, the score effectively becomes zero.
+
+#### Alpha stake weights: 30%
 
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.
