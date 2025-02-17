@@ -8,21 +8,11 @@ class WeightTransitionConfig:
             "miner_weight": 1.0,
             "stake_weight": 0.0
         },
-        {
-            "deadline": datetime(2025, 2, 24, 0, 0, 0, 0, tzinfo=timezone.utc),
-            "miner_weight": 0.7,
-            "stake_weight": 0.3
-        },
-        {
-            "deadline": datetime(2025, 2, 26, 0, 0, 0, 0, tzinfo=timezone.utc),
-            "miner_weight": 0.4,
-            "stake_weight": 0.6
-        },
     ]
     
     # Default weights after all transitions
-    DEFAULT_MINER_WEIGHT = 0.1
-    DEFAULT_STAKE_WEIGHT = 0.9 
+    DEFAULT_MINER_WEIGHT = 0.7
+    DEFAULT_STAKE_WEIGHT = 0.3 
 
 class WeightCalculationService:
     @staticmethod
