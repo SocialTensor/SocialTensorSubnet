@@ -29,7 +29,8 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | 🐋 DeepSeek_R1_Distill_Llama_70B | 10% | Fixed Text Category |
 
 ##### Recycle Model Category (48%)
- - Recycle Category: When new miner register, the score starts at 1.0 and decays by 10% each day (0.9^days) for up to 100 days. After 100 days, the score effectively becomes zero.
+When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$. This decay process is applied for up to **100 days**. After 100 days, the score is effectively considered to be zero.
+
 
 #### Alpha stake weights: 30%
 
