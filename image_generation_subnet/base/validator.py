@@ -213,122 +213,10 @@ class BaseValidatorNeuron(BaseNeuron):
             self.is_running = False
             bt.logging.debug("Stopped")
 
-    def get_bonus_scores(self):
-        """
-        Returns bonus scores for newly registered UIDs based on their registration date.
-        Newer registrations get higher bonus percentages, scaling from 10% for 0-day-old
-        registrations down to 1% for 9-day-old registrations.
-        
-        Returns:
-            np.ndarray: Array of bonus scores matching the shape of self.scores
-        """
-        bonus_scores = np.zeros_like(self.scores)
-        self.miner_manager.update_registration_log_from_api()
-        try:
-            days_since_registration_list = self._calculate_registration_days()
-            bonus_scores = self._apply_bonus_multipliers(days_since_registration_list)
-            bt.logging.info(f"Days since registration list: {days_since_registration_list}")
-            
-        except Exception as e:
-            bt.logging.error(f"Error getting bonus scores: {e}")
-            
-        return bonus_scores
-
-    def _calculate_registration_days(self):
-        """
-        Calculate days since registration for each UID.
-        
-        Returns:
-            np.ndarray: Array containing days since registration for each UID
-        """
-        days_since_registration_list = np.zeros_like(self.scores)
-        for uid in [int(uid) for uid in self.metagraph.uids]:
-            try:
-                registration_timestamp = self.miner_manager.registration_log[uid]
-                days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
-                days_since_registration_list[uid] = days_since_registration
-
-            except Exception as e:
-                bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
-                if uid < len(days_since_registration_list):
-                    days_since_registration_list[uid] = 1000  # Ensures no bonus for this uid
-                else:
-                    bt.logging.error(f"Days since registration list is not large enough for uid {uid}")
-                
-        return days_since_registration_list
-
-    def _apply_bonus_multipliers(self, days_since_registration_list: np.ndarray) -> np.ndarray:
-        """
-        Apply bonus multipliers based on days since registration.
-        
-        Args:
-            days_since_registration_list: Array of days since registration for each UID
-            
-        Returns:
-            np.ndarray: Array of bonus scores
-        """
-        bonus_scores = np.zeros_like(self.scores)
-        bonus_percent_dict = {
-            day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
-            for day in range(10)
-        }
-        
-        for uid, days in enumerate(days_since_registration_list):
-            if 0 <= days < 10:
-                bonus_scores[uid] = bonus_percent_dict[int(days)] * self.scores[uid]
-                
-        return bonus_scores
-    
-    def get_recycle_weights(self):
-        """
-        Calculates decay-based scores for recycler miners based on their registration date.
-        
-        The score starts at 1.0 and decays by 10% each day (0.9^days) for up to 100 days.
-        After 100 days, the score effectively becomes zero.
-        
-        Returns:
-            np.ndarray: Array of recycle scores matching the shape of self.scores, where
-                       each recycler miner's score is determined by their registration age.
-        """
-        # Update registration data from API
-        self.miner_manager.update_registration_log_from_api()
-        
-        # Initialize scores array
-        recycle_weights = np.zeros_like(self.scores)
-        
-        # Get list of UIDs that are running recycler models
-        recycler_uids = self.miner_manager.get_miner_uids(model_name='Recycle')
-        if not recycler_uids:
-            return recycle_weights
-            
-        # Calculate decay factors for each day (0.9^day)
-        DAILY_DECAY_RATE = 0.9
-        MAX_DAYS = 100
-        decay_factors = {
-            day: DAILY_DECAY_RATE ** day 
-            for day in range(MAX_DAYS)
-        }
-        
-        # Get registration age for all miners
-        days_since_registration = self._calculate_registration_days()
-        
-        # Apply decay factors based on registration age
-        for uid in recycler_uids:
-            days = int(days_since_registration[uid])
-            if days < MAX_DAYS:
-                recycle_weights[uid] = decay_factors[days]
-                
-        return recycle_weights
-
     def set_weights(self):
         """
         Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
         """
-        # Add bonus scores to new registered uids
-        bonus_scores = self.get_bonus_scores()
-        bt.logging.info(f"Bonus scores: {bonus_scores}")
-        self.scores = self.scores + bonus_scores
-
         # Check if self.scores contains any NaN values and log a warning if it does.
         if np.isnan(self.scores).any():
             bt.logging.warning(
@@ -337,40 +225,11 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
-        specific_model_raw_weights = np.nan_to_num(self.scores, nan=0)
-        specific_model_raw_weight_sum = np.sum(np.abs(specific_model_raw_weights), axis=0, keepdims=True)
-        if not specific_model_raw_weight_sum == 0:
-            specific_model_raw_weights = specific_model_raw_weights / specific_model_raw_weight_sum
-        bt.logging.info(f"Specific model raw weights: {specific_model_raw_weights}")
-
-        # Add recycle scores to new registered uids
-        recycle_weights = self.get_recycle_weights()
-        recycle_weights = np.nan_to_num(recycle_weights, nan=0)
-        recycle_weight_sum = np.sum(np.abs(recycle_weights), axis=0, keepdims=True)
-        if not recycle_weight_sum == 0:
-            recycle_weights = recycle_weights / recycle_weight_sum
-        bt.logging.info(f"Recycle weights: {recycle_weights}")
-
-        # Calculate miner weights with recycle weights
-        miner_raw_weights = 0.52 * specific_model_raw_weights + 0.48 * recycle_weights
-        miner_raw_weights = np.nan_to_num(miner_raw_weights, nan=0)
-        miner_raw_weight_sum = np.sum(np.abs(miner_raw_weights), axis=0, keepdims=True)
-        if not miner_raw_weight_sum == 0:
-            miner_raw_weights = miner_raw_weights / miner_raw_weight_sum
-        bt.logging.info(f"Miner raw weights: {miner_raw_weights}")
-
-        # Calculate weights base on alpha stake
-        alpha_raw_weights = np.nan_to_num(self.metagraph.alpha_stake, nan=0)
-        alpha_raw_weight_sum = np.sum(np.abs(alpha_raw_weights), axis=0, keepdims=True)
-        if not alpha_raw_weight_sum == 0:
-            alpha_raw_weights = alpha_raw_weights / alpha_raw_weight_sum
-        bt.logging.info(f"Alpha raw weights: {alpha_raw_weights}")  
-
-        # Calculate raw weights using the service
-        raw_weights = self.weight_service.calculate_transition_weights(
-            miner_raw_weights,
-            alpha_raw_weights
-        )
+        raw_weights = np.nan_to_num(self.scores, nan=0)
+        raw_weight_sum = np.sum(np.abs(raw_weights), axis=0, keepdims=True)
+        if not raw_weight_sum == 0:
+            raw_weights = raw_weights / raw_weight_sum
+            
         bt.logging.info(f"Raw weights: {raw_weights}")
         bt.logging.trace("Top 10 values:", np.sort(raw_weights))
         bt.logging.trace("Top 10 uids:", np.argsort(raw_weights))
