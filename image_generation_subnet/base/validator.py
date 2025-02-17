@@ -345,6 +345,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Add recycle scores to new registered uids
         recycle_weights = self.get_recycle_weights()
+        recycle_weights = np.nan_to_num(recycle_weights, nan=0)
         recycle_weight_sum = np.sum(np.abs(recycle_weights), axis=0, keepdims=True)
         if not recycle_weight_sum == 0:
             recycle_weights = recycle_weights / recycle_weight_sum
@@ -352,6 +353,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Calculate miner weights with recycle weights
         miner_raw_weights = 0.52 * specific_model_raw_weights + 0.48 * recycle_weights
+        miner_raw_weights = np.nan_to_num(miner_raw_weights, nan=0)
         miner_raw_weight_sum = np.sum(np.abs(miner_raw_weights), axis=0, keepdims=True)
         if not miner_raw_weight_sum == 0:
             miner_raw_weights = miner_raw_weights / miner_raw_weight_sum
