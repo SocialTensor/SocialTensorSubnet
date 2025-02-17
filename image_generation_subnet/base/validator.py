@@ -337,11 +337,11 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
-        miner_raw_weights = np.nan_to_num(self.scores, nan=0)
-        miner_raw_weight_sum = np.sum(np.abs(miner_raw_weights), axis=0, keepdims=True)
-        if not miner_raw_weight_sum == 0:
-            miner_raw_weights = miner_raw_weights / miner_raw_weight_sum
-        bt.logging.info(f"Miner raw weights: {miner_raw_weights}")
+        specific_model_raw_weights = np.nan_to_num(self.scores, nan=0)
+        specific_model_raw_weight_sum = np.sum(np.abs(specific_model_raw_weights), axis=0, keepdims=True)
+        if not specific_model_raw_weight_sum == 0:
+            specific_model_raw_weights = specific_model_raw_weights / specific_model_raw_weight_sum
+        bt.logging.info(f"Specific model raw weights: {specific_model_raw_weights}")
 
         # Add recycle scores to new registered uids
         recycle_weights = self.get_recycle_weights()
@@ -351,7 +351,11 @@ class BaseValidatorNeuron(BaseNeuron):
         bt.logging.info(f"Recycle weights: {recycle_weights}")
 
         # Calculate miner weights with recycle weights
-        miner_raw_weights = 0.52 * miner_raw_weights + 0.48 * recycle_weights
+        miner_raw_weights = 0.52 * specific_model_raw_weights + 0.48 * recycle_weights
+        miner_raw_weight_sum = np.sum(np.abs(miner_raw_weights), axis=0, keepdims=True)
+        if not miner_raw_weight_sum == 0:
+            miner_raw_weights = miner_raw_weights / miner_raw_weight_sum
+        bt.logging.info(f"Miner raw weights: {miner_raw_weights}")
 
         # Calculate weights base on alpha stake
         alpha_raw_weights = np.nan_to_num(self.metagraph.alpha_stake, nan=0)
