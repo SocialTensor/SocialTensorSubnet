@@ -53,3 +53,21 @@ class TestWeightCalculationService:
         ) * 0.85 + 0.15 * sample_weights['alpha']
         
         np.testing.assert_array_almost_equal(result, expected)
+    
+    def test_after_second_transition(self, service, sample_weights):
+        test_time = datetime(2025, 2, 20, 12, tzinfo=timezone.utc)
+        
+        result = service.calculate_transition_weights(
+            alpha_raw_weights=sample_weights['alpha'],
+            specific_model_raw_weights=sample_weights['specific_model'],
+            recycle_raw_weights=sample_weights['recycle'],
+            current_time=test_time
+        )
+        
+        # After second transition: 76% specific_model, 24% recycle, 70% miner, 30% stake
+        expected = (
+            0.76 * sample_weights['specific_model'] + 
+            0.24 * sample_weights['recycle']
+        ) * 0.7 + 0.3 * sample_weights['alpha']
+        
+        np.testing.assert_array_almost_equal(result, expected)
