@@ -32,7 +32,6 @@ import numpy as np
 import requests
 
 from image_generation_subnet.base.neuron import BaseNeuron
-from image_generation_subnet.utils.weight_calculation import WeightCalculationService
 
 
 class BaseValidatorNeuron(BaseNeuron):
@@ -42,7 +41,6 @@ class BaseValidatorNeuron(BaseNeuron):
 
     def __init__(self, config=None):
         super().__init__(config=config)
-        self.weight_service = WeightCalculationService()
 
         # Save a copy of the hotkeys to local memory.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)

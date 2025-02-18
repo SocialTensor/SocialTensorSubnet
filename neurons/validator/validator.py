@@ -18,6 +18,8 @@ from typing_extensions import override
 import image_generation_subnet as ig_subnet
 from generation_models.utils import random_image_size
 from image_generation_subnet.base.validator import BaseValidatorNeuron
+from image_generation_subnet.utils.weight_calculation import \
+    WeightCalculationService
 from image_generation_subnet.validator import MinerManager
 from image_generation_subnet.validator.offline_challenge import (
     get_backup_challenge_vqa, get_backup_image, get_backup_llm_prompt,
@@ -315,7 +317,7 @@ def initialize_nicheimage_catalogue(config):
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
-
+        self.weight_service = WeightCalculationService()
         bt.logging.info("load_state()")
         self.challenge_urls = initialize_challenge_urls(self.config)
         self.nicheimage_catalogue = initialize_nicheimage_catalogue(self.config)
@@ -963,20 +965,12 @@ class Validator(BaseValidatorNeuron):
         bt.logging.info(f"Specific model raw weights: {specific_model_raw_weights}")
 
         # Add recycle scores to new registered uids
-        recycle_weights = self.get_recycle_weights()
-        recycle_weights = np.nan_to_num(recycle_weights, nan=0)
-        recycle_weight_sum = np.sum(np.abs(recycle_weights), axis=0, keepdims=True)
+        recycle_raw_weights = self.get_recycle_weights()
+        recycle_raw_weights = np.nan_to_num(recycle_raw_weights, nan=0)
+        recycle_weight_sum = np.sum(np.abs(recycle_raw_weights), axis=0, keepdims=True)
         if not recycle_weight_sum == 0:
-            recycle_weights = recycle_weights / recycle_weight_sum
-        bt.logging.info(f"Recycle weights: {recycle_weights}")
-
-        # Calculate miner weights with recycle weights
-        miner_raw_weights = 0.52 * specific_model_raw_weights + 0.48 * recycle_weights
-        miner_raw_weights = np.nan_to_num(miner_raw_weights, nan=0)
-        miner_raw_weight_sum = np.sum(np.abs(miner_raw_weights), axis=0, keepdims=True)
-        if not miner_raw_weight_sum == 0:
-            miner_raw_weights = miner_raw_weights / miner_raw_weight_sum
-        bt.logging.info(f"Miner raw weights: {miner_raw_weights}")
+            recycle_raw_weights = recycle_raw_weights / recycle_weight_sum
+        bt.logging.info(f"Recycle raw weights: {recycle_raw_weights}")
 
         # Calculate weights base on alpha stake
         alpha_raw_weights = np.nan_to_num(self.metagraph.alpha_stake, nan=0)
@@ -987,8 +981,9 @@ class Validator(BaseValidatorNeuron):
 
         # Calculate raw weights using the service
         raw_weights = self.weight_service.calculate_transition_weights(
-            miner_raw_weights,
-            alpha_raw_weights
+            alpha_raw_weights,
+            specific_model_raw_weights,
+            recycle_raw_weights
         )
         bt.logging.info(f"Raw weights: {raw_weights}")
         bt.logging.trace("Top 10 values:", np.sort(raw_weights))
