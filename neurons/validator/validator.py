@@ -1,29 +1,32 @@
-import time, asyncio
-import bittensor as bt
-import random
-import torch
-import pickle
-import numpy as np
-from image_generation_subnet.base.validator import BaseValidatorNeuron
-from neurons.validator.validator_proxy import ValidatorProxy
-from image_generation_subnet.validator import MinerManager
-import image_generation_subnet as ig_subnet
-import traceback
-import yaml
-import threading
-import math
-import queue
+import asyncio
 import json
+import math
+import pickle
+import queue
+import random
+import threading
+import time
+import traceback
+from datetime import datetime, timezone
+
+import bittensor as bt
+import numpy as np
+import torch
+import yaml
+from typing_extensions import override
+
+import image_generation_subnet as ig_subnet
+from generation_models.utils import random_image_size
+from image_generation_subnet.base.validator import BaseValidatorNeuron
+from image_generation_subnet.utils.weight_calculation import \
+    WeightCalculationService
+from image_generation_subnet.validator import MinerManager
 from image_generation_subnet.validator.offline_challenge import (
-    get_backup_image,
-    get_backup_prompt,
-    get_backup_llm_prompt,
-    get_backup_challenge_vqa,
-)
-from datetime import datetime
+    get_backup_challenge_vqa, get_backup_image, get_backup_llm_prompt,
+    get_backup_prompt)
+from neurons.validator.validator_proxy import ValidatorProxy
 from services.offline_rewarding.redis_client import RedisClient
 from services.offline_rewarding.reward_app import RewardApp
-from generation_models.utils import random_image_size
 
 MODEL_CONFIGS = yaml.load(
     open("generation_models/configs/model_config.yaml"), yaml.FullLoader
@@ -300,102 +303,7 @@ def initialize_nicheimage_catalogue(config):
             "reward_url": config.reward_url.DeepSeek_R1_Distill_Llama_70B,
             "reward_type": "text",
             "inference_params": {},
-        },
-        # Old models, remove after next update
-        "JuggernautXL": {
-            "supporting_pipelines": MODEL_CONFIGS["JuggernautXL"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.00,
-            "reward_url": config.reward_url.JuggernautXL,
-            "reward_type": "image",
-            "inference_params": {
-                "num_inference_steps": 30,
-                "width": 1024,
-                "height": 1024,
-                "guidance_scale": 6,
-            },
-            "timeout": 12,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "Gemma7b": {
-            "supporting_pipelines": MODEL_CONFIGS["Gemma7b"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.00,
-            "timeout": 64,
-            "synapse_type": ig_subnet.protocol.TextGenerating,
-            "reward_url": config.reward_url.Gemma7b,
-            "reward_type": "text",
-            "inference_params": {},
-        },
-        "StickerMaker": {
-            "supporting_pipelines": MODEL_CONFIGS["StickerMaker"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.00,
-            "timeout": 64,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "reward_url": config.reward_url.StickerMaker,
-            "reward_type": "image",
-            "inference_params": {"is_upscale": False},
-        },
-        "Llama3_3_70b": {
-            "supporting_pipelines": MODEL_CONFIGS["Llama3_3_70b"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.00,
-            "timeout": 128,
-            "synapse_type": ig_subnet.protocol.TextGenerating,
-            "reward_url": config.reward_url.Llama3_3_70b,
-            "reward_type": "text",
-            "inference_params": {},
-        },
-        "OpenDigitalArtAnime": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenDigitalArtPixelArt": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenTraditionalArt": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenTraditionalArtPainting": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenTraditionalArtComic": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
+        }
     }
 
     sum_incentive = 0
@@ -409,7 +317,7 @@ def initialize_nicheimage_catalogue(config):
 class Validator(BaseValidatorNeuron):
     def __init__(self, config=None):
         super(Validator, self).__init__(config=config)
-
+        self.weight_service = WeightCalculationService()
         bt.logging.info("load_state()")
         self.challenge_urls = initialize_challenge_urls(self.config)
         self.nicheimage_catalogue = initialize_nicheimage_catalogue(self.config)
@@ -809,56 +717,6 @@ class Validator(BaseValidatorNeuron):
                 bt.logging.debug(f"Normalized {model_name} weights\n{model_specific_weights}")
             # Smoothing update incentive
             temp_incentive_weight = {}
-            if datetime.utcnow() < datetime(2025, 2, 13, 16, 0, 0):
-                temp_incentive_weight = {
-                    "GoJourney": 0.04,
-                    "JuggernautXL": 0.07,
-                    "RealitiesEdgeXL": 0.00,
-                    "AnimeV3": 0.00,
-                    "Gemma7b": 0.03,
-                    "StickerMaker": 0.03,
-                    "Llama3_70b": 0.00,
-                    "Llama3_3_70b": 0.07,
-                    "SUPIR": 0.08,
-                    "FluxSchnell": 0.12,
-                    "Kolors": 0.10,
-                    "OpenGeneral": 0.08,
-                    "OpenDigitalArt": 0.02,
-                    "OpenDigitalArtAnime": 0.02,
-                    "OpenDigitalArtMinimalist": 0.02,
-                    "OpenDigitalArtPixelArt": 0.02,
-                    "OpenTraditionalArt": 0.02,
-                    "OpenTraditionalArtPainting": 0.02,
-                    "OpenTraditionalArtSketch": 0.02,
-                    "OpenTraditionalArtComic": 0.02,
-                    "Pixtral_12b": 0.04,
-                    "DeepSeek_R1_Distill_Llama_70B": 0.00,
-                }
-            else:
-                temp_incentive_weight = {
-                    "GoJourney": 0.05,
-                    "JuggernautXL": 0.00,
-                    "RealitiesEdgeXL": 0.00,
-                    "AnimeV3": 0.00,
-                    "Gemma7b": 0.00,
-                    "StickerMaker": 0.00,
-                    "Llama3_70b": 0.00,
-                    "Llama3_3_70b": 0.00,
-                    "SUPIR": 0.07,
-                    "FluxSchnell": 0.20,
-                    "Kolors": 0.10,
-                    "OpenGeneral": 0.10,
-                    "OpenDigitalArt": 0.10,
-                    "OpenDigitalArtAnime": 0.00,
-                    "OpenDigitalArtMinimalist": 0.10,
-                    "OpenDigitalArtPixelArt": 0.00,
-                    "OpenTraditionalArt": 0.00,
-                    "OpenTraditionalArtPainting": 0.00,
-                    "OpenTraditionalArtSketch": 0.10,
-                    "OpenTraditionalArtComic": 0.00,
-                    "Pixtral_12b": 0.05,
-                    "DeepSeek_R1_Distill_Llama_70B": 0.10,
-                }
 
             # TODO: after we updated weights, we need to update the model_incentive_weight in the miner_manager
             if model_name in temp_incentive_weight:
@@ -974,6 +832,204 @@ class Validator(BaseValidatorNeuron):
         # All others (rank 4 and below) get 0 (already initialized)
 
         return ranked_array
+    
+    def get_bonus_scores(self):
+        """
+        Returns bonus scores for newly registered UIDs based on their registration date.
+        Newer registrations get higher bonus percentages, scaling from 10% for 0-day-old
+        registrations down to 1% for 9-day-old registrations.
+        
+        Returns:
+            np.ndarray: Array of bonus scores matching the shape of self.scores
+        """
+        bonus_scores = np.zeros_like(self.scores)
+        self.miner_manager.update_registration_log_from_api()
+        try:
+            days_since_registration_list = self._calculate_registration_days()
+            bonus_scores = self._apply_bonus_multipliers(days_since_registration_list)
+            bt.logging.info(f"Days since registration list: {days_since_registration_list}")
+            
+        except Exception as e:
+            bt.logging.error(f"Error getting bonus scores: {e}")
+            
+        return bonus_scores
+
+    def _calculate_registration_days(self):
+        """
+        Calculate days since registration for each UID.
+        
+        Returns:
+            np.ndarray: Array containing days since registration for each UID
+        """
+        days_since_registration_list = np.zeros_like(self.scores)
+        for uid in [int(uid) for uid in self.metagraph.uids]:
+            try:
+                registration_timestamp = self.miner_manager.registration_log[uid]
+                days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
+                days_since_registration_list[uid] = days_since_registration
+
+            except Exception as e:
+                bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
+                if uid < len(days_since_registration_list):
+                    days_since_registration_list[uid] = 1000  # Ensures no bonus for this uid
+                else:
+                    bt.logging.error(f"Days since registration list is not large enough for uid {uid}")
+                
+        return days_since_registration_list
+
+    def _apply_bonus_multipliers(self, days_since_registration_list: np.ndarray) -> np.ndarray:
+        """
+        Apply bonus multipliers based on days since registration.
+        
+        Args:
+            days_since_registration_list: Array of days since registration for each UID
+            
+        Returns:
+            np.ndarray: Array of bonus scores
+        """
+        bonus_scores = np.zeros_like(self.scores)
+        bonus_percent_dict = {
+            day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
+            for day in range(10)
+        }
+        
+        for uid, days in enumerate(days_since_registration_list):
+            if 0 <= days < 10:
+                bonus_scores[uid] = bonus_percent_dict[int(days)] * self.scores[uid]
+                
+        return bonus_scores
+    
+    def get_recycle_weights(self):
+        """
+        Calculates decay-based scores for recycler miners based on their registration date.
+        
+        The score starts at 1.0 and decays by 10% each day (0.9^days) for up to 100 days.
+        After 100 days, the score effectively becomes zero.
+        
+        Returns:
+            np.ndarray: Array of recycle scores matching the shape of self.scores, where
+                       each recycler miner's score is determined by their registration age.
+        """
+        # Update registration data from API
+        self.miner_manager.update_registration_log_from_api()
+        
+        # Initialize scores array
+        recycle_weights = np.zeros_like(self.scores)
+        
+        # Get list of UIDs that are running recycler models
+        recycler_uids = self.miner_manager.get_miner_uids(model_name='Recycle')
+        if not recycler_uids:
+            return recycle_weights
+            
+        # Calculate decay factors for each day (0.9^day)
+        DAILY_DECAY_RATE = 0.9
+        MAX_DAYS = 100
+        decay_factors = {
+            day: DAILY_DECAY_RATE ** day 
+            for day in range(MAX_DAYS)
+        }
+        
+        # Get registration age for all miners
+        days_since_registration = self._calculate_registration_days()
+        
+        # Apply decay factors based on registration age
+        for uid in recycler_uids:
+            days = int(days_since_registration[uid])
+            if days < MAX_DAYS:
+                recycle_weights[uid] = decay_factors[days]
+                
+        return recycle_weights
+
+    @override
+    def set_weights(self):
+        """
+        Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
+        """
+        # Add bonus scores to new registered uids
+        bonus_scores = self.get_bonus_scores()
+        bt.logging.info(f"Bonus scores: {bonus_scores}")
+        self.scores = self.scores + bonus_scores
+
+        # Check if self.scores contains any NaN values and log a warning if it does.
+        if np.isnan(self.scores).any():
+            bt.logging.warning(
+                "Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
+            )
+
+        # Calculate the average reward for each uid across non-zero values.
+        # Replace any NaN values with 0.
+        specific_model_raw_weights = np.nan_to_num(self.scores, nan=0)
+        specific_model_raw_weight_sum = np.sum(np.abs(specific_model_raw_weights), axis=0, keepdims=True)
+        if not specific_model_raw_weight_sum == 0:
+            specific_model_raw_weights = specific_model_raw_weights / specific_model_raw_weight_sum
+        bt.logging.info(f"Specific model raw weights: {specific_model_raw_weights}")
+
+        # Add recycle scores to new registered uids
+        recycle_raw_weights = self.get_recycle_weights()
+        recycle_raw_weights = np.nan_to_num(recycle_raw_weights, nan=0)
+        recycle_weight_sum = np.sum(np.abs(recycle_raw_weights), axis=0, keepdims=True)
+        if not recycle_weight_sum == 0:
+            recycle_raw_weights = recycle_raw_weights / recycle_weight_sum
+        bt.logging.info(f"Recycle raw weights: {recycle_raw_weights}")
+
+        # Calculate weights base on alpha stake
+        alpha_raw_weights = np.nan_to_num(self.metagraph.alpha_stake, nan=0)
+        alpha_raw_weight_sum = np.sum(np.abs(alpha_raw_weights), axis=0, keepdims=True)
+        if not alpha_raw_weight_sum == 0:
+            alpha_raw_weights = alpha_raw_weights / alpha_raw_weight_sum
+        bt.logging.info(f"Alpha raw weights: {alpha_raw_weights}")  
+
+        # Calculate raw weights using the service
+        raw_weights = self.weight_service.calculate_transition_weights(
+            alpha_raw_weights,
+            specific_model_raw_weights,
+            recycle_raw_weights
+        )
+        bt.logging.info(f"Raw weights: {raw_weights}")
+        bt.logging.trace("Top 10 values:", np.sort(raw_weights))
+        bt.logging.trace("Top 10 uids:", np.argsort(raw_weights))
+
+        # Process the raw weights to final_weights via subtensor limitations.
+        (
+            processed_weight_uids,
+            processed_weights,
+        ) = bt.utils.weight_utils.process_weights_for_netuid(
+            uids=self.metagraph.uids,
+            weights=raw_weights,
+            netuid=self.config.netuid,
+            subtensor=self.subtensor,
+            metagraph=self.metagraph,
+        )
+        bt.logging.trace("Processed weights:", processed_weights)
+        bt.logging.trace("Processed weight uids:", processed_weight_uids)
+
+         # Convert to uint16 weights and uids.
+        (
+            uint_uids,
+            uint_weights,
+        ) = bt.utils.weight_utils.convert_weights_and_uids_for_emit(
+            uids=processed_weight_uids, 
+            weights=processed_weights
+        )
+        bt.logging.debug("uint_weights", uint_weights)
+        bt.logging.debug("uint_uids", uint_uids)
+
+        # Set the weights on chain via our subtensor connection.
+        result, log = self.subtensor.set_weights(
+            wallet=self.wallet,
+            netuid=self.config.netuid,
+            uids=uint_uids,
+            weights=uint_weights,
+            wait_for_finalization=False,
+            version_key=self.spec_version,
+        )
+
+        if result:
+            bt.logging.success(f"[SET WEIGHTS]: {log}")
+        else:
+            bt.logging.error(f"[SET WEIGHTS]: {log}")
+
+        bt.logging.info(f"Set weights: {processed_weights}")
 
 
 # The main function parses the configuration and runs the validator.

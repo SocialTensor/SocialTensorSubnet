@@ -211,81 +211,10 @@ class BaseValidatorNeuron(BaseNeuron):
             self.is_running = False
             bt.logging.debug("Stopped")
 
-    def get_bonus_scores(self):
-        """
-        Returns bonus scores for newly registered UIDs based on their registration date.
-        Newer registrations get higher bonus percentages, scaling from 10% for 0-day-old
-        registrations down to 1% for 9-day-old registrations.
-        
-        Returns:
-            np.ndarray: Array of bonus scores matching the shape of self.scores
-        """
-        bonus_scores = np.zeros_like(self.scores)
-        self.miner_manager.update_registration_log_from_api()
-        try:
-            days_since_registration_list = self._calculate_registration_days()
-            bonus_scores = self._apply_bonus_multipliers(days_since_registration_list)
-            bt.logging.info(f"Days since registration list: {days_since_registration_list}")
-            
-        except Exception as e:
-            bt.logging.error(f"Error getting bonus scores: {e}")
-            
-        return bonus_scores
-
-    def _calculate_registration_days(self):
-        """
-        Calculate days since registration for each UID.
-        
-        Returns:
-            np.ndarray: Array containing days since registration for each UID
-        """
-        days_since_registration_list = np.zeros_like(self.scores)
-        for uid in [int(uid) for uid in self.metagraph.uids]:
-            try:
-                registration_timestamp = self.miner_manager.registration_log[uid]
-                days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
-                days_since_registration_list[uid] = days_since_registration
-
-            except Exception as e:
-                bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
-                if uid < len(days_since_registration_list):
-                    days_since_registration_list[uid] = 1000  # Ensures no bonus for this uid
-                else:
-                    bt.logging.error(f"Days since registration list is not large enough for uid {uid}")
-                
-        return days_since_registration_list
-
-    def _apply_bonus_multipliers(self, days_since_registration_list: np.ndarray) -> np.ndarray:
-        """
-        Apply bonus multipliers based on days since registration.
-        
-        Args:
-            days_since_registration_list: Array of days since registration for each UID
-            
-        Returns:
-            np.ndarray: Array of bonus scores
-        """
-        bonus_scores = np.zeros_like(self.scores)
-        bonus_percent_dict = {
-            day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
-            for day in range(10)
-        }
-        
-        for uid, days in enumerate(days_since_registration_list):
-            if 0 <= days < 10:
-                bonus_scores[uid] = bonus_percent_dict[int(days)] * self.scores[uid]
-                
-        return bonus_scores
-
     def set_weights(self):
         """
         Sets the validator weights to the metagraph hotkeys based on the scores it has received from the miners. The weights determine the trust and incentive level the validator assigns to miner nodes on the network.
         """
-        # Add bonus scores to new registered uids
-        bonus_scores = self.get_bonus_scores()
-        bt.logging.info(f"Bonus scores: {bonus_scores}")
-        self.scores = self.scores + bonus_scores
-
         # Check if self.scores contains any NaN values and log a warning if it does.
         if np.isnan(self.scores).any():
             bt.logging.warning(
@@ -298,8 +227,8 @@ class BaseValidatorNeuron(BaseNeuron):
         raw_weight_sum = np.sum(np.abs(raw_weights), axis=0, keepdims=True)
         if not raw_weight_sum == 0:
             raw_weights = raw_weights / raw_weight_sum
-
-        bt.logging.trace("Raw weights:", raw_weights)
+            
+        bt.logging.info(f"Raw weights: {raw_weights}")
         bt.logging.trace("Top 10 values:", np.sort(raw_weights))
         bt.logging.trace("Top 10 uids:", np.argsort(raw_weights))
 
@@ -378,27 +307,3 @@ class BaseValidatorNeuron(BaseNeuron):
 
         # Update the hotkeys.
         self.hotkeys = copy.deepcopy(self.metagraph.hotkeys)
-
-    # def update_scores(self, rewards: torch.FloatTensor, uids: List[int]):
-    #     """Performs exponential moving average on the scores based on the rewards received from the miners."""
-
-    #     # Check if rewards contains NaN values.
-    #     if torch.isnan(rewards).any():
-    #         bt.logging.warning(f"NaN values detected in rewards: {rewards}")
-    #         # Replace any NaN values in rewards with 0.
-    #         rewards = torch.nan_to_num(rewards, 0)
-
-    #     # Compute forward pass rewards, assumes uids are mutually exclusive.
-    #     # shape: [ metagraph.n ]
-    #     scattered_rewards: torch.FloatTensor = self.scores.scatter(
-    #         0, torch.tensor(uids).to(self.device), rewards
-    #     ).to(self.device)
-    #     bt.logging.debug(f"Scattered rewards: {rewards}")
-
-    #     # Update scores with rewards produced by this step.
-    #     # shape: [ metagraph.n ]
-    #     alpha: float = self.config.neuron.moving_average_alpha
-    #     self.scores: torch.FloatTensor = alpha * scattered_rewards + (
-    #         1 - alpha
-    #     ) * self.scores.to(self.device)
-    #     bt.logging.info(f"Updated moving avg scores: {self.scores}")
