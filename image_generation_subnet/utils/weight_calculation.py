@@ -12,18 +12,18 @@ class WeightTransitionConfig:
         },
         {
             "deadline": datetime(2025, 2, 20, 0, 0, 0, 0, tzinfo=timezone.utc),
-            "miner_weight": 0.85,
-            "stake_weight": 0.15,
-            "specific_model_weight": 0.76,
-            "recycle_weight": 0.24,
+            "miner_weight": 0.955,
+            "stake_weight": 0.045,
+            "specific_model_weight": 0.81,
+            "recycle_weight": 0.19,
         },
     ]
     
     # Default weights after all transitions
-    DEFAULT_MINER_WEIGHT = 0.7
-    DEFAULT_STAKE_WEIGHT = 0.3 
-    DEFAULT_SPECIFIC_MODEL_WEIGHT = 0.52
-    DEFAULT_RECYCLE_WEIGHT = 0.48
+    DEFAULT_MINER_WEIGHT = 0.91
+    DEFAULT_STAKE_WEIGHT = 0.09
+    DEFAULT_SPECIFIC_MODEL_WEIGHT = 0.62
+    DEFAULT_RECYCLE_WEIGHT = 0.38
 
 class WeightCalculationService:
     @staticmethod

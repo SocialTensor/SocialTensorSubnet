@@ -48,9 +48,9 @@ class TestWeightCalculationService:
         
         # During first transition: 76% specific_model, 24% recycle, 85% miner, 15% stake
         expected = (
-            0.76 * sample_weights['specific_model'] + 
-            0.24 * sample_weights['recycle']
-        ) * 0.85 + 0.15 * sample_weights['alpha']
+            0.81 * sample_weights['specific_model'] + 
+            0.19 * sample_weights['recycle']
+        ) * 0.955 + 0.045 * sample_weights['alpha']
         
         np.testing.assert_array_almost_equal(result, expected)
     
@@ -66,8 +66,8 @@ class TestWeightCalculationService:
         
         # After second transition: 76% specific_model, 24% recycle, 70% miner, 30% stake
         expected = (
-            0.52 * sample_weights['specific_model'] + 
-            0.48 * sample_weights['recycle']
-        ) * 0.7 + 0.3 * sample_weights['alpha']
+            0.62 * sample_weights['specific_model'] + 
+            0.38 * sample_weights['recycle']
+        ) * 0.91 + 0.09 * sample_weights['alpha']
         
         np.testing.assert_array_almost_equal(result, expected)
