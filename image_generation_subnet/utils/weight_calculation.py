@@ -51,11 +51,7 @@ class WeightCalculationService:
                     miner_component = miner_component / miner_component_sum
                 miner_component = miner_component * transition["miner_weight"]
                 
-                stake_component = alpha_raw_weights
-                stake_component_sum = np.sum(stake_component)
-                if stake_component_sum != 0:
-                    stake_component = stake_component / stake_component_sum
-                stake_component = stake_component * transition["stake_weight"]
+                stake_component = alpha_raw_weights * transition["stake_weight"]
                 return miner_component + stake_component
                 
         # After all transitions, use default weights
@@ -70,10 +66,6 @@ class WeightCalculationService:
             miner_component = miner_component / miner_component_sum
         miner_component = miner_component * WeightTransitionConfig.DEFAULT_MINER_WEIGHT
         
-        stake_component = alpha_raw_weights
-        stake_component_sum = np.sum(stake_component)
-        if stake_component_sum != 0:
-            stake_component = stake_component / stake_component_sum
-        stake_component = stake_component * WeightTransitionConfig.DEFAULT_STAKE_WEIGHT
+        stake_component = alpha_raw_weights * WeightTransitionConfig.DEFAULT_STAKE_WEIGHT
         
         return miner_component + stake_component
