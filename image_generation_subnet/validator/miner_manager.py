@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 import time
 import bittensor as bt
@@ -9,20 +9,30 @@ import requests
 from threading import Thread
 import image_generation_subnet as ig_subnet
 
+import typing_extensions
+if typing_extensions.TYPE_CHECKING:
+    from neurons.validator.validator import Validator
+
 
 class MinerManager:
-    def __init__(self, validator):
+    def __init__(self, validator: "Validator", metagraph: bt.Metagraph):
         self.validator = validator
-        self.all_uids = [int(uid.item()) for uid in self.validator.metagraph.uids]
+        self.metagraph = metagraph
+        self.all_uids = [int(uid.item()) for uid in self.metagraph.uids]
         self.all_uids_info = {
             uid: {"scores": [], "model_name": "", "process_time": []}
             for uid in self.all_uids
         }
         self.registration_log = {
             uid: datetime.utcnow().isoformat()
-            for uid in [int(uid.item()) for uid in self.validator.metagraph.uids]
+            for uid in [int(uid.item()) for uid in self.metagraph.uids]
         }
-        self.update_registration_log_from_api()
+        """ 
+        {
+            uid: datetime, 
+            ...
+        }
+        """
         self.layer_one_axons = {}
     
     def update_registration_log_from_api(self):
@@ -31,10 +41,10 @@ class MinerManager:
             registration_log = requests.get(registration_log_url, timeout=10).json()
             # convert keys to int
             registration_log = {int(k): v for k, v in registration_log.items()}
-            # update registration_log
-            self.registration_log = registration_log
+            return registration_log
         except Exception as e:
             bt.logging.error(f"Failed to get registration log: {e}")
+            return self.registration_log
 
     def get_miner_info(self, only_layer_one=False):
         """
@@ -59,7 +69,7 @@ class MinerManager:
         }
         if only_layer_one:
             bt.logging.debug(f"Some layer one miners: {list(responses.items())[:5]}")
-        responses = {k: v for k, v in responses.items() if v}
+        responses = {k: v for k, v in responses.items()}
         return responses
 
     def update_layer_zero(self, responses: dict):
@@ -86,6 +96,9 @@ class MinerManager:
         layer_one_valid_miners_info = self.get_miner_info(only_layer_one=True)
         valid_miners_info.update(layer_one_valid_miners_info)
 
+        self.registration_log = self.update_registration_log_from_api()
+        days_since_registration_dict = self._calculate_registration_days()
+
         if not valid_miners_info:
             bt.logging.warning("No active miner available. Skipping setting weights.")
         for uid, info in valid_miners_info.items():
@@ -93,7 +106,12 @@ class MinerManager:
                 uid,
                 {"scores": [], "model_name": "", "process_time": []},
             )
-            model_name = info.get("model_name", "")
+            miner_state["registration_time"] = days_since_registration_dict.get(uid, None)
+            model_name = info.get("model_name", "Recycle")
+            if model_name == "Recycle":
+                miner_state["scores"] = [0.9 ** days_since_registration_dict.get(uid, 1000)] * 10
+            if self.metagraph.stake[uid] >= 10000:
+                model_name = "Validator"
             raw_volume = info.get("total_volume", 40)  # Default to 40 if not specified
             min_allowed_volume = 40
             max_allowed_volume = 256
@@ -156,14 +174,29 @@ class MinerManager:
             ][-500:]
 
     def get_model_specific_weights(self, model_name, normalize=True):
+        """
+        Get the model specific weights for the given model name.
+        """
         model_specific_weights = np.zeros(len(self.all_uids))
-        for uid in self.get_miner_uids(model_name):
+        uids = self.get_miner_uids(model_name)
+        if model_name == "Recycle":
+            uids += self.get_miner_uids("Validator") # Validator is also counted as Recycle
+
+        for uid in uids:
             num_past_to_check = 10
             model_specific_weights[int(uid)] = (
                 sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
                 / num_past_to_check
             )
         model_specific_weights = np.clip(model_specific_weights, a_min=0, a_max=1)
+        
+        if model_name == "Stake_based":
+            # Get UIDs where dividends are 0
+            validator_uids = np.where(self.metagraph.dividends > 0)[0]
+            alpha_stake = self.metagraph.alpha_stake
+            alpha_stake[validator_uids] = 0 # Set validator's alpha stake to 0, only keep miner's alpha stake
+            model_specific_weights = alpha_stake
+
         if normalize:
             array_sum = np.sum(model_specific_weights)
             # Normalizing the tensor
@@ -205,3 +238,22 @@ class MinerManager:
     def reset_metadata(self):
         for uid in self.all_uids_info:
             self.all_uids_info[uid]["process_time"] = []
+
+    def _calculate_registration_days(self):
+        """
+        Calculate days since registration for each UID.
+        
+        Returns:
+            dict: Dictionary containing days since registration for each UID
+        """
+        days_since_registration_dict = {}
+        for uid in [int(uid) for uid in self.metagraph.uids]:
+            try:
+                registration_timestamp = self.registration_log[uid]
+                days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
+                days_since_registration_dict[uid] = days_since_registration
+
+            except Exception as e:
+                bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
+                
+        return days_since_registration_dict
