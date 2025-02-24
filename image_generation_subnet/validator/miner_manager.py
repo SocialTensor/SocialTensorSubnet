@@ -27,12 +27,7 @@ class MinerManager:
             uid: datetime.utcnow().isoformat()
             for uid in [int(uid.item()) for uid in self.metagraph.uids]
         }
-        """ 
-        {
-            uid: datetime, 
-            ...
-        }
-        """
+        """ { uid: datetime, ... }"""
         self.layer_one_axons = {}
     
     def update_registration_log_from_api(self):
