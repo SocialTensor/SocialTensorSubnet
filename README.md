@@ -29,9 +29,6 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 #### Recycle Category
 When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$. This decay process is applied for up to **100 days**. After 100 days, the score is effectively considered to be zero.
 
-#### Stake_based Category
-
-
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.
 - 📈 **Volume Commitment**: Miners commit to a model type and generation volume.
