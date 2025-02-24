@@ -13,26 +13,24 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 - 📊 [Subnet Statistics & Playground Showcase](https://studio.nichetensor.com/)
 
 ### Incentive Distribution
-#### Miner scores Weights: 91%
-##### Specific Model Category (62%)
 | Category        | Incentive Distribution | Description                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
-| 🧭 GoJourney       | 5%                     | Fixed Image Category                                                                                        |
-| 🌟 SUPIR    | 7%                     | Fixed Image Category |
-| 🌟 FluxSchnell | 20% | Fixed Image Category |
-| 🌟 Kolors | 10% | Fixed Image Category |
-| **OpenGeneral** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
-| **OpenDigitalArt** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
-| **OpenDigitalArtMinimalist** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
-| **OpenTraditionalArtSketch** | 10% | [Open category](/docs/open_category_reward_mechanism.md) |
-| **Pixtral_12b** | 5% | Fixed Multimodal Category |
-| 🐋 DeepSeek_R1_Distill_Llama_70B | 10% | Fixed Text Category |
+| 🧭 GoJourney       | 4%                     | Fixed Image Category                                                                                        |
+| 🌟 SUPIR    | 5%                     | Fixed Image Category |
+| 🌟 FluxSchnell | 10% | Fixed Image Category |
+| 🌟 Kolors | 5% | Fixed Image Category |
+| **OpenGeneral** | 7% | [Open category](/docs/open_category_reward_mechanism.md) |
+| **OpenDigitalArt** | 7% | [Open category](/docs/open_category_reward_mechanism.md) |
+| **OpenTraditionalArtSketch** | 7% | [Open category](/docs/open_category_reward_mechanism.md) |
+| 🐋 DeepSeek_R1_Distill_Llama_70B | 7% | Fixed Text Category |
+| **Recycle** | 47% |  |
+| **Stake_based** | 1% | Staking alpha also give incentive |
 
-##### Recycle Model Category (38%)
+#### Recycle Category
 When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$. This decay process is applied for up to **100 days**. After 100 days, the score is effectively considered to be zero.
 
+#### Stake_based Category
 
-#### Alpha stake weights: 9%
 
 ### Key Features
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.
