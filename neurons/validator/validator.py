@@ -58,7 +58,7 @@ class QueryQueue:
         for q in self.proxy_queue.values():
             q.queue.clear()
         for uid, info in all_uids_info.items():
-            if info["model_name"] == "Validator" or info["model_name"] == "Recycle":
+            if info["model_name"] == "Recycle":
                 continue
             synthentic_model_queue = self.synthentic_queue.setdefault(
                 info["model_name"], queue.Queue()
@@ -937,7 +937,7 @@ class Validator(BaseValidatorNeuron):
             for day in range(10)
         }
         
-        not_bonus_uids = self.miner_manager.get_miner_uids("Recycle") + self.miner_manager.get_miner_uids("Validator")
+        not_bonus_uids = self.miner_manager.get_miner_uids("Recycle")
         for uid, days in days_since_registration_dict.items():
             if 0 <= days < 10 and uid not in not_bonus_uids:
                 bonus_scores[uid] = bonus_percent_dict[int(days)] * self.scores[uid]

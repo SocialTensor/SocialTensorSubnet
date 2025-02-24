@@ -105,8 +105,6 @@ class MinerManager:
             model_name = info.get("model_name", "Recycle")
             if model_name == "Recycle":
                 miner_state["scores"] = [0.9 ** days_since_registration_dict.get(uid, 1000)] * 10
-            if self.metagraph.stake[uid] >= 10000:
-                model_name = "Validator"
             raw_volume = info.get("total_volume", 40)  # Default to 40 if not specified
             min_allowed_volume = 40
             max_allowed_volume = 256
@@ -174,9 +172,6 @@ class MinerManager:
         """
         model_specific_weights = np.zeros(len(self.all_uids))
         uids = self.get_miner_uids(model_name)
-        if model_name == "Recycle":
-            uids += self.get_miner_uids("Validator") # Validator is also counted as Recycle
-
         for uid in uids:
             num_past_to_check = 10
             model_specific_weights[int(uid)] = (
