@@ -26,10 +26,11 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
 | **Recycle** | 47% |  |
 | **Stake_based** | 1% | Staking alpha also give incentive |
 
-#### Recycle Category
-When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$. This decay process is applied for up to **100 days**. After 100 days, the score is effectively considered to be zero.
-
 ### Key Features
+- ♻️ **Recycle Category**: When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$. This decay process is applied for up to **100 days**. After 100 days, the score is effectively considered to be zero.
+- 💰 **Stake_based**: Staking alpha also give incentive.
+- 🎁  **Bonus Score**: Bonus score for newly registered UIDs running Specific model based on their registration date.
+
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.
 - 📈 **Volume Commitment**: Miners commit to a model type and generation volume.
 - 📊 **Fixed And Open Category**: Miners run fixed model list or their own choice for tailored domain.
@@ -42,6 +43,7 @@ When a new miner registers, their initial score is set to **1.0**. The score dec
   - `volume_scale = max(min(total_volume**0.5 / 256**0.5, 1), 0)`
 - 🌟 **Continuous Improvement**: Introducing new models and features based on usage demand.
 - 💵 **Earn as a Validator**: Validators can earn money by sharing their request capacity with miners.
+
 
 ## Setup and Participation
 
