@@ -23,23 +23,28 @@ class MinerManager:
             uid: {"scores": [], "model_name": "", "process_time": []}
             for uid in self.all_uids
         }
-        self.registration_log = {
-            uid: datetime.utcnow().isoformat()
+        self.days_since_registration_dict = {
+            uid: 0
             for uid in [int(uid.item()) for uid in self.metagraph.uids]
         }
-        """ { uid: datetime, ... }"""
+        """ { uid: days since registration , ... }"""
         self.layer_one_axons = {}
     
-    def update_registration_log_from_api(self):
+    def update_days_since_registration_dict_from_api(self):
         try:
             registration_log_url = "https://nicheimage-api.nichetensor.com/registration_log"
             registration_log = requests.get(registration_log_url, timeout=10).json()
             # convert keys to int
             registration_log = {int(k): v for k, v in registration_log.items()}
-            return registration_log
+            days_since_registration_dict = {
+                uid: (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
+                for uid, registration_timestamp in registration_log.items()
+            }
+            bt.logging.info(f"Days since registration dict: {days_since_registration_dict}")
+            return days_since_registration_dict
         except Exception as e:
             bt.logging.error(f"Failed to get registration log: {e}")
-            return self.registration_log
+            return self.days_since_registration_dict
 
     def get_miner_info(self, only_layer_one=False):
         """
@@ -91,8 +96,7 @@ class MinerManager:
         layer_one_valid_miners_info = self.get_miner_info(only_layer_one=True)
         valid_miners_info.update(layer_one_valid_miners_info)
 
-        self.registration_log = self.update_registration_log_from_api()
-        days_since_registration_dict = self._calculate_registration_days()
+        self.days_since_registration_dict = self.update_days_since_registration_dict_from_api()
 
         if not valid_miners_info:
             bt.logging.warning("No active miner available. Skipping setting weights.")
@@ -101,10 +105,10 @@ class MinerManager:
                 uid,
                 {"scores": [], "model_name": "", "process_time": []},
             )
-            miner_state["registration_time"] = days_since_registration_dict.get(uid, None)
+            miner_state["registration_time"] = self.days_since_registration_dict.get(uid, None)
             model_name = info.get("model_name", "Recycle")
             if model_name == "Recycle":
-                miner_state["scores"] = [0.9 ** days_since_registration_dict.get(uid, 1000)] * 10
+                miner_state["scores"] = [0.9 ** self.days_since_registration_dict.get(uid, 1000)] * 10
             raw_volume = info.get("total_volume", 40)  # Default to 40 if not specified
             min_allowed_volume = 40
             max_allowed_volume = 256
@@ -187,6 +191,11 @@ class MinerManager:
             alpha_stake[validator_uids] = 0 # Set validator's alpha stake to 0, only keep miner's alpha stake
             model_specific_weights = alpha_stake
 
+        if model_name != "Recycle" and model_name != "Stake_based":
+            bonus_scores = self.get_bonus_scores(uids, model_specific_weights)
+            model_specific_weights = model_specific_weights + bonus_scores
+            bt.logging.info(f"Bonus scores for {model_name}: {bonus_scores}")
+
         if normalize:
             array_sum = np.sum(model_specific_weights)
             # Normalizing the tensor
@@ -229,21 +238,28 @@ class MinerManager:
         for uid in self.all_uids_info:
             self.all_uids_info[uid]["process_time"] = []
 
-    def _calculate_registration_days(self):
+    def get_bonus_scores(self, uids, model_specific_weights):
         """
-        Calculate days since registration for each UID.
+        Returns bonus scores for newly registered UIDs based on their registration date.
+        Newer registrations get higher bonus percentages, scaling from 10% for 0-day-old
+        registrations down to 1% for 9-day-old registrations.
         
         Returns:
-            dict: Dictionary containing days since registration for each UID
+            np.ndarray: Array of bonus scores matching the shape of self.scores
         """
-        days_since_registration_dict = {}
-        for uid in [int(uid) for uid in self.metagraph.uids]:
-            try:
-                registration_timestamp = self.registration_log[uid]
-                days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
-                days_since_registration_dict[uid] = days_since_registration
+        bonus_scores = np.zeros_like(model_specific_weights)
+        bonus_percent_dict = {
+            day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
+            for day in range(10)
+        }
 
-            except Exception as e:
-                bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
-                
-        return days_since_registration_dict
+        try:
+            for uid in uids:
+                days = self.days_since_registration_dict[uid]
+                if days < 10:
+                    bonus_scores[uid] = bonus_percent_dict[days] * model_specific_weights[uid]
+            
+        except Exception as e:
+            bt.logging.error(f"Error getting bonus scores: {e}")
+            
+        return bonus_scores

@@ -881,69 +881,6 @@ class Validator(BaseValidatorNeuron):
 
         return ranked_array
     
-    def get_bonus_scores(self):
-        """
-        Returns bonus scores for newly registered UIDs based on their registration date.
-        Newer registrations get higher bonus percentages, scaling from 10% for 0-day-old
-        registrations down to 1% for 9-day-old registrations.
-        
-        Returns:
-            np.ndarray: Array of bonus scores matching the shape of self.scores
-        """
-        bonus_scores = np.zeros_like(self.scores)
-        self.miner_manager.update_registration_log_from_api()
-        try:
-            days_since_registration_dict = self._calculate_registration_days()
-            bonus_scores = self._apply_bonus_multipliers(days_since_registration_dict)
-            bt.logging.info(f"Days since registration dict: {days_since_registration_dict}")
-            
-        except Exception as e:
-            bt.logging.error(f"Error getting bonus scores: {e}")
-            
-        return bonus_scores
-
-    def _calculate_registration_days(self):
-        """
-        Calculate days since registration for each UID.
-        
-        Returns:
-            dict: Dictionary containing days since registration for each UID
-        """
-        days_since_registration_dict = {}
-        for uid in [int(uid) for uid in self.metagraph.uids]:
-            try:
-                registration_timestamp = self.miner_manager.registration_log[uid]
-                days_since_registration = (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
-                days_since_registration_dict[uid] = days_since_registration
-
-            except Exception as e:
-                bt.logging.error(f"Error calculating registration days for uid {uid}: {e}")
-                
-        return days_since_registration_dict
-
-    def _apply_bonus_multipliers(self, days_since_registration_dict: dict) -> np.ndarray:
-        """
-        Apply bonus multipliers based on days since registration.
-        
-        Args:
-            days_since_registration_list: Array of days since registration for each UID
-            
-        Returns:
-            np.ndarray: Array of bonus scores
-        """
-        bonus_scores = np.zeros_like(self.scores)
-        bonus_percent_dict = {
-            day: (10 - day) / 100  # Generates 0.10 to 0.01 for days 0-9
-            for day in range(10)
-        }
-        
-        not_bonus_uids = self.miner_manager.get_miner_uids("Recycle")
-        for uid, days in days_since_registration_dict.items():
-            if 0 <= days < 10 and uid not in not_bonus_uids:
-                bonus_scores[uid] = bonus_percent_dict[int(days)] * self.scores[uid]
-                
-        return bonus_scores
-    
     # MARK: Set weights
     @override
     def set_weights(self):
@@ -954,12 +891,7 @@ class Validator(BaseValidatorNeuron):
         if np.isnan(self.scores).any():
             bt.logging.warning(
                 "Scores contain NaN values. This may be due to a lack of responses from miners, or a bug in your reward functions."
-            )
-        
-        # Add bonus scores to new registered uids
-        bonus_scores = self.get_bonus_scores()
-        bt.logging.info(f"Bonus scores: {bonus_scores}")
-        self.scores = self.scores + bonus_scores       
+            )  
 
         # Calculate the average reward for each uid across non-zero values.
         # Replace any NaN values with 0.
