@@ -38,14 +38,6 @@ git submodule update --init --recursive
 
 4. Start the endpoint
 
-**For Recycle Category**
-```bash
-source main_env/bin/activate
-pm2 start python --name "miner_endpoint" -- -m services.miner_endpoint.recycle_app \
---model_name Recycle \
---port 10006 # default port
-```
-
 **For Image Generation Category**
 - Important notes
     - For the DallE, GoJourney model, you need to set `--num_gpus 0` and `--num_replicas` equal to your `max_concurrent_requests` to allow the miner to handle multiple requests concurrently.
