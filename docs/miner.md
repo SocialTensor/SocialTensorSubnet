@@ -5,16 +5,20 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 ### Incentive Distribution
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
-| GoJourney         | 5%                    | 12 |
-| SUPIR             | 7%                    | 180|
-| FluxSchnell       | 20%                   | 24 |
-| Kolors            | 10%                   | 32 |
-| **OpenGeneral**   | 10%                   | 32 |
-| **OpenDigitalArt** | 10%                  | 32 |
-| **OpenDigitalArtMinimalist** | 10%        | 32 |
-| **OpenTraditionalArtSketch** | 10%        | 32 |
-| **Pixtral_12b** | 5%                      | 64 |
-| **DeepSeek_R1_Distill_Llama_70B** | 10%   | 128|
+| GoJourney         | 4%                    | 12 |
+| SUPIR             | 5%                    | 180|
+| FluxSchnell       | 10%                   | 24 |
+| Kolors            | 5%                   | 32 |
+| **OpenGeneral**   | 7%                   | 32 |
+| **OpenDigitalArt** | 7%                  | 32 |
+| **OpenTraditionalArtSketch** | 7%        | 32 |
+| **DeepSeek_R1_Distill_Llama_70B** | 7%   | 128|
+| **Recycle**        | 47%                  |    |
+| **Stake_based**    | 1%                   |    |
+
+## Guid Recyle Category
+- Not serving any Fixed Category will be count as Recycle, miner don't need run any CPU just need to register.
+- When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$. This decay process is applied for up to **100 days**. After 100 days, the score is effectively considered to be zero.
 
 ## Guide Fixed Category
 1. Git clone and install requirements
