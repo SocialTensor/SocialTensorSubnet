@@ -62,8 +62,8 @@ def get_reward_GoJourney(
     for synapse in synapses:
         try:
             synapse_response: dict = synapse.response_dict
-            bt.logging.info(synapse_response)
-            task_id = synapse_response["task_id"]
+            bt.logging.info("GoJourney response: ", synapse_response)
+            task_id = synapse_response["data"]["task_id"]
             task_response = fetch_GoJourney(task_id)
             task_input = task_response["meta"]["task_request"]
             task_status = task_response["status"]
@@ -87,7 +87,9 @@ def get_reward_GoJourney(
                 bt.logging.info(f"Process_mode: {process_mode}")
             rewards.append(reward)
         except Exception as e:
-            bt.logging.warning(f"Error in get_reward_GoJourney: {e}")
+            bt.logging.warning(
+                f"Error in get_reward_GoJourney: {e}, Synapse response: {synapse_response}"
+            )
             rewards.append(0)
     return uids, rewards
 
