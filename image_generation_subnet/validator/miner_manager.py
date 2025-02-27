@@ -15,7 +15,7 @@ if typing_extensions.TYPE_CHECKING:
 
 
 class MinerManager:
-    def __init__(self, validator: "Validator", metagraph: bt.Metagraph):
+    def __init__(self, validator: "Validator", metagraph: "bt.metagraph"):
         self.validator = validator
         self.metagraph = metagraph
         self.all_uids = [int(uid.item()) for uid in self.metagraph.uids]
