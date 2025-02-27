@@ -344,7 +344,7 @@ class Validator(BaseValidatorNeuron):
         self.sync()
         self.miner_manager.update_miners_identity()
         self.query_queue = QueryQueue(
-            list(set(self.nicheimage_catalogue.keys())),
+            list(set(self.nicheimage_catalogue.keys()) - {"Recycle", "Stake_based"}),
             time_per_loop=self.config.loop_base_time,
         )
         self.offline_reward = self.config.offline_reward.enable
