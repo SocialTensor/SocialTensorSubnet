@@ -43,9 +43,11 @@ class QueryQueue:
         self.synthentic_queue: dict[str, queue.Queue[QueryItem]] = {
             model_name: queue.Queue() for model_name in model_names
         }
+        bt.logging.info(f"Synthentic queue: {self.synthentic_queue}")
         self.proxy_queue: dict[str, queue.Queue[QueryItem]] = {
             model_name: queue.Queue() for model_name in model_names
         }
+        bt.logging.info(f"Proxy queue: {self.proxy_queue}")
         self.synthentic_rewarded = []
         self.time_per_loop = time_per_loop
         self.total_uids_remaining = 0
@@ -338,7 +340,7 @@ class Validator(BaseValidatorNeuron):
         self.sync()
         self.miner_manager.update_miners_identity()
         self.query_queue = QueryQueue(
-            list(self.nicheimage_catalogue.keys()),
+            list(set(self.nicheimage_catalogue.keys()) - {"Recycle", "Stake_based"}),
             time_per_loop=self.config.loop_base_time,
         )
         self.offline_reward = self.config.offline_reward.enable
