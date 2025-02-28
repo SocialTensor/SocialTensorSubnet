@@ -61,7 +61,7 @@ class QueryQueue:
             q.queue.clear()
         for uid, info in all_uids_info.items():
             if info["model_name"] not in self.synthentic_queue.keys():
-                bt.logging.warning(f"UID {uid}, Model {info['model_name']} not in synthentic queue keys")
+                bt.logging.info(f"Skipping UID {uid}, Model {info['model_name']} not in synthentic queue keys")
                 continue
             synthentic_model_queue = self.synthentic_queue.setdefault(
                 info["model_name"], queue.Queue()
