@@ -43,11 +43,11 @@ class QueryQueue:
         self.synthentic_queue: dict[str, queue.Queue[QueryItem]] = {
             model_name: queue.Queue() for model_name in model_names
         }
-        bt.logging.info(f"Synthentic queue: {self.synthentic_queue}")
+        bt.logging.info(f"Synthentic queue keys: {self.synthentic_queue.keys()}")
         self.proxy_queue: dict[str, queue.Queue[QueryItem]] = {
             model_name: queue.Queue() for model_name in model_names
         }
-        bt.logging.info(f"Proxy queue: {self.proxy_queue}")
+        bt.logging.info(f"Proxy queue keys: {self.proxy_queue.keys()}")
         self.synthentic_rewarded = []
         self.time_per_loop = time_per_loop
         self.total_uids_remaining = 0
@@ -83,8 +83,8 @@ class QueryQueue:
                 proxy_model_queue.put(QueryItem(uid=uid))
 
         bt.logging.info(f"Updated queue:")
-        bt.logging.info(f"Synthentic queue: {self.synthentic_queue}")
-        bt.logging.info(f"Proxy queue: {self.proxy_queue}")
+        bt.logging.info(f"Synthentic queue keys: {self.synthentic_queue.keys()}")
+        bt.logging.info(f"Proxy queue keys: {self.proxy_queue.keys()}")
         # Shuffle the queue
         for model_name, q in self.synthentic_queue.items():
             random.shuffle(q.queue)
