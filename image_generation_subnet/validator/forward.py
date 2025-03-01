@@ -129,7 +129,7 @@ def get_reward(
         with httpx.Client(timeout=httpx.Timeout(120, connect=8)) as client:
             response = client.post(url, json=data)
         if response.status_code != 200:
-            raise Exception(f"Error in get_reward: {response.json()}")
+            raise Exception(f"Error in get_reward: {url}, response: {response.text}")
         valid_rewards = response.json()["rewards"]
         valid_rewards = [float(reward) for reward in valid_rewards]
         process_times = [synapse.dendrite.process_time for synapse in valid_synapses]
