@@ -22,7 +22,8 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 - When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$
 
 ## Guide Stake_based Category
-- Every uid will be assigned a score based on the amount of stake they have. You don't need to run any CPU, just need to stake.
+- You don't need to run any CPU, just need to stake.
+- Every uid will be assigned a score based on the amount of stake they have. Selling alpha results in a lower score.
 
 ## Guide Fixed Category
 1. Git clone and install requirements

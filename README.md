@@ -29,7 +29,7 @@ NicheImage is a decentralized network that utilizes the Bittensor protocol to en
   - When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$. This decay process is applied for up to **100 days**. After 100 days, the score is effectively considered to be zero.
 - 💰 **Stake_based**: 
   - Miner don't need to run any CPU, just need to stake.
-  - Every uid will be assigned a score based on the amount of stake they have. 
+  - Every uid will be assigned a score based on the amount of stake they have. Selling alpha results in a lower score.
 - 🎁  **Bonus Score**: Bonus score for newly registered UIDs running Specific model based on their registration date.
 
 - 🚀 **Decentralized Image Generation Network**: Incentivizing miners to scale up their computational resources, allowing for up to thousands of generations per minute with sufficient GPU resources.
