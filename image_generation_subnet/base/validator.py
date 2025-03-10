@@ -25,7 +25,7 @@ from queue import Full
 import threading
 from datetime import datetime, timedelta, timezone
 from traceback import print_exception
-from typing import List
+from typing_extensions import override
 
 import bittensor as bt
 import numpy as np
@@ -274,6 +274,7 @@ class BaseValidatorNeuron(BaseNeuron):
 
         bt.logging.info(f"Set weights: {processed_weights}")
 
+    @override
     def resync_metagraph(self):
         """Resyncs the metagraph and updates the hotkeys and moving averages based on the new metagraph."""
         bt.logging.info("resync_metagraph()")

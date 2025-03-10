@@ -1,15 +1,18 @@
-from datetime import datetime, timezone
 import json
+import math
 import time
-import bittensor as bt
-from image_generation_subnet.protocol import ImageGenerating, Information
-import numpy as np
-from image_generation_subnet.utils.volume_setting import get_volume_per_validator
-import requests
+from datetime import datetime, timezone
 from threading import Thread
-import image_generation_subnet as ig_subnet
 
+import bittensor as bt
+import numpy as np
+import requests
 import typing_extensions
+
+import image_generation_subnet as ig_subnet
+from image_generation_subnet.protocol import ImageGenerating, Information
+from image_generation_subnet.utils.volume_setting import get_volume_per_validator
+
 if typing_extensions.TYPE_CHECKING:
     from neurons.validator.validator import Validator
 
@@ -20,27 +23,42 @@ class MinerManager:
         self.metagraph = metagraph
         self.all_uids = [int(uid.item()) for uid in self.metagraph.uids]
         self.all_uids_info = {
-            uid: {"scores": [], "model_name": "", "process_time": []}
+            uid: {
+                "scores": [],
+                "model_name": "",
+                "process_time": [],
+                "staking_score": [],
+                "ema_previous": self.metagraph.alpha_stake[uid],
+                "hotkey": self.metagraph.hotkeys[uid],
+            }
             for uid in self.all_uids
         }
         self.days_since_registration_dict = {
-            uid: 0
-            for uid in [int(uid.item()) for uid in self.metagraph.uids]
+            uid: 0 for uid in [int(uid.item()) for uid in self.metagraph.uids]
         }
         """ { uid: days since registration , ... }"""
         self.layer_one_axons = {}
-    
+
     def update_days_since_registration_dict_from_api(self):
         try:
-            registration_log_url = "https://nicheimage-api.nichetensor.com/registration_log"
+            registration_log_url = (
+                "https://nicheimage-api.nichetensor.com/registration_log"
+            )
             registration_log = requests.get(registration_log_url, timeout=10).json()
             # convert keys to int
             registration_log = {int(k): v for k, v in registration_log.items()}
             days_since_registration_dict = {
-                uid: (datetime.now(timezone.utc) - datetime.fromisoformat(registration_timestamp).replace(tzinfo=timezone.utc)).days
+                uid: (
+                    datetime.now(timezone.utc)
+                    - datetime.fromisoformat(registration_timestamp).replace(
+                        tzinfo=timezone.utc
+                    )
+                ).days
                 for uid, registration_timestamp in registration_log.items()
             }
-            bt.logging.info(f"Days since registration dict: {days_since_registration_dict}")
+            bt.logging.info(
+                f"Days since registration dict: {days_since_registration_dict}"
+            )
             return days_since_registration_dict
         except Exception as e:
             bt.logging.error(f"Failed to get registration log: {e}")
@@ -96,7 +114,9 @@ class MinerManager:
         layer_one_valid_miners_info = self.get_miner_info(only_layer_one=True)
         valid_miners_info.update(layer_one_valid_miners_info)
 
-        self.days_since_registration_dict = self.update_days_since_registration_dict_from_api()
+        self.days_since_registration_dict = (
+            self.update_days_since_registration_dict_from_api()
+        )
 
         if not valid_miners_info:
             bt.logging.warning("No active miner available. Skipping setting weights.")
@@ -105,14 +125,20 @@ class MinerManager:
                 uid,
                 {"scores": [], "model_name": "", "process_time": []},
             )
-            miner_state["registration_time"] = self.days_since_registration_dict.get(uid, None)
+            miner_state["registration_time"] = self.days_since_registration_dict.get(
+                uid, None
+            )
             model_name = info.get("model_name", "Recycle")
             if model_name == "Recycle":
-                miner_state["scores"] = [0.9 ** self.days_since_registration_dict.get(uid, 1000)] * 10
+                miner_state["scores"] = [
+                    0.9 ** self.days_since_registration_dict.get(uid, 1000)
+                ] * 10
             raw_volume = info.get("total_volume", 40)  # Default to 40 if not specified
             min_allowed_volume = 40
             max_allowed_volume = 256
-            miner_state["total_volume"] = min(max(raw_volume, min_allowed_volume), max_allowed_volume)
+            miner_state["total_volume"] = min(
+                max(raw_volume, min_allowed_volume), max_allowed_volume
+            )
             miner_state["min_stake"] = info.get("min_stake", 10000)
             miner_state["reward_scale"] = max(
                 min(miner_state["total_volume"] ** 0.5 / 256**0.5, 1), 0
@@ -174,14 +200,25 @@ class MinerManager:
         """
         Get the model specific weights for the given model name.
         """
+        model_specific_weights = np.zeros(len(self.all_uids))
         if model_name == "Stake_based":
-            # Get UIDs where dividends are 0
-            validator_uids = np.where(self.metagraph.dividends > 0)[0]
-            alpha_stake = self.metagraph.alpha_stake
-            alpha_stake[validator_uids] = 0 # Set validator's alpha stake to 0, only keep miner's alpha stake
-            model_specific_weights = alpha_stake
+            for uid in self.all_uids:
+                current_hotkey = self.metagraph.hotkeys[uid]
+                if current_hotkey != self.all_uids_info[uid].get("hotkey", None):
+                    self.all_uids_info[uid]["hotkey"] = current_hotkey
+                    self.all_uids_info[uid]["ema_previous"] = self.metagraph.alpha_stake[uid]
+                    self.all_uids_info[uid]["staking_score"] = []
+
+                ema_previous = self.all_uids_info[uid].get("ema_previous", 1)
+                alpha_now = self.metagraph.alpha_stake[uid]
+                score, ema = self.get_staking_score(ema_previous, alpha_now)
+                model_specific_weights[int(uid)] = score
+
+                # Update staking score
+                self.all_uids_info[uid]["ema_previous"] = ema
+                self.all_uids_info[uid]["staking_score"] = self.all_uids_info[uid].get("staking_score", []) + [score]
+                self.all_uids_info[uid]["staking_score"] = self.all_uids_info[uid]["staking_score"][-10:]
         else:
-            model_specific_weights = np.zeros(len(self.all_uids))
             uids = self.get_miner_uids(model_name)
             for uid in uids:
                 num_past_to_check = 10
@@ -216,7 +253,7 @@ class MinerManager:
             "version": ig_subnet.__version__,
             "catalogue": catalogue,
         }
-        serialized_data = json.dumps(data, sort_keys=True, separators=(',', ':'))
+        serialized_data = json.dumps(data, sort_keys=True, separators=(",", ":"))
         nonce = str(time.time_ns())
         # Calculate validator 's signature
         keypair = self.validator.wallet.hotkey
@@ -227,8 +264,7 @@ class MinerManager:
         data["signature"] = signature
         try:
             requests.post(
-                self.validator.config.storage_url + "/store_miner_info",
-                json=data
+                self.validator.config.storage_url + "/store_miner_info", json=data
             )
             self.reset_metadata()
         except Exception as e:
@@ -243,7 +279,7 @@ class MinerManager:
         Returns bonus scores for newly registered UIDs based on their registration date.
         Newer registrations get higher bonus percentages, scaling from 10% for 0-day-old
         registrations down to 1% for 9-day-old registrations.
-        
+
         Returns:
             np.ndarray: Array of bonus scores matching the shape of self.scores
         """
@@ -257,9 +293,31 @@ class MinerManager:
             for uid in uids:
                 days = self.days_since_registration_dict[uid]
                 if days < 10:
-                    bonus_scores[uid] = bonus_percent_dict[days] * model_specific_weights[uid]
-            
+                    bonus_scores[uid] = (
+                        bonus_percent_dict[days] * model_specific_weights[uid]
+                    )
+
         except Exception as e:
             bt.logging.error(f"Error getting bonus scores: {e}")
-            
+
         return bonus_scores
+
+    def get_staking_score(self, ema_previous, alpha_now):
+        ema_previous = max(ema_previous, 1)
+        w = 0.02
+        ema = w * alpha_now + (1 - w) * ema_previous
+        change_percentage = alpha_now / ema_previous - 1
+
+        if change_percentage < 0:
+            change_percentage = change_percentage * 2
+        else:
+            change_percentage = change_percentage / 2
+
+        if alpha_now > 1:
+            score = ema * (
+                1 / (1 + math.exp(-change_percentage))
+            )  # apply sigmoid function
+        else:
+            score = 0
+
+        return float(score), float(ema)
