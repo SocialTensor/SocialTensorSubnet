@@ -174,22 +174,22 @@ class MinerManager:
         """
         Get the model specific weights for the given model name.
         """
-        model_specific_weights = np.zeros(len(self.all_uids))
-        uids = self.get_miner_uids(model_name)
-        for uid in uids:
-            num_past_to_check = 10
-            model_specific_weights[int(uid)] = (
-                sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
-                / num_past_to_check
-            )
-        model_specific_weights = np.clip(model_specific_weights, a_min=0, a_max=1)
-        
         if model_name == "Stake_based":
             # Get UIDs where dividends are 0
             validator_uids = np.where(self.metagraph.dividends > 0)[0]
             alpha_stake = self.metagraph.alpha_stake
             alpha_stake[validator_uids] = 0 # Set validator's alpha stake to 0, only keep miner's alpha stake
             model_specific_weights = alpha_stake
+        else:
+            model_specific_weights = np.zeros(len(self.all_uids))
+            uids = self.get_miner_uids(model_name)
+            for uid in uids:
+                num_past_to_check = 10
+                model_specific_weights[int(uid)] = (
+                    sum(self.all_uids_info[uid]["scores"][-num_past_to_check:])
+                    / num_past_to_check
+                )
+            model_specific_weights = np.clip(model_specific_weights, a_min=0, a_max=1)
 
         if model_name != "Recycle" and model_name != "Stake_based":
             bonus_scores = self.get_bonus_scores(uids, model_specific_weights)
