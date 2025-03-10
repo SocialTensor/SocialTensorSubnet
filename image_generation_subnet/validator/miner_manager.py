@@ -206,7 +206,9 @@ class MinerManager:
                 current_hotkey = self.metagraph.hotkeys[uid]
                 if current_hotkey != self.all_uids_info[uid].get("hotkey", None):
                     self.all_uids_info[uid]["hotkey"] = current_hotkey
-                    self.all_uids_info[uid]["ema_previous"] = self.metagraph.alpha_stake[uid]
+                    self.all_uids_info[uid]["ema_previous"] = (
+                        self.metagraph.alpha_stake[uid]
+                    )
                     self.all_uids_info[uid]["staking_score"] = []
 
                 ema_previous = self.all_uids_info[uid].get("ema_previous", 1)
@@ -216,8 +218,12 @@ class MinerManager:
 
                 # Update staking score
                 self.all_uids_info[uid]["ema_previous"] = ema
-                self.all_uids_info[uid]["staking_score"] = self.all_uids_info[uid].get("staking_score", []) + [score]
-                self.all_uids_info[uid]["staking_score"] = self.all_uids_info[uid]["staking_score"][-10:]
+                self.all_uids_info[uid]["staking_score"] = self.all_uids_info[uid].get(
+                    "staking_score", []
+                ) + [score]
+                self.all_uids_info[uid]["staking_score"] = self.all_uids_info[uid][
+                    "staking_score"
+                ][-10:]
         else:
             uids = self.get_miner_uids(model_name)
             for uid in uids:
@@ -313,11 +319,6 @@ class MinerManager:
         else:
             change_percentage = change_percentage / 2
 
-        if alpha_now > 1:
-            score = ema * (
-                1 / (1 + math.exp(-change_percentage))
-            )  # apply sigmoid function
-        else:
-            score = 0
+        score = ema * (1 / (1 + math.exp(-change_percentage)))  # apply sigmoid function
 
         return float(score), float(ema)
