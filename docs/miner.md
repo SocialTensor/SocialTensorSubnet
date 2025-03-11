@@ -18,8 +18,12 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 
 ## Guide Recyle Category
 
-- Not serving any Fixed Category will be count as Recycle, miner don't need run any CPU just need to register.
-- When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$. This decay process is applied for up to **100 days**. After 100 days, the score is effectively considered to be zero.
+- Not serving any model will be count as Recycle, you don't need run any CPU just need to register.
+- When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$
+
+## Guide Stake_based Category
+- You don't need to run any CPU, just need to stake.
+- Every uid will be assigned a score based on the amount of stake they have. Selling alpha results in a lower score.
 
 ## Guide Fixed Category
 1. Git clone and install requirements
