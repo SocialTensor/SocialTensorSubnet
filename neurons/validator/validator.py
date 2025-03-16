@@ -63,6 +63,7 @@ class QueryQueue:
             if info["model_name"] not in self.synthentic_queue.keys():
                 bt.logging.info(f"Not adding UID {uid} to queue: Model '{info['model_name']}' not found in synthetic queue configuration")
                 continue
+            bt.logging.info(f"Adding UID {uid} to queue for model '{info['model_name']}' with rate limit {info['rate_limit']}")
             synthentic_model_queue = self.synthentic_queue.setdefault(
                 info["model_name"], queue.Queue()
             )
@@ -198,13 +199,13 @@ def initialize_nicheimage_catalogue(config):
     nicheimage_catalogue = {
         # Recycling and Stake-based
         "Recycle": {
-            "model_incentive_weight": 0.47,
+            "model_incentive_weight": 0.29,
             "supporting_pipelines": [None],
             "reward_url": None,
             "reward_type": None,
         },
         "Stake_based": {
-            "model_incentive_weight": 0.24,
+            "model_incentive_weight": 0.42,
             "supporting_pipelines": [None],
             "reward_url": None,
             "reward_type": None,
@@ -222,17 +223,6 @@ def initialize_nicheimage_catalogue(config):
             "inference_params": {},
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "SUPIR": {
-            "supporting_pipelines": MODEL_CONFIGS["SUPIR"]["params"][
-                "supporting_pipelines"
-            ],
-            "reward_url": config.reward_url.SUPIR,
-            "reward_type": "image",
-            "timeout": 180,
-            "inference_params": {},
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-            "model_incentive_weight": 0.00,
-        },
         "FluxSchnell": {
             "supporting_pipelines": MODEL_CONFIGS["FluxSchnell"]["params"][
                 "supporting_pipelines"
@@ -249,34 +239,9 @@ def initialize_nicheimage_catalogue(config):
             "timeout": 24,
             "synapse_type": ig_subnet.protocol.ImageGenerating,
         },
-        "Kolors": {
-            "supporting_pipelines": MODEL_CONFIGS["Kolors"]["params"][
-                "supporting_pipelines"
-            ],
-            "model_incentive_weight": 0.00,
-            "reward_url": config.reward_url.Kolors,
-            "reward_type": "image",
-            "inference_params": {
-                "num_inference_steps": 30,
-                "width": 1024,
-                "height": 1024,
-                "guidance_scale": 5.0,
-            },
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
         "OpenGeneral": {
             "supporting_pipelines": ["open_txt2img"],
             "model_incentive_weight": 0.05,
-            "reward_url": config.reward_url.OpenCategory,
-            "reward_type": "open_category",
-            "inference_params": {},
-            "timeout": 32,
-            "synapse_type": ig_subnet.protocol.ImageGenerating,
-        },
-        "OpenDigitalArt": {
-            "supporting_pipelines": ["open_txt2img"],
-            "model_incentive_weight": 0.00,
             "reward_url": config.reward_url.OpenCategory,
             "reward_type": "open_category",
             "inference_params": {},
@@ -694,24 +659,7 @@ class Validator(BaseValidatorNeuron):
         weights = np.zeros(len(self.miner_manager.all_uids))
         # Smoothing update incentive
         temp_incentive_weight = {}
-        if datetime.now(timezone.utc) < datetime(2025, 3, 13, 16, 0, 0, 0, tzinfo=timezone.utc):
-            temp_incentive_weight = {
-                "GoJourney": 0.04,
-                "SUPIR": 0.05,
-                "FluxSchnell": 0.10,
-                "Kolors": 0.05,
-                "OpenGeneral": 0.07,
-                "OpenDigitalArt": 0.07,
-                "OpenTraditionalArtSketch": 0.07,
-                "DeepSeek_R1_Distill_Llama_70B": 0.07,
-                "Recycle": 0.47,
-                "Stake_based": 0.01,
-
-                # Deprecated models
-                "Pixtral_12b": 0.00,
-                "OpenDigitalArtMinimalist": 0.00,
-            }
-        else:
+        if datetime.now(timezone.utc) < datetime(2025, 3, 20, 16, 0, 0, 0, tzinfo=timezone.utc):
             temp_incentive_weight = {
                 "GoJourney": 0.04,
                 "FluxSchnell": 0.10,
@@ -725,7 +673,29 @@ class Validator(BaseValidatorNeuron):
                 "SUPIR": 0.00,
                 "Kolors": 0.00,
                 "OpenDigitalArt": 0.00,
-
+            }
+        elif datetime.now(timezone.utc) > datetime(2025, 3, 27, 16, 0, 0, 0, tzinfo=timezone.utc):
+            temp_incentive_weight = {
+                "GoJourney": 0.04,
+                "FluxSchnell": 0.10,
+                "OpenGeneral": 0.05,
+                "OpenTraditionalArtSketch": 0.05,
+                "DeepSeek_R1_Distill_Llama_70B": 0.05,
+                "Recycle": 0.29,
+                "Stake_based": 0.42,
+            }
+        else:
+            days = (datetime.now(timezone.utc) - datetime(2025, 3, 20, 16, 0, 0, 0, tzinfo=timezone.utc)).days
+            recycle_weight = 0.47 - (0.47 - 0.29) * days / 7
+            stake_based_weight = 0.24 - (0.24 - 0.42) * days / 7
+            temp_incentive_weight = {
+                "GoJourney": 0.04,
+                "FluxSchnell": 0.10,
+                "OpenGeneral": 0.05,
+                "OpenTraditionalArtSketch": 0.05,
+                "DeepSeek_R1_Distill_Llama_70B": 0.05,
+                "Recycle": recycle_weight,
+                "Stake_based": stake_based_weight,
             }
         
         bt.logging.info(f"Using temp_incentive_weight: {temp_incentive_weight}")

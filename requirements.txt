@@ -10,6 +10,7 @@ onnxruntime==1.20.1
 diffusers==0.31.0
 transformers==4.46.3
 optimum-quanto @ git+https://github.com/SocialTensor/optimum-quanto.git
+controlnet_aux @ git+https://github.com/toilaluan/controlnet_aux.git
 litserve==0.2.5
 insightface==0.7.3
 sentencepiece==0.2.0
