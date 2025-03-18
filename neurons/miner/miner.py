@@ -113,7 +113,6 @@ class Miner(BaseMinerNeuron):
         return False, "All passed!"
 
     async def blacklist(self, synapse: ImageGenerating) -> Tuple[bool, str]:
-        bt.logging.info(f"synapse in blacklist {synapse}")
         try:
             if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
                 # Ignore requests from unrecognized entities.
@@ -195,4 +194,11 @@ if __name__ == "__main__":
                 )
                 start_time = time.time()
                 miner.total_request_in_interval = 0
+                miner.volume_per_validator = image_generation_subnet.utils.volume_setting.get_volume_per_validator(
+                    miner.metagraph,
+                    miner.config.miner.total_volume,
+                    miner.config.miner.size_preference_factor,
+                    miner.config.miner.min_stake,
+                    log=False,
+                )
             time.sleep(60)

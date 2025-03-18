@@ -117,17 +117,10 @@ class BaseMinerNeuron(BaseNeuron):
                 if self.should_exit:
                     break
                 # Wait before checking again.
-                time.sleep(300)
+                time.sleep(600)
 
                 # Sync metagraph and potentially set weights.
                 self.sync()
-                self.volume_per_validator = image_generation_subnet.utils.volume_setting.get_volume_per_validator(
-                    self.metagraph,
-                    self.config.miner.total_volume,
-                    self.config.miner.size_preference_factor,
-                    self.config.miner.min_stake,
-                    log=False,
-                )
 
                 self.step += 1
 
@@ -214,4 +207,4 @@ class BaseMinerNeuron(BaseNeuron):
         self.check_registered()
         bt.logging.info("Syncing metagraph")
         self.resync_metagraph()
-        bt.logging.info("Synced metagraph")
+        bt.logging.info(f"Synced metagraph: {self.metagraph}")
