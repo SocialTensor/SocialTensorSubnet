@@ -667,6 +667,7 @@ class Validator(BaseValidatorNeuron):
                 "DeepSeek_R1_Distill_Llama_70B": 0.05,
                 "Recycle": 0.29,
                 "Stake_based": 0.42,
+                "Burn": 0.0,
             }
         elif datetime.now(timezone.utc) < datetime(2025, 4, 1, 16, 0, 0, 0, tzinfo=timezone.utc):
             temp_incentive_weight = {
