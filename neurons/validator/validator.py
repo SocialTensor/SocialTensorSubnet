@@ -197,19 +197,26 @@ def initialize_challenge_urls(config):
 
 def initialize_nicheimage_catalogue(config):
     nicheimage_catalogue = {
-        # Recycling and Stake-based
+        # Pseudo models
         "Recycle": {
-            "model_incentive_weight": 0.29,
+            "model_incentive_weight": 0.0,
             "supporting_pipelines": [None],
             "reward_url": None,
             "reward_type": None,
         },
         "Stake_based": {
-            "model_incentive_weight": 0.42,
+            "model_incentive_weight": 0.0,
             "supporting_pipelines": [None],
             "reward_url": None,
             "reward_type": None,
         },
+        "Burn": {
+            "model_incentive_weight": 0.71,
+            "supporting_pipelines": [None],
+            "reward_url": None,
+            "reward_type": None,
+        },
+
 
         # Specific models
         "GoJourney": {
@@ -287,7 +294,7 @@ class Validator(BaseValidatorNeuron):
         self.sync()
         self.miner_manager.update_miners_identity()
         self.query_queue = QueryQueue(
-            list(set(self.nicheimage_catalogue.keys()) - {"Recycle", "Stake_based"}),
+            list(set(self.nicheimage_catalogue.keys()) - {"Recycle", "Stake_based", "Burn"}),
             time_per_loop=self.config.loop_base_time,
         )
         self.offline_reward = self.config.offline_reward.enable
@@ -550,14 +557,6 @@ class Validator(BaseValidatorNeuron):
         Batch the batch (max = 16) into smaller batch size (max = 4) and prepare synapses for each batch.
         """
         synapse_type = self.nicheimage_catalogue[model_name]["synapse_type"]
-        model_miner_count = len(
-            [
-                uid
-                for uid, info in self.miner_manager.all_uids_info.items()
-                if info["model_name"] == model_name
-            ]
-        )
-        # batch_size = min(4, 1 + model_miner_count // 4)
         batch_size = 1
 
         random.shuffle(uids_should_rewards)
@@ -659,22 +658,7 @@ class Validator(BaseValidatorNeuron):
         weights = np.zeros(len(self.miner_manager.all_uids))
         # Smoothing update incentive
         temp_incentive_weight = {}
-        if datetime.now(timezone.utc) < datetime(2025, 3, 20, 16, 0, 0, 0, tzinfo=timezone.utc):
-            temp_incentive_weight = {
-                "GoJourney": 0.04,
-                "FluxSchnell": 0.10,
-                "OpenGeneral": 0.05,
-                "OpenTraditionalArtSketch": 0.05,
-                "DeepSeek_R1_Distill_Llama_70B": 0.05,
-                "Recycle": 0.47,
-                "Stake_based": 0.24,
-
-                # Deprecated models
-                "SUPIR": 0.00,
-                "Kolors": 0.00,
-                "OpenDigitalArt": 0.00,
-            }
-        elif datetime.now(timezone.utc) > datetime(2025, 3, 27, 16, 0, 0, 0, tzinfo=timezone.utc):
+        if datetime.now(timezone.utc) < datetime(2025, 3, 27, 16, 0, 0, 0, tzinfo=timezone.utc):
             temp_incentive_weight = {
                 "GoJourney": 0.04,
                 "FluxSchnell": 0.10,
@@ -684,18 +668,31 @@ class Validator(BaseValidatorNeuron):
                 "Recycle": 0.29,
                 "Stake_based": 0.42,
             }
-        else:
-            days = (datetime.now(timezone.utc) - datetime(2025, 3, 20, 16, 0, 0, 0, tzinfo=timezone.utc)).days
-            recycle_weight = 0.47 - (0.47 - 0.29) * days / 7
-            stake_based_weight = 0.24 - (0.24 - 0.42) * days / 7
+        elif datetime.now(timezone.utc) < datetime(2025, 4, 1, 16, 0, 0, 0, tzinfo=timezone.utc):
             temp_incentive_weight = {
                 "GoJourney": 0.04,
                 "FluxSchnell": 0.10,
                 "OpenGeneral": 0.05,
                 "OpenTraditionalArtSketch": 0.05,
                 "DeepSeek_R1_Distill_Llama_70B": 0.05,
-                "Recycle": recycle_weight,
-                "Stake_based": stake_based_weight,
+                "Recycle": 0.29,
+                "Burn": 0.42,
+
+                # Deprecated
+                "Stake_based": 0.0,
+            }
+        else:
+            temp_incentive_weight = {
+                "GoJourney": 0.04,
+                "FluxSchnell": 0.10,
+                "OpenGeneral": 0.05,
+                "OpenTraditionalArtSketch": 0.05,
+                "DeepSeek_R1_Distill_Llama_70B": 0.05,
+                "Burn": 0.71,
+
+                # Deprecated
+                "Stake_based": 0.0,
+                "Recycle": 0.0,
             }
         
         bt.logging.info(f"Using temp_incentive_weight: {temp_incentive_weight}")
