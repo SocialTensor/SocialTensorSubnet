@@ -227,6 +227,7 @@ class MinerManager:
         elif model_name == "Burn":
             owner_coldkey = "5GvTa4JUKbUHqeJH8YLUDaV7jHChrfUy4n5zWrcCiU7bySoc"
             owner_hotkey_uid = self.metagraph.coldkeys.index(owner_coldkey)
+            uids = [owner_hotkey_uid]
             bt.logging.info(f"Burn emissions by setting weights for uid {owner_hotkey_uid}")
             model_specific_weights[owner_hotkey_uid] = 1.0
         else:
@@ -239,7 +240,7 @@ class MinerManager:
                 )
             model_specific_weights = np.clip(model_specific_weights, a_min=0, a_max=1)
 
-        if model_name != "Recycle" and model_name != "Stake_based":
+        if model_name != "Recycle" and model_name != "Stake_based" and model_name != "Burn":
             bonus_scores = self.get_bonus_scores(uids, model_specific_weights)
             model_specific_weights = model_specific_weights + bonus_scores
             bt.logging.info(f"Bonus scores for {model_name}: {bonus_scores}")
