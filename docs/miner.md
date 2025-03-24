@@ -14,16 +14,11 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | **OpenTraditionalArtSketch** | 7%        | 32 |
 | **DeepSeek_R1_Distill_Llama_70B** | 7%   | 128|
 | **Recycle**        | 47%                  |    |
-| **Stake_based**    | 1%                   |    |
 
 ## Guide Recyle Category
 
 - Not serving any model will be count as Recycle, you don't need run any CPU just need to register.
 - When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$
-
-## Guide Stake_based Category
-- You don't need to run any CPU, just need to stake.
-- Every uid will be assigned a score based on the amount of stake they have. Selling alpha results in a lower score.
 
 ## Guide Fixed Category
 1. Git clone and install requirements
