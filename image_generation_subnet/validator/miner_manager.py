@@ -226,10 +226,13 @@ class MinerManager:
                 ][-10:]
         elif model_name == "Burn":
             owner_coldkey = "5GvTa4JUKbUHqeJH8YLUDaV7jHChrfUy4n5zWrcCiU7bySoc"
-            owner_hotkey_uid = self.metagraph.coldkeys.index(owner_coldkey)
-            uids = [owner_hotkey_uid]
-            bt.logging.info(f"Burn emissions by setting weights for uid {owner_hotkey_uid}")
-            model_specific_weights[owner_hotkey_uid] = 1.0
+            try:
+                owner_hotkey_uid = self.metagraph.coldkeys.index(owner_coldkey)
+                uids = [owner_hotkey_uid]
+                bt.logging.info(f"Burn emissions by setting weights for uid {owner_hotkey_uid}")
+                model_specific_weights[owner_hotkey_uid] = 1.0
+            except ValueError:
+                bt.logging.error(f"Owner coldkey {owner_coldkey} not found in metagraph")
         else:
             uids = self.get_miner_uids(model_name)
             for uid in uids:
