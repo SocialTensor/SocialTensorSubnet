@@ -6,24 +6,11 @@ Make sure that you have a registered hotkey to Subnet 23. If you haven't done so
 | Category        | Incentive Distribution | Timeout (s)                                                                                                        |
 |-----------------|------------------------|--------------------------------------------------------------------------------------------------------------------|
 | GoJourney         | 4%                    | 12 |
-| SUPIR             | 5%                    | 180|
 | FluxSchnell       | 10%                   | 24 |
-| Kolors            | 5%                   | 32 |
-| **OpenGeneral**   | 7%                   | 32 |
-| **OpenDigitalArt** | 7%                  | 32 |
-| **OpenTraditionalArtSketch** | 7%        | 32 |
-| **DeepSeek_R1_Distill_Llama_70B** | 7%   | 128|
-| **Recycle**        | 47%                  |    |
-| **Stake_based**    | 1%                   |    |
-
-## Guide Recyle Category
-
-- Not serving any model will be count as Recycle, you don't need run any CPU just need to register.
-- When a new miner registers, their initial score is set to **1.0**. The score decays by **10% per day**, following the exponential decay formula: $\text{score} = 0.9^{\text{days}}$
-
-## Guide Stake_based Category
-- You don't need to run any CPU, just need to stake.
-- Every uid will be assigned a score based on the amount of stake they have. Selling alpha results in a lower score.
+| **OpenGeneral**   | 5%                   | 32 |
+| **OpenTraditionalArtSketch** | 5%        | 32 |
+| **DeepSeek_R1_Distill_Llama_70B** | 5%   | 128|
+| **Burn**        | 71%                  |    |
 
 ## Guide Fixed Category
 1. Git clone and install requirements
